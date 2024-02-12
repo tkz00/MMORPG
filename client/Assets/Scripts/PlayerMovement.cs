@@ -18,6 +18,7 @@ public class PlayerMovement : MonoBehaviour
     void Awake() {
         mainCamera = Camera.main;
         characterController = GetComponent<CharacterController>();
+        WebSocketConnection.Connect();
     }
 
     private void OnEnable() {
@@ -34,10 +35,13 @@ public class PlayerMovement : MonoBehaviour
     {
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if(Physics.Raycast(ray: ray, hitInfo: out RaycastHit hit) && hit.collider) {
+            // la idea es borrar esto despues
             if(movementCoroutine != null) {
                 StopCoroutine(movementCoroutine);
             }
             movementCoroutine = StartCoroutine(MoveTowards(hit.point));
+            // la idea es borrar esto despues
+            WebSocketConnection.SendPosition(hit.point);
         }
     }
 
