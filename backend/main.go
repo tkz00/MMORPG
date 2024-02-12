@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"moreno-gaming/backend/src/models"
 	"net/http"
 	"time"
 
@@ -66,10 +68,18 @@ func (server *WebSocketServer) handleWebSocket(conn *websocket.Conn) {
 			break
 		}
 		server.broadcast <- []byte(message)
+		fmt.Println(string(message))
 	}
 }
 
 func main() {
+	player := models.Player {
+		Position: models.Position{
+	    	X: 20.0,
+	    	Z: 20.0,
+		},
+	}
+	fmt.Println(player)
 	server := WebSocketServer{
 		clients:      make(map[*websocket.Conn]bool),
 		addClient:    make(chan *websocket.Conn),
