@@ -18,6 +18,9 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn){
 	gs.players[conn] = player.CreatePlayer(20.0,10.0)
 }
 
+func (gs *GameState) DeletePlayer(conn *websocket.Conn){
+	delete(gs.players, conn)
+}
 func (gs GameState) GetPlayerCount() int{
 	return len(gs.players)
 }
