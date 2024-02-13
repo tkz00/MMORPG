@@ -1,0 +1,70 @@
+package connection
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"golang.org/x/net/websocket"
+)
+
+type NativeServer struct {
+	clients      map[*websocket.Conn]bool
+	addClient    chan *websocket.Conn
+	removeClient chan *websocket.Conn
+	broadcast    chan []byte
+}
+
+func (ws *NativeServer) newServer () Server {
+	return &NativeServer {
+		clients:      make(map[*websocket.Conn]bool),
+		addClient:    make(chan *websocket.Conn),
+		removeClient: make(chan *websocket.Conn),
+		broadcast:    make(chan []byte),
+	}
+}
+
+func (ws NativeServer) StartConnection(port string) {
+	http.Handle("/ws", websocket.Handler(ws.handleWebSocket))
+
+	go ws.readLoop()
+
+	log.Println("WebSocket server running on :" + port)
+	log.Fatal(http.ListenAndServe(":" + port, nil))
+}
+
+func (server *NativeServer) readLoop() {
+	for {
+		select {
+		case client := <-server.addClient:
+			server.clients[client] = true
+			log.Println("Client connected", client.RemoteAddr())
+		case client := <-server.removeClient:
+			delete(server.clients, client)
+			log.Println("Client disconnected", client.RemoteAddr())
+		case message := <-server.broadcast:
+			for client := range server.clients {
+				err := websocket.Message.Send(client, string(message))
+				if err != nil {
+					log.Println("Error broadcasting message:", err)
+					return
+				}
+			}
+		}
+	}
+}
+
+func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
+	server.addClient <- conn
+	defer func() { server.removeClient <- conn }()
+	for {
+		var message string
+		err := websocket.Message.Receive(conn, &message)
+		if err != nil {
+			log.Println("Error reading message from client:", err)
+			break
+		}
+		server.broadcast <- []byte(message)
+		fmt.Println(string(message))
+	}
+}
