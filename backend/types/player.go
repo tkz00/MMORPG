@@ -4,8 +4,12 @@ type Player struct {
 	position Position
 }
 
-func (p Player) CreatePlayer(x, z float32) Player {
+func CreatePlayer(x, z float32) Player {
 	return Player{
 		position: Position{X: x, Z: z},
 	}
+}
+
+func (p Player) SetPosition(position Position) {
+	p.position = position
 }

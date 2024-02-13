@@ -46,9 +46,7 @@ func (server *NativeServer) readLoop() {
 			server.gameState.DeletePlayer(client)
 			delete(server.clients, client)
 			log.Println("Client disconnected", client.RemoteAddr())
-		case message := <-server.broadcast:
-			position := types.CreatePosition(message)
-			fmt.Println(position)
+		case message := <-server.broadcast: //THIS IS AN OBSERVER
 			for client := range server.clients {
 				err := websocket.Message.Send(client, string(message))
 				if err != nil {
@@ -60,8 +58,6 @@ func (server *NativeServer) readLoop() {
 	}
 }
 
-
-
 func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 	server.addClient <- conn
 	defer func() { server.removeClient <- conn }()
@@ -72,6 +68,14 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 			log.Println("Error reading message from client:", err)
 			break
 		}
+		fmt.Println(message)
 		server.broadcast <- []byte(message)
+		position := types.CreatePosition([]byte(message))
+		server.gameState.MovePlayer(conn, position)
 	}
 }
+
+
+
+// setPosition
+// ->> service ->> model
