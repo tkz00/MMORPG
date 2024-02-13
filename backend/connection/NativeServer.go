@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
+	"unnamed-mmo/backend/types"
 	"golang.org/x/net/websocket"
 )
 
@@ -13,6 +13,7 @@ type NativeServer struct {
 	addClient    chan *websocket.Conn
 	removeClient chan *websocket.Conn
 	broadcast    chan []byte
+	gameState	 types.GameState
 }
 
 func (ws *NativeServer) newServer () Server {
@@ -21,12 +22,12 @@ func (ws *NativeServer) newServer () Server {
 		addClient:    make(chan *websocket.Conn),
 		removeClient: make(chan *websocket.Conn),
 		broadcast:    make(chan []byte),
+		gameState: 	  types.StartGameState(),
 	}
 }
 
 func (ws NativeServer) StartConnection(port string) {
 	http.Handle("/ws", websocket.Handler(ws.handleWebSocket))
-
 	go ws.readLoop()
 
 	log.Println("WebSocket server running on :" + port)
@@ -38,11 +39,13 @@ func (server *NativeServer) readLoop() {
 		select {
 		case client := <-server.addClient:
 			server.clients[client] = true
+			server.gameState.AddPlayer(client)
 			log.Println("Client connected", client.RemoteAddr())
 		case client := <-server.removeClient:
 			delete(server.clients, client)
 			log.Println("Client disconnected", client.RemoteAddr())
 		case message := <-server.broadcast:
+			fmt.Println(server.gameState.GetPlayerCount())
 			for client := range server.clients {
 				err := websocket.Message.Send(client, string(message))
 				if err != nil {
