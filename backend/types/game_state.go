@@ -39,10 +39,16 @@ func (gs GameState) GetPlayerCount() int {
 func (gs GameState) MovePlayer(conn *websocket.Conn, positionMsg []byte) {
 	position := CreatePosition(positionMsg)
 	playerId := gs.playerIds[conn]
-	gs.players[playerId].SetPosition(position)
+	gs.players[playerId].MoveTowards(position)
 }
 
-func (gs GameState) GetGameState() string {
+func (gs GameState) UpdateState() {
+	for _, player := range(gs.players) {
+		player.UpdatePosition()
+	}
+}
+
+func (gs GameState) GetGameState() []byte {
 	gameDTO := GameDTO{
 		Players: make([]PlayerDTO, 0),
 	}
@@ -51,7 +57,7 @@ func (gs GameState) GetGameState() string {
 		gameDTO.Players = append(gameDTO.Players, player.ToDTO(playerId))
 	}
 
-	gameStateJSON, _ := json.Marshal(gameDTO)
+	gameStateBytes, _ := json.Marshal(gameDTO)
 
-	return string(gameStateJSON)
+	return gameStateBytes
 }
