@@ -68,8 +68,9 @@ func (server *NativeServer) broadcastGameState() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		gameStateJSON := server.gameState.GetGameState()
-		server.broadcast <- []byte(gameStateJSON)
+		server.gameState.UpdateState()
+		gameStateBytes := server.gameState.GetGameState()
+		server.broadcast <- gameStateBytes
 	}
 }
 
