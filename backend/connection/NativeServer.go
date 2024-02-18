@@ -1,10 +1,11 @@
 package connection
 
 import (
-	"fmt"
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
+
 	"unnamed-mmo/backend/types"
 
 	"golang.org/x/net/websocket"
@@ -64,13 +65,9 @@ func (server *NativeServer) broadcastGameState() {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
-	for {
-		select {
-		case <-ticker.C:
-			server.broadcast <- []byte(server.gameState)
-		case <-ticker:
-			return
-		}
+	for range ticker.C {
+		gameStateJSON, _ := json.Marshal(server.gameState)
+		server.broadcast <- []byte(gameStateJSON)
 	}
 }
 
@@ -84,9 +81,9 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 			log.Println("Error reading message from client:", err)
 			break
 		}
-		fmt.Println(message)
-		server.broadcast <- []byte(message)
-		position := types.CreatePosition([]byte(message))
-		server.gameState.MovePlayer(conn, position)
+		// fmt.Println(message)
+		server.gameState.MovePlayer(conn, []byte(message))
 	}
 }
+
+// {"x":3.6,"z":19.01}
