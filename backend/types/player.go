@@ -1,15 +1,26 @@
 package types
 
 type Player struct {
-	Position Position
+	position Position
 }
 
 func CreatePlayer(x, z float32) *Player {
 	return &Player{
-		Position: Position{X: x, Z: z},
+		position: Position{x: x, z: z},
 	}
 }
 
 func (p *Player) SetPosition(position Position) {
-	p.Position = position
+	p.position = position
+}
+
+func (p Player) GetPosition() Position {
+	return p.position
+}
+
+func (p Player) ToDTO(id string) PlayerDTO {
+	return PlayerDTO{
+		Id:       id,
+		Position: p.position.ToDTO(),
+	}
 }

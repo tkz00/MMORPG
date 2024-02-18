@@ -1,7 +1,6 @@
 package connection
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -10,6 +9,9 @@ import (
 
 	"golang.org/x/net/websocket"
 )
+
+
+const TICKER_TIME = time.Second
 
 type NativeServer struct {
 	clients      map[*websocket.Conn]bool
@@ -62,11 +64,11 @@ func (server *NativeServer) readLoop() {
 }
 
 func (server *NativeServer) broadcastGameState() {
-	ticker := time.NewTicker(2 * time.Second)
+	ticker := time.NewTicker(TICKER_TIME)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		gameStateJSON, _ := json.Marshal(server.gameState)
+		gameStateJSON := server.gameState.GetGameState()
 		server.broadcast <- []byte(gameStateJSON)
 	}
 }

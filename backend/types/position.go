@@ -1,18 +1,13 @@
 package types
 
-import (
-	"encoding/json"
-)
-
 type Position struct {
-	X float32 `json:"x"`
-	Z float32 `json:"z"`
+	x float32
+	z float32
 }
 
-func CreatePosition(bytes []byte) Position {
-	pos := Position{}
-	if err := json.Unmarshal(bytes, &pos); err != nil {
-		panic(err)
+func (p Position) ToDTO() PositionDTO {
+	return PositionDTO{
+		X: p.x,
+		Z: p.z,
 	}
-	return pos
 }
