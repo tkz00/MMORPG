@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 	"unnamed-mmo/backend/types"
 
 	"golang.org/x/net/websocket"
@@ -14,25 +15,26 @@ type NativeServer struct {
 	addClient    chan *websocket.Conn
 	removeClient chan *websocket.Conn
 	broadcast    chan []byte
-	gameState	 types.GameState
+	gameState    types.GameState
 }
 
-func (ws *NativeServer) newServer () Server {
-	return &NativeServer {
+func (ws *NativeServer) newServer() Server {
+	return &NativeServer{
 		clients:      make(map[*websocket.Conn]bool),
 		addClient:    make(chan *websocket.Conn),
 		removeClient: make(chan *websocket.Conn),
 		broadcast:    make(chan []byte),
-		gameState: 	  types.StartGameState(),
+		gameState:    types.StartGameState(),
 	}
 }
 
 func (ws NativeServer) StartConnection(port string) {
 	http.Handle("/ws", websocket.Handler(ws.handleWebSocket))
 	go ws.readLoop()
+	go ws.broadcastGameState()
 
 	log.Println("WebSocket server running on :" + port)
-	log.Fatal(http.ListenAndServe(":" + port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
 func (server *NativeServer) readLoop() {
@@ -58,6 +60,20 @@ func (server *NativeServer) readLoop() {
 	}
 }
 
+func (server *NativeServer) broadcastGameState() {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			server.broadcast <- []byte(server.gameState)
+		case <-ticker:
+			return
+		}
+	}
+}
+
 func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 	server.addClient <- conn
 	defer func() { server.removeClient <- conn }()
@@ -74,8 +90,3 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 		server.gameState.MovePlayer(conn, position)
 	}
 }
-
-
-
-// setPosition
-// ->> service ->> model
