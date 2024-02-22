@@ -1,10 +1,16 @@
 package types
 
-const SPEED float32 = 1.0
+import (
+	"math"
+	"unnamed-mmo/backend/utils"
+)
+
+const SPEED float64 = 1
 
 type Player struct {
-	position Position
-	to       Position
+	position  Position
+	to        Position
+	direccion Position
 }
 
 func CreatePlayer(x, z float32) *Player {
@@ -29,6 +35,14 @@ func (p Player) GetPosition() Position {
 
 func (p *Player) MoveTowards(to Position) {
 	p.to = to
+
+	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
+	distanceMagnitude := math.Hypot(diffX, diffZ)
+
+	p.direccion = Position{
+		x: float32(diffX * SPEED / distanceMagnitude),
+		z: float32(diffZ * SPEED / distanceMagnitude),
+	}
 }
 
 func (p Player) IsMoving() bool {
@@ -36,21 +50,13 @@ func (p Player) IsMoving() bool {
 }
 
 func (p *Player) UpdatePosition() {
-	direction := Position{}
-
-	if p.position.x < p.to.x {
-		direction.x += SPEED
-	} else if p.position.x > p.to.x {
-		direction.x -= SPEED
+	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
+	distanceToTarget := math.Hypot(diffX, diffZ)
+	if distanceToTarget < SPEED {
+		p.position.Teleport(p.to)
+	} else {
+		p.position.Move(p.direccion)
 	}
-
-	if p.position.z < p.to.z {
-		direction.z += SPEED
-	} else if p.position.z > p.to.z {
-		direction.z -= SPEED
-	}
-
-	p.position.Move(direction)
 }
 
 func (p Player) ToDTO(id string) PlayerDTO {

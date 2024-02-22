@@ -43,8 +43,10 @@ func (gs GameState) MovePlayer(conn *websocket.Conn, positionMsg []byte) {
 }
 
 func (gs GameState) UpdateState() {
-	for _, player := range(gs.players) {
-		player.UpdatePosition()
+	for _, player := range gs.players {
+		if player.IsMoving() {
+			player.UpdatePosition()
+		}
 	}
 }
 
@@ -53,7 +55,7 @@ func (gs GameState) GetGameState() []byte {
 		Players: make([]PlayerDTO, 0),
 	}
 
-	for playerId, player := range(gs.players) {
+	for playerId, player := range gs.players {
 		gameDTO.Players = append(gameDTO.Players, player.ToDTO(playerId))
 	}
 
