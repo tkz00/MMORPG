@@ -10,7 +10,6 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-
 const TICKER_TIME = time.Second
 
 type NativeServer struct {
@@ -89,4 +88,4 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 	}
 }
 
-// {"x":3.6,"z":19.01}
+// {"x":-1.6,"z":18.34}
