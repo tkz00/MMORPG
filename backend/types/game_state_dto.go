@@ -1,5 +1,5 @@
 package types
 
 type GameDTO struct {
-	Players []PlayerDTO `json:"players"`
+	Players map[string]PlayerDTO `json:"players"`
 }
