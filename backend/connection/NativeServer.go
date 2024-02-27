@@ -10,6 +10,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+
 const TICKER_TIME = time.Second
 
 type NativeServer struct {
@@ -43,8 +44,13 @@ func (server *NativeServer) readLoop() {
 	for {
 		select {
 		case client := <-server.addClient:
-			server.gameState.AddPlayer(client)
+			playerId := server.gameState.AddPlayer(client)
 			server.clients[client] = true
+			err := websocket.Message.Send(client, playerId)
+			if err != nil {
+				log.Println("Error broadcasting message:", err)
+				return
+			}
 			log.Println("Client connected", client.RemoteAddr())
 		case client := <-server.removeClient:
 			server.gameState.DeletePlayer(client)
@@ -88,4 +94,4 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 	}
 }
 
-// {"x":-1.6,"z":18.34}
+// {"x":3.6,"z":19.01}

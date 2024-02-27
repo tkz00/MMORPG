@@ -19,11 +19,13 @@ func StartGameState() GameState {
 	}
 }
 
-func (gs *GameState) AddPlayer(conn *websocket.Conn) {
+func (gs *GameState) AddPlayer(conn *websocket.Conn) string {
 	id := uuid.New()
 	playerId := id.String()
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = CreatePlayer(20.0, 10.0)
+
+	return playerId
 }
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {
