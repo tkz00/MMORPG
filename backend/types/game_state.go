@@ -54,11 +54,11 @@ func (gs GameState) UpdateState() {
 
 func (gs GameState) GetGameState() []byte {
 	gameDTO := GameDTO{
-		Players: make([]PlayerDTO, 0),
+		Players: make(map[string]PlayerDTO, 0),
 	}
 
 	for playerId, player := range gs.players {
-		gameDTO.Players = append(gameDTO.Players, player.ToDTO(playerId))
+		gameDTO.Players[playerId] = player.ToDTO(playerId)
 	}
 
 	gameStateBytes, _ := json.Marshal(gameDTO)
