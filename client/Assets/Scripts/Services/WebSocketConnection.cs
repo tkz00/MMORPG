@@ -27,7 +27,7 @@ public static class WebSocketConnection
     public static async void SendPosition(Vector3 position) {
         Debug.Log("sape");
         float x = position.x, z = position.z;
-        string message = $"{x}, {z}";
+        string message = $"{{\"x\":{x}, \"z\":{z}}}";
         var encodedMessage = Encoding.UTF8.GetBytes(message);
         var wsBuffer = new ArraySegment<Byte>(encodedMessage, 0, encodedMessage.Length);
 
