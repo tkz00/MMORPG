@@ -14,11 +14,14 @@ public class PlayerMovement : MonoBehaviour
     private Coroutine movementCoroutine;
     private float playerSpeed = 10f;
     private CharacterController characterController;
+    private string playerID;
 
-    void Awake() {
+    async void Awake() {
         mainCamera = Camera.main;
         characterController = GetComponent<CharacterController>();
-        WebSocketConnection.Connect();
+        await WebSocketConnection.Connect();
+        playerID = await WebSocketConnection.ReceivePlayerID();
+        Debug.Log(playerID);
     }
 
     private void OnEnable() {
