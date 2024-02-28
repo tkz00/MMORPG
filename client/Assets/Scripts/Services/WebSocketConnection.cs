@@ -25,15 +25,14 @@ public static class WebSocketConnection
     } 
 
     public static async void SendPosition(Vector3 position) {
-        Debug.Log("sape");
         float x = position.x, z = position.z;
-        string message = $"{x}, {z}";
+        PositionDTO inputPosition = new PositionDTO{x = x, z = z};
+        string message = JsonUtility.ToJson(inputPosition);
         var encodedMessage = Encoding.UTF8.GetBytes(message);
         var wsBuffer = new ArraySegment<Byte>(encodedMessage, 0, encodedMessage.Length);
 
         try {
             await webSocket.SendAsync(wsBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
-            Debug.Log("Posicion enviada");
         } catch(Exception ex) {
             Debug.Log(ex.Message);
         }
@@ -74,41 +73,4 @@ public static class WebSocketConnection
         }
         return "Error receiving message";
     }
-
-/*
-    static async Task ReceiveMessages()
-    {
-        List<byte> messageBytes = new List<byte>();
-        byte[] receiveBuffer = new byte[1024];
-        while (webSocketConnection.State == WebSocketState.Open)
-        {
-            WebSocketReceiveResult result = null;
-            do
-            {
-                result = await webSocketConnection.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), CancellationToken.None);
-                for (int i = 0; i < result.Count; i++)
-                {
-                    messageBytes.Add(receiveBuffer[i]);
-                }
-            }
-            while (!result.EndOfMessage);
-            
-            if (result.MessageType == WebSocketMessageType.Binary)
-            {
-                var webSocketResponse = WebSocketResponse.Parser.ParseFrom(messageBytes.ToArray());
-                Debug.Log("received user: " + webSocketResponse.User.Username);
-                
-                messageBytes.Clear();
-            }
-            else if (result.MessageType == WebSocketMessageType.Close)
-            {
-                await webSocketConnection.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
-            }
-            else
-            {
-                Debug.LogError("Message from server is not binary");
-            }
-        }
-    }
-    */
 }
