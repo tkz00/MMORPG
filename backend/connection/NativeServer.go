@@ -1,6 +1,7 @@
 package connection
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -9,7 +10,6 @@ import (
 
 	"golang.org/x/net/websocket"
 )
-
 
 const TICKER_TIME = time.Second
 
@@ -46,7 +46,11 @@ func (server *NativeServer) readLoop() {
 		case client := <-server.addClient:
 			playerId := server.gameState.AddPlayer(client)
 			server.clients[client] = true
-			err := websocket.Message.Send(client, playerId)
+			response := types.WebSocketResponse{
+				PlayerID: playerId,
+			}
+			responseBytes, _ := json.Marshal(response)
+			err := websocket.Message.Send(client, responseBytes)
 			if err != nil {
 				log.Println("Error broadcasting message:", err)
 				return
