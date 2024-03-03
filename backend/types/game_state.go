@@ -1,8 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 )
@@ -52,7 +50,7 @@ func (gs GameState) UpdateState() {
 	}
 }
 
-func (gs GameState) GetGameState() []byte {
+func (gs GameState) GetGameState() GameDTO {
 	var players []PlayerDTO
 
 	for playerId, player := range gs.players {
@@ -63,11 +61,5 @@ func (gs GameState) GetGameState() []byte {
 		Players: players,
 	}
 
-	webSocketResponse := WebSocketResponse{
-		GameStateDTO: &gameDTO,
-	}
-
-	gameStateBytes, _ := json.Marshal(webSocketResponse)
-
-	return gameStateBytes
+	return gameDTO
 }

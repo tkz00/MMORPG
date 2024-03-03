@@ -62,7 +62,7 @@ func (server *NativeServer) readLoop() {
 			log.Println("Client disconnected", client.RemoteAddr())
 		case message := <-server.broadcast: //THIS IS AN OBSERVER
 			for client := range server.clients {
-				err := websocket.Message.Send(client, string(message))
+				err := websocket.Message.Send(client, message)
 				if err != nil {
 					log.Println("Error broadcasting message:", err)
 					return
@@ -78,8 +78,12 @@ func (server *NativeServer) broadcastGameState() {
 
 	for range ticker.C {
 		server.gameState.UpdateState()
-		gameStateBytes := server.gameState.GetGameState()
-		server.broadcast <- gameStateBytes
+		gameState := server.gameState.GetGameState()
+		webSocketResponse := types.WebSocketResponse{
+			GameStateDTO: &gameState,
+		}
+		responseBytes, _ := json.Marshal(webSocketResponse)
+		server.broadcast <- responseBytes
 	}
 }
 
