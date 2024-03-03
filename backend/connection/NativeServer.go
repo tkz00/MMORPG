@@ -11,7 +11,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-const TICKER_TIME = time.Second
+const TICKER_TIME = 50 * time.Millisecond
 
 type NativeServer struct {
 	clients      map[*websocket.Conn]bool

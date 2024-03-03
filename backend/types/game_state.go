@@ -21,7 +21,7 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) string {
 	id := uuid.New()
 	playerId := id.String()
 	gs.playerIds[conn] = playerId
-	gs.players[playerId] = CreatePlayer(20.0, 10.0)
+	gs.players[playerId] = CreatePlayer(0, 0)
 
 	return playerId
 }

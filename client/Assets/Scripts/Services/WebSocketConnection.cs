@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using System.Net.WebSockets;
 using System.Collections.Generic;
 using UnityEngine;
+using Newtonsoft.Json;
 
 public static class WebSocketConnection 
 {
     static ClientWebSocket webSocket;
     static String URL = "ws://localhost:3009/ws";
-
+	static Dictionary<Type, Delegate> _responseHandlers = new Dictionary<Type, Delegate>();
+	
     public static async Task Connect() {
         // handshake
         webSocket = new ClientWebSocket();
@@ -18,17 +20,21 @@ public static class WebSocketConnection
         try {
             webSocket.Options.SetRequestHeader("Origin", "http://example.com");
             await webSocket.ConnectAsync(wsUri, CancellationToken.None);
-            Debug.Log("conexion satisfactoria");
+			ReadLoopAsync();
+            // Debug.Log("conexion satisfactoria");
         } catch(Exception ex) {
             Debug.Log(ex.Message);
         }
-    } 
+    }
 
-    public static async void SendPosition(Vector3 position) {
-        float x = position.x, z = position.z;
-        PositionDTO inputPosition = new PositionDTO{x = x, z = z};
-        string message = JsonUtility.ToJson(inputPosition);
-        var encodedMessage = Encoding.UTF8.GetBytes(message);
+	public static void SetHandler<TResponse>(Action<TResponse> responseHandler)
+    {
+        _responseHandlers[typeof(TResponse)] = responseHandler;
+    }
+
+	public static async void SendMessage(string messageJson)
+    {
+		var encodedMessage = Encoding.UTF8.GetBytes(messageJson);
         var wsBuffer = new ArraySegment<Byte>(encodedMessage, 0, encodedMessage.Length);
 
         try {
@@ -38,8 +44,8 @@ public static class WebSocketConnection
         }
     }
 
-    public static async Task<string> ReceivePlayerID() {
-        List<byte> messageBytes = new List<byte>();
+	private static async void ReadLoopAsync() {
+		List<byte> messageBytes = new List<byte>();
         byte[] receiveBuffer = new byte[1024];
 
         while (webSocket.State == WebSocketState.Open)
@@ -54,13 +60,28 @@ public static class WebSocketConnection
                 }
             }
             while (!result.EndOfMessage);
-            
-            if (result.MessageType == WebSocketMessageType.Text)
-            {
-                string playerID = Encoding.UTF8.GetString(messageBytes.ToArray());
-                messageBytes.Clear();
 
-                return playerID;
+            if (result.MessageType == WebSocketMessageType.Binary)
+            {
+				string responseJson = Encoding.UTF8.GetString(messageBytes.ToArray());
+				WebSocketResponse response = JsonConvert.DeserializeObject<WebSocketResponse>(responseJson);
+				messageBytes.Clear();
+
+				Type responseType = typeof(WebSocketResponse);
+				var fields = responseType.GetFields();
+
+				foreach (var field in fields) {
+					var value = field.GetValue(response);
+					if (value != null) {
+						Type propertyType = value.GetType();
+
+						if (_responseHandlers.ContainsKey(propertyType)) {
+							var handler = _responseHandlers[propertyType];
+							handler.DynamicInvoke(value);
+							break;
+						}
+					}
+				}
             }
             else if (result.MessageType == WebSocketMessageType.Close)
             {
@@ -71,6 +92,5 @@ public static class WebSocketConnection
                 Debug.LogError("Message from server is not text");
             }
         }
-        return "Error receiving message";
-    }
+	}
 }
