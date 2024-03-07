@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -19,9 +20,22 @@ public class PlayerMovement : MonoBehaviour
     async void Awake() {
         mainCamera = Camera.main;
         characterController = GetComponent<CharacterController>();
+
+		WebSocketConnection.SetHandler<string>(new Action<string>((playerId) => {
+			this.playerID = playerId;
+			Debug.Log(this.playerID);
+		}));
+
+		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => {
+			PlayerDTO player = gameState.Players.Find(player => player.Id == this.playerID);
+
+			if(movementCoroutine != null) {
+                StopCoroutine(movementCoroutine);
+            }
+            movementCoroutine = StartCoroutine(MoveTowards(new Vector3(player.Position.x, this.transform.position.y, player.Position.z)));
+		}));
+
         await WebSocketConnection.Connect();
-        playerID = await WebSocketConnection.ReceivePlayerID();
-        Debug.Log(playerID);
     }
 
     private void OnEnable() {
@@ -38,13 +52,11 @@ public class PlayerMovement : MonoBehaviour
     {
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if(Physics.Raycast(ray: ray, hitInfo: out RaycastHit hit) && hit.collider) {
-            // la idea es borrar esto despues
-            if(movementCoroutine != null) {
-                StopCoroutine(movementCoroutine);
-            }
-            movementCoroutine = StartCoroutine(MoveTowards(hit.point));
-            // la idea es borrar esto despues
-            WebSocketConnection.SendPosition(hit.point);
+
+			float x = hit.point.x, z = hit.point.z;
+			PositionDTO inputPosition = new PositionDTO{x = x, z = z};
+			string message = JsonConvert.SerializeObject(inputPosition);
+			WebSocketConnection.SendMessage(message);
         }
     }
 

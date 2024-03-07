@@ -1,8 +1,6 @@
 package types
 
 import (
-	"encoding/json"
-
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 )
@@ -23,7 +21,7 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) string {
 	id := uuid.New()
 	playerId := id.String()
 	gs.playerIds[conn] = playerId
-	gs.players[playerId] = CreatePlayer(20.0, 10.0)
+	gs.players[playerId] = CreatePlayer(0, 0)
 
 	return playerId
 }
@@ -52,16 +50,16 @@ func (gs GameState) UpdateState() {
 	}
 }
 
-func (gs GameState) GetGameState() []byte {
-	gameDTO := GameDTO{
-		Players: make(map[string]PlayerDTO, 0),
-	}
+func (gs GameState) GetGameState() GameDTO {
+	var players []PlayerDTO
 
 	for playerId, player := range gs.players {
-		gameDTO.Players[playerId] = player.ToDTO(playerId)
+		players = append(players, player.ToDTO(playerId))
 	}
 
-	gameStateBytes, _ := json.Marshal(gameDTO)
+	gameDTO := GameDTO{
+		Players: players,
+	}
 
-	return gameStateBytes
+	return gameDTO
 }

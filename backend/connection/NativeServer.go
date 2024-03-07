@@ -1,6 +1,7 @@
 package connection
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -10,8 +11,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-
-const TICKER_TIME = time.Second
+const TICKER_TIME = 50 * time.Millisecond
 
 type NativeServer struct {
 	clients      map[*websocket.Conn]bool
@@ -46,7 +46,11 @@ func (server *NativeServer) readLoop() {
 		case client := <-server.addClient:
 			playerId := server.gameState.AddPlayer(client)
 			server.clients[client] = true
-			err := websocket.Message.Send(client, playerId)
+			response := types.WebSocketResponse{
+				PlayerID: playerId,
+			}
+			responseBytes, _ := json.Marshal(response)
+			err := websocket.Message.Send(client, responseBytes)
 			if err != nil {
 				log.Println("Error broadcasting message:", err)
 				return
@@ -58,7 +62,7 @@ func (server *NativeServer) readLoop() {
 			log.Println("Client disconnected", client.RemoteAddr())
 		case message := <-server.broadcast: //THIS IS AN OBSERVER
 			for client := range server.clients {
-				err := websocket.Message.Send(client, string(message))
+				err := websocket.Message.Send(client, message)
 				if err != nil {
 					log.Println("Error broadcasting message:", err)
 					return
@@ -74,8 +78,12 @@ func (server *NativeServer) broadcastGameState() {
 
 	for range ticker.C {
 		server.gameState.UpdateState()
-		gameStateBytes := server.gameState.GetGameState()
-		server.broadcast <- gameStateBytes
+		gameState := server.gameState.GetGameState()
+		webSocketResponse := types.WebSocketResponse{
+			GameStateDTO: &gameState,
+		}
+		responseBytes, _ := json.Marshal(webSocketResponse)
+		server.broadcast <- responseBytes
 	}
 }
 
