@@ -10,7 +10,6 @@ public class PlayerMovement : MonoBehaviour
     private Coroutine movementCoroutine;
     private float playerSpeed = 10f;
     private CharacterController characterController;
-    public string playerID;
 
     void Awake() {
         characterController = GetComponent<CharacterController>();
