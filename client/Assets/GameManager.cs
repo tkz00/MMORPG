@@ -16,7 +16,8 @@ public class GameManager : MonoBehaviour
 
 	// los colores
 	// despawnear
-
+	// seguir con la camara
+	
 	async void Awake() {
 		WebSocketConnection.SetHandler<string>(new Action<string>((playerId) => {
 			this.playerID = playerId;
@@ -32,6 +33,7 @@ public class GameManager : MonoBehaviour
 					PlayerMovement playerMovement = newPlayerGO.GetComponent<PlayerMovement>();
 					playerMovement.playerID = player.Id;
 					players.Add(playerMovement);
+					newPlayerGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 
 					if(this.playerID == player.Id) {
 						newPlayerGO.AddComponent<MainPlayer>();
