@@ -8,18 +8,20 @@ import (
 const SPEED float64 = 1
 
 type Player struct {
+	id 		  string
 	position  Position
 	to        Position
 	direccion Position
 }
 
-func CreatePlayer(x, z float32) *Player {
+func CreatePlayer(x, z float32, id string) *Player {
 	initPosition := Position{
 		x: x,
 		z: z,
 	}
 
 	return &Player{
+		id: id,
 		position: initPosition,
 		to:       initPosition,
 	}
@@ -56,12 +58,5 @@ func (p *Player) UpdatePosition() {
 		p.position.Teleport(p.to)
 	} else {
 		p.position.Move(p.direccion)
-	}
-}
-
-func (p Player) ToDTO(id string) PlayerDTO {
-	return PlayerDTO{
-		Id:       id,
-		Position: p.position.ToDTO(),
 	}
 }

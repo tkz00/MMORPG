@@ -5,6 +5,12 @@ type Position struct {
 	z float32
 }
 
+func CreatePosition(data []byte) Position {
+	positionDTO := CreatePositionDTO(data)
+
+	return *GetMapper().PositionDTOToModel(*positionDTO)
+}
+
 func (p Position) GetPosition() (float32, float32) {
 	return p.x, p.z
 }
@@ -17,11 +23,4 @@ func (p *Position) Move(to Position) {
 func (p *Position) Teleport(to Position) {
 	p.x = to.x
 	p.z = to.z
-}
-
-func (p Position) ToDTO() PositionDTO {
-	return PositionDTO{
-		X: p.x,
-		Z: p.z,
-	}
 }
