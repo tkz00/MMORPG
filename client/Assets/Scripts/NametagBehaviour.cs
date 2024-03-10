@@ -18,7 +18,10 @@ public class NametagBehaviour : MonoBehaviour
             GameObject nametagGO;
             if (!nametags.TryGetValue(player.Key, out nametagGO)) {
                 nametagGO = Instantiate(nametagPrefab, gameCanvas.transform);
-                nametagGO.GetComponent<TMP_Text>().text = player.Key;
+                var playerColor = player.Value.gameObject.GetComponent<MeshRenderer>().material.color;
+                var nametagComponent = nametagGO.GetComponent<TMP_Text>();
+                nametagComponent.text = player.Key;
+                nametagComponent.color = playerColor;
                 nametags[player.Key] = nametagGO;
             }
             Vector3 playerPosition = player.Value.transform.position;
