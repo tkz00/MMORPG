@@ -14,7 +14,7 @@ type GameStateDTO struct {
 }
 
 func (g GameStateDTO) GetType() string {
-	return utils.GetTypeName(g)
+	return "GameStateDTO"
 }
 
 type PlayerDTO struct {
@@ -23,7 +23,7 @@ type PlayerDTO struct {
 }
 
 func (p PlayerDTO) GetType() string {
-	return utils.GetTypeName(p)
+	return "PlayerDTO"
 }
 
 type PositionDTO struct {
@@ -44,5 +44,5 @@ func CreatePositionDTO(data []byte) *PositionDTO {
 }
 
 func (p PositionDTO) GetType() string {
-	return utils.GetTypeName(p)
+	return "PositionDTO"
 }
