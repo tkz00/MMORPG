@@ -8,12 +8,14 @@ import (
 type WebSocketResponse struct {
 	Body DTO    `json:"body"`
 	Type string `json:"type"`
+	Code string `json:"code"`
 }
 
-func CreateWebSocketResponse(body DTO) WebSocketResponse {
+func CreateWebSocketResponse(body DTO, code string) WebSocketResponse {
 	return WebSocketResponse{
 		Body: body,
 		Type: body.GetType(),
+		Code: code,
 	}
 }
 

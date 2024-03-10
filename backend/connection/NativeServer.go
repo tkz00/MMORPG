@@ -46,7 +46,7 @@ func (server *NativeServer) readLoop() {
 		case client := <-server.addClient:
 			playerDTO := server.gameState.AddPlayer(client)
 			server.clients[client] = true
-			response := types.CreateWebSocketResponse(playerDTO)
+			response := types.CreateWebSocketResponse(playerDTO, "CONNECTED_PLAYER")
 			message := response.Serialize()
 	        err := websocket.Message.Send(client, message)
 	        if err != nil {
@@ -77,7 +77,7 @@ func (server *NativeServer) broadcastGameState() {
 	for range ticker.C {
 		server.gameState.UpdateState()
 		gameStateDTO := server.gameState.GetGameState()
-		webSocketResponse := types.CreateWebSocketResponse(gameStateDTO) 		
+		webSocketResponse := types.CreateWebSocketResponse(gameStateDTO, "GAME_STATE_UPDATE") 		
 		server.broadcast <- webSocketResponse.Serialize()
 	}
 }
