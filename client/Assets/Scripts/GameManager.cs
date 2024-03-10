@@ -13,11 +13,27 @@ public class GameManager : MonoBehaviour
 
 	[SerializeField]
 	CinemachineVirtualCamera cinemachineVirtualCamera;
+	[SerializeField]
+	NametagBehaviour nametagBehaviour;
 
 	private string mainPlayerID;
 
 	Dictionary<string, PlayerMovement> players = new Dictionary<string, PlayerMovement>();
 	
+	async void Awake() {
+		WebSocketConnection.SetHandler<string>(new Action<string>((playerId) => {
+			this.mainPlayerID = playerId;
+			Debug.Log(this.mainPlayerID);
+		}));
+
+		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => onGameStateUpdate(gameState)));
+
+		await WebSocketConnection.Connect();
+    }
+
+	void Update() {
+		nametagBehaviour.AssignNametags(players);
+	}
 	void movePlayers(List<PlayerDTO> playerDTOS) {
         foreach(PlayerDTO player in playerDTOS) {
 			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == player.Id);
@@ -51,14 +67,4 @@ public class GameManager : MonoBehaviour
 		movePlayers(gameState.Players);
 	}
 
-	async void Awake() {
-		WebSocketConnection.SetHandler<string>(new Action<string>((playerId) => {
-			this.mainPlayerID = playerId;
-			Debug.Log(this.mainPlayerID);
-		}));
-
-		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => onGameStateUpdate(gameState)));
-
-		await WebSocketConnection.Connect();
-    }
 }
