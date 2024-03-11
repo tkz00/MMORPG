@@ -1,4 +1,7 @@
-public class WebSocketResponse {
-	public string PlayerID;
-	public GameStateDTO GameStateDTO;
+using System;
+using Newtonsoft.Json;
+using UnityEngine;
+public class WebSocketResponse <T> where T : DTO {
+	public T Body;
+	public string Type;
 }

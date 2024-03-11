@@ -52,8 +52,8 @@ public class GameManager : MonoBehaviour
 	}
 
 	async void Awake() {
-		WebSocketConnection.SetHandler<string>(new Action<string>((playerId) => {
-			this.mainPlayerID = playerId;
+		WebSocketConnection.SetHandler<PlayerDTO>(new Action<PlayerDTO>((playerDTO) => {
+			this.mainPlayerID = playerDTO.Id;
 			Debug.Log(this.mainPlayerID);
 		}));
 

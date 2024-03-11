@@ -6,6 +6,7 @@ using System.Net.WebSockets;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 public static class WebSocketConnection 
 {
@@ -27,7 +28,7 @@ public static class WebSocketConnection
         }
     }
 
-	public static void SetHandler<TResponse>(Action<TResponse> responseHandler)
+	public static void SetHandler<TResponse>(Action<TResponse> responseHandler) where TResponse : DTO
     {
         _responseHandlers[typeof(TResponse)] = responseHandler;
     }
@@ -64,24 +65,20 @@ public static class WebSocketConnection
             if (result.MessageType == WebSocketMessageType.Binary)
             {
 				string responseJson = Encoding.UTF8.GetString(messageBytes.ToArray());
-				WebSocketResponse response = JsonConvert.DeserializeObject<WebSocketResponse>(responseJson);
+                JObject jsonObject = JObject.Parse(responseJson);
+                string responseTypeString = (string)jsonObject["type"];
+                switch (responseTypeString) {
+                    case "PositionDTO":
+                        runHandler<PositionDTO>(responseJson);
+                        break;
+                    case "PlayerDTO":
+                        runHandler<PlayerDTO>(responseJson);
+                        break;
+                    case "GameStateDTO":
+                        runHandler<GameStateDTO>(responseJson);
+                        break;
+                }
 				messageBytes.Clear();
-
-				Type responseType = typeof(WebSocketResponse);
-				var fields = responseType.GetFields();
-
-				foreach (var field in fields) {
-					var value = field.GetValue(response);
-					if (value != null) {
-						Type propertyType = value.GetType();
-
-						if (_responseHandlers.ContainsKey(propertyType)) {
-							var handler = _responseHandlers[propertyType];
-							handler.DynamicInvoke(value);
-							break;
-						}
-					}
-				}
             }
             else if (result.MessageType == WebSocketMessageType.Close)
             {
@@ -93,4 +90,12 @@ public static class WebSocketConnection
             }
         }
 	}
+
+    static void runHandler<T>(string responseJson) where T : DTO {
+        WebSocketResponse<T> response = JsonConvert.DeserializeObject<WebSocketResponse<T>>(responseJson);
+        if(_responseHandlers.ContainsKey(typeof(T))) {
+            var handler = _responseHandlers[typeof(T)];
+            handler.DynamicInvoke(response.Body);
+        }
+    }
 }
