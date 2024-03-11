@@ -66,6 +66,8 @@ public static class WebSocketConnection
             {
 				string responseJson = Encoding.UTF8.GetString(messageBytes.ToArray());
                 JObject jsonObject = JObject.Parse(responseJson);
+				messageBytes.Clear();
+
                 string responseTypeString = (string)jsonObject["type"];
                 switch (responseTypeString) {
                     case "PositionDTO":
@@ -78,7 +80,6 @@ public static class WebSocketConnection
                         runHandler<GameStateDTO>(responseJson);
                         break;
                 }
-				messageBytes.Clear();
             }
             else if (result.MessageType == WebSocketMessageType.Close)
             {
