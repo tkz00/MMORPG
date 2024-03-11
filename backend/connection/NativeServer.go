@@ -1,7 +1,6 @@
 package connection
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -92,7 +91,6 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 			log.Println("Error reading message from client:", err)
 			break
 		}
-		fmt.Println(string(data))
 		server.handlePlayerMovement(conn, data)
 	}
 }
