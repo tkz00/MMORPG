@@ -49,6 +49,9 @@ public static class WebSocketConnection
 		List<byte> messageBytes = new List<byte>();
         byte[] receiveBuffer = new byte[1024];
 
+        JsonSerializerSettings settings = new JsonSerializerSettings();
+        settings.Converters.Add(new WebSocketResponseConverter());
+
         while (webSocket.State == WebSocketState.Open)
         {
             WebSocketReceiveResult result = null;
@@ -65,20 +68,13 @@ public static class WebSocketConnection
             if (result.MessageType == WebSocketMessageType.Binary)
             {
 				string responseJson = Encoding.UTF8.GetString(messageBytes.ToArray());
-                JObject jsonObject = JObject.Parse(responseJson);
-				messageBytes.Clear();
+                WebSocketResponse response = JsonConvert.DeserializeObject<WebSocketResponse>(responseJson, settings);
+                messageBytes.Clear();
 
-                string responseTypeString = (string)jsonObject["type"];
-                switch (responseTypeString) {
-                    case "PositionDTO":
-                        runHandler<PositionDTO>(responseJson);
-                        break;
-                    case "PlayerDTO":
-                        runHandler<PlayerDTO>(responseJson);
-                        break;
-                    case "GameStateDTO":
-                        runHandler<GameStateDTO>(responseJson);
-                        break;
+                Type responseType = Type.GetType(response.Type);
+                if(_responseHandlers.ContainsKey(responseType)) {
+                    var handler = _responseHandlers[responseType];
+                    handler.DynamicInvoke(response.Body);
                 }
             }
             else if (result.MessageType == WebSocketMessageType.Close)
@@ -91,12 +87,4 @@ public static class WebSocketConnection
             }
         }
 	}
-
-    static void runHandler<T>(string responseJson) where T : DTO {
-        WebSocketResponse<T> response = JsonConvert.DeserializeObject<WebSocketResponse<T>>(responseJson);
-        if(_responseHandlers.ContainsKey(typeof(T))) {
-            var handler = _responseHandlers[typeof(T)];
-            handler.DynamicInvoke(response.Body);
-        }
-    }
 }
