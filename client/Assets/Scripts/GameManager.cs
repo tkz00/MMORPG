@@ -52,6 +52,10 @@ public class GameManager : MonoBehaviour
         }
 	}
 
+	async void OnApplicationQuit() {
+		await WebSocketConnection.Disconnect();
+	}
+
 	void destroyPlayers(string[] playerIdsToDestroy) {
         foreach(string playerIdToDestroy in playerIdsToDestroy) {
             Destroy(this.players[playerIdToDestroy].gameObject);
@@ -66,5 +70,4 @@ public class GameManager : MonoBehaviour
 		destroyPlayers(playersToDestroy.ToArray());
 		movePlayers(gameState.Players);
 	}
-
 }

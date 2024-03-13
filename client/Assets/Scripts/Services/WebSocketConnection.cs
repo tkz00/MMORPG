@@ -75,7 +75,7 @@ public static class WebSocketConnection
 					if (value != null) {
 						Type propertyType = value.GetType();
 
-						if (_responseHandlers.ContainsKey(propertyType)) {
+						if (webSocket.State == WebSocketState.Open && _responseHandlers.ContainsKey(propertyType)) {
 							var handler = _responseHandlers[propertyType];
 							handler.DynamicInvoke(value);
 							break;
@@ -85,7 +85,7 @@ public static class WebSocketConnection
             }
             else if (result.MessageType == WebSocketMessageType.Close)
             {
-                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                Debug.Log("You have been kicked from the server");
             }
             else
             {
@@ -93,4 +93,8 @@ public static class WebSocketConnection
             }
         }
 	}
+
+    public static async Task Disconnect() {
+        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+    }
 }
