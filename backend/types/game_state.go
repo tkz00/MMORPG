@@ -24,10 +24,7 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) PlayerDTO {
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
 
-	return PlayerDTO{
-		Id: playerId,
-		Position: *GetMapper().PositionToDTO(player.position),
-	}
+	return *GetMapper().PlayerToDTO(*player)
 }
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {

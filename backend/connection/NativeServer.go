@@ -97,7 +97,7 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 
 func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionData []byte) {
 	positionDTO := types.CreatePositionDTO(positionData)
-	position := *types.GetMapper().PositionDTOToModel(*positionDTO)
+	position := *types.GetMapper().PositionDTOToEntity(*positionDTO)
 
 	server.gameState.MovePlayer(client, position)
 }

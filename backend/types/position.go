@@ -8,7 +8,7 @@ type Position struct {
 func CreatePosition(data []byte) Position {
 	positionDTO := CreatePositionDTO(data)
 
-	return *GetMapper().PositionDTOToModel(*positionDTO)
+	return *GetMapper().PositionDTOToEntity(*positionDTO)
 }
 
 func (p Position) GetPosition() (float32, float32) {

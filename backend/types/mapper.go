@@ -17,7 +17,7 @@ func GetMapper() *Mapper {
 	return mapperInstance
 }
 
-func (m Mapper) PositionDTOToModel(positionDTO PositionDTO) *Position {
+func (m Mapper) PositionDTOToEntity(positionDTO PositionDTO) *Position {
 	return &Position {
 		x: positionDTO.X,
 		z: positionDTO.Z,
@@ -31,8 +31,8 @@ func (m Mapper) PositionToDTO(position Position) *PositionDTO {
 	}
 }
 
-func (m Mapper) PlayerDTOToModel(playerDTO PlayerDTO) *Player {
-	initialPosition := *m.PositionDTOToModel(playerDTO.Position)
+func (m Mapper) PlayerDTOToEntity(playerDTO PlayerDTO) *Player {
+	initialPosition := *m.PositionDTOToEntity(playerDTO.Position)
 
 	return &Player {
 		position: initialPosition,
