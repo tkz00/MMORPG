@@ -6,6 +6,11 @@ import (
 )
 
 const SPEED float64 = 1
+const BOUNDS_RADIUS float64 = 0.5
+
+type Collisionable interface {
+	GetBounds() Position
+}
 
 type Player struct {
 	position  Position
@@ -51,7 +56,7 @@ func (p Player) IsMoving() bool {
 
 func (p *Player) UpdatePosition() {
 	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
-	distanceToTarget := math.Hypot(diffX, diffZ)
+	distanceToTarget := utils.GetDistance(diffX, diffZ)
 	if distanceToTarget < SPEED {
 		p.position.Teleport(p.to)
 	} else {
@@ -64,4 +69,8 @@ func (p Player) ToDTO(id string) PlayerDTO {
 		Id:       id,
 		Position: p.position.ToDTO(),
 	}
+}
+
+func (p Player) GetRadius() float64 {
+	return BOUNDS_RADIUS
 }
