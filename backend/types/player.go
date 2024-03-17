@@ -15,8 +15,7 @@ type Collisionable interface {
 }
 
 type Player struct {
-	maxHealth int
-	currentHealth int
+	stats	  PlayerStats
 	position  Position
 	to        Position
 	direccion Position
@@ -31,8 +30,10 @@ func CreatePlayer(x, z float32) *Player {
 	return &Player{
 		position: initPosition,
 		to:       initPosition,
-		maxHealth: BASE_MAX_HEALTH,
-		currentHealth: rand.Intn(BASE_MAX_HEALTH) + 1,
+		stats: 	  PlayerStats {
+			currentHealth: rand.Intn(BASE_MAX_HEALTH) + 1,
+			maxHealth: BASE_MAX_HEALTH,
+		},
 	}
 }
 
