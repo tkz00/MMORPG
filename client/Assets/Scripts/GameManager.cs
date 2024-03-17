@@ -34,6 +34,14 @@ public class GameManager : MonoBehaviour
 	void Update() {
 		nametagBehaviour.AssignNametags(players);
 	}
+	void OnDestroy() {
+		WebSocketConnection.ClearHandlers();
+	}
+
+	async void OnApplicationQuit() {
+		await WebSocketConnection.Disconnect();
+	}
+
 	void movePlayers(List<PlayerDTO> playerDTOS) {
         foreach(PlayerDTO player in playerDTOS) {
 			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == player.Id);
@@ -66,5 +74,4 @@ public class GameManager : MonoBehaviour
 		destroyPlayers(playersToDestroy.ToArray());
 		movePlayers(gameState.Players);
 	}
-
 }
