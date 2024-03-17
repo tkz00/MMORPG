@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
 
 	private string mainPlayerID;
 
-	Dictionary<string, PlayerMovement> players = new Dictionary<string, PlayerMovement>();
+	Dictionary<string, Player> players = new Dictionary<string, Player>();
 	
 	async void Awake() {
 		WebSocketConnection.SetHandler<string>(new Action<string>((playerId) => {
@@ -46,10 +46,11 @@ public class GameManager : MonoBehaviour
         foreach(PlayerDTO player in playerDTOS) {
 			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == player.Id);
             if(playerExists) {
-            	this.players[player.Id].Move(new Vector3(player.Position.x, 0, player.Position.z));
+            	this.players[player.Id].Movement.Move(new Vector3(player.Position.x, 0, player.Position.z));
             } else {
             	GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.Position.x, 1, player.Position.z), Quaternion.identity);
-            	players[player.Id] = newPlayerGO.GetComponent<PlayerMovement>();
+            	players[player.Id] = newPlayerGO.GetComponent<Player>();
+				players[player.Id].Stats = new PlayerStats();
             	newPlayerGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 
             	if(this.mainPlayerID == player.Id) {
@@ -57,8 +58,8 @@ public class GameManager : MonoBehaviour
             		this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
             	}
             }
-			players[player.Id].maxHealth = player.MaxHealth;
-			players[player.Id].currentHealth = player.CurrentHealth;
+			players[player.Id].Stats.MaxHealth = player.MaxHealth;
+			players[player.Id].Stats.CurrentHealth = player.CurrentHealth;
         }
 	}
 

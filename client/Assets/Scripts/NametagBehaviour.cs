@@ -13,14 +13,14 @@ public class NametagBehaviour : MonoBehaviour
     GameObject nametagPrefab;
     Dictionary<string, GameObject> nametags = new Dictionary<string, GameObject>();
 
-    public void AssignNametags(Dictionary<string, PlayerMovement> players) {
-        foreach (KeyValuePair<string, PlayerMovement> player in players) {
+    public void AssignNametags(Dictionary<string, Player> players) {
+        foreach (KeyValuePair<string, Player> player in players) {
             GameObject nametagGO;
             if (!nametags.TryGetValue(player.Key, out nametagGO)) {
                 nametagGO = Instantiate(nametagPrefab, gameCanvas.transform);
                 var playerColor = player.Value.gameObject.GetComponent<MeshRenderer>().material.color;
                 var nametagComponent = nametagGO.GetComponent<TMP_Text>();
-                nametagComponent.text = player.Key + "\n" + player.Value.currentHealth + "/" + player.Value.maxHealth;
+                nametagComponent.text = player.Key + "\n" + player.Value.Stats.CurrentHealth + "/" + player.Value.Stats.MaxHealth;
                 nametagComponent.color = playerColor;
                 nametags[player.Key] = nametagGO;
             }

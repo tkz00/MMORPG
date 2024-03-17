@@ -10,8 +10,6 @@ public class PlayerMovement : MonoBehaviour
     private Coroutine movementCoroutine;
     private float playerSpeed = 10f;
     private CharacterController characterController;
-    public int maxHealth;
-    public int currentHealth;
 
     void Awake() {
         characterController = GetComponent<CharacterController>();
