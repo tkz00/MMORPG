@@ -75,8 +75,9 @@ func (p Player) ToDTO(id string) PlayerDTO {
 	return PlayerDTO{
 		Id:       id,
 		Position: p.position.ToDTO(),
-		MaxHealth: p.maxHealth,
-		CurrentHealth: p.currentHealth,
+
+		MaxHealth: p.stats.maxHealth,
+		CurrentHealth: p.stats.currentHealth,
 	}
 }
 
