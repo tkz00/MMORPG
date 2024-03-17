@@ -20,7 +20,7 @@ public class NametagBehaviour : MonoBehaviour
                 nametagGO = Instantiate(nametagPrefab, gameCanvas.transform);
                 var playerColor = player.Value.gameObject.GetComponent<MeshRenderer>().material.color;
                 var nametagComponent = nametagGO.GetComponent<TMP_Text>();
-                nametagComponent.text = player.Key;
+                nametagComponent.text = player.Key + "\n" + player.Value.currentHealth + "/" + player.Value.maxHealth;
                 nametagComponent.color = playerColor;
                 nametags[player.Key] = nametagGO;
             }

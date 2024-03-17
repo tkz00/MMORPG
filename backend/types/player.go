@@ -2,9 +2,11 @@ package types
 
 import (
 	"math"
+	"math/rand"
 	"unnamed-mmo/backend/utils"
 )
 
+const BASE_MAX_HEALTH = 100
 const SPEED float64 = 1
 const BOUNDS_RADIUS float64 = 0.5
 
@@ -13,6 +15,8 @@ type Collisionable interface {
 }
 
 type Player struct {
+	maxHealth int
+	currentHealth int
 	position  Position
 	to        Position
 	direccion Position
@@ -27,6 +31,8 @@ func CreatePlayer(x, z float32) *Player {
 	return &Player{
 		position: initPosition,
 		to:       initPosition,
+		maxHealth: BASE_MAX_HEALTH,
+		currentHealth: rand.Intn(BASE_MAX_HEALTH) + 1,
 	}
 }
 
@@ -68,6 +74,8 @@ func (p Player) ToDTO(id string) PlayerDTO {
 	return PlayerDTO{
 		Id:       id,
 		Position: p.position.ToDTO(),
+		MaxHealth: p.maxHealth,
+		CurrentHealth: p.currentHealth,
 	}
 }
 

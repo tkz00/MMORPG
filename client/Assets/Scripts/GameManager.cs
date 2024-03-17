@@ -57,6 +57,8 @@ public class GameManager : MonoBehaviour
             		this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
             	}
             }
+			players[player.Id].maxHealth = player.MaxHealth;
+			players[player.Id].currentHealth = player.CurrentHealth;
         }
 	}
 
