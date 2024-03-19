@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField]
 	CinemachineVirtualCamera cinemachineVirtualCamera;
 	[SerializeField]
-	PlayerPanelsManager nametagBehaviour;
+	PlayerPanelsManager PlayerPanelsManager;
 
 	private string mainPlayerID;
 
@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviour
     }
 
 	void Update() {
-		nametagBehaviour.UpdatePanels(players);
+		PlayerPanelsManager.UpdatePanels(players);
 	}
 	
 	void OnDestroy() {

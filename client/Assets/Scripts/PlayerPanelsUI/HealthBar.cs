@@ -15,4 +15,10 @@ public class HealthBar : MonoBehaviour
 		float fillAmount = currentHealth / (float)maxHealth;
         healthSlider.value = fillAmount;
 	}
+
+	// remove in the future
+	public void SetColor(Color color)
+	{
+		healthSlider.fillRect.gameObject.GetComponent<Image>().color = color;
+	}
 }

@@ -926,7 +926,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 8385747069691689648, guid: 5d58f493044954c519a6b741a4b66c51, type: 3}
   cinemachineVirtualCamera: {fileID: 1458421495}
-  nametagBehaviour: {fileID: 982960692}
+  PlayerPanelsManager: {fileID: 982960692}
 --- !u!4 &1535886752
 Transform:
   m_ObjectHideFlags: 0

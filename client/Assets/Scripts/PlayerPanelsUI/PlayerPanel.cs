@@ -12,12 +12,17 @@ public class PlayerPanel : MonoBehaviour
 	[SerializeField]
 	HealthBar healthBar;
 
-	public void Initialize(string name, int currentHealth, int maxHealth) {
+	public void SetPlayerName(string name) {
 		this.playerName.text = name;
-		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
 	}
 
 	public void UpdateHealthBar(int currentHealth, int maxHealth) {
 		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
+	}
+
+	// remove later
+	public void SetHealthBarColor(Color color)
+	{
+		this.healthBar.SetColor(color);
 	}
 }

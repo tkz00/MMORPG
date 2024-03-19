@@ -22,11 +22,12 @@ public class PlayerPanelsManager : MonoBehaviour
             GameObject playerPanelGO;
             if (!playerPanels.TryGetValue(player.Key, out playerPanelGO)) {
                 playerPanelGO = Instantiate(playerPanelPrefab, gameCanvas.transform);
-                // var playerColor = player.Value.gameObject.GetComponent<MeshRenderer>().material.color;
-                // nametagComponent.color = playerColor;
 				if (playerPanelGO.TryGetComponent(out PlayerPanel playerPanel))
 				{
-					playerPanel.Initialize(player.Key, player.Value.Stats.CurrentHealth, player.Value.Stats.MaxHealth);
+					playerPanel.SetPlayerName(player.Key);
+					// remove in the future
+                	var playerColor = player.Value.gameObject.GetComponent<MeshRenderer>().material.color;
+					playerPanel.SetHealthBarColor(playerColor);
 					player.Value.onHealthChanged += playerPanel.UpdateHealthBar;
 				}
 				else {
