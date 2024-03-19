@@ -49,6 +49,7 @@ func (gs GameState) UpdateState() {
 		if player.IsMoving() {
 			player.UpdatePosition()
 		}
+		player.RandomizeHealth()
 	}
 }
 
@@ -73,5 +74,5 @@ func (gs GameState) AreColliding(player1 Player, player2 Player) bool {
 	diffX, diffZ := utils.GetDiff(position1.x, position1.z, position2.x, position2.z)
 	playersDistance := utils.GetDistance(diffX, diffZ)
 
-	return playersDistance < player1.GetRadius() + player2.GetRadius()
+	return playersDistance < player1.GetRadius()+player2.GetRadius()
 }

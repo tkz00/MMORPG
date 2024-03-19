@@ -16,4 +16,8 @@ public class PlayerPanel : MonoBehaviour
 		this.playerName.text = name;
 		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
 	}
+
+	public void UpdateHealthBar(int currentHealth, int maxHealth) {
+		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
+	}
 }
