@@ -13,7 +13,7 @@ public class PlayerPanelsManager : MonoBehaviour
 	// It would be nice to use a pooler here?
 
     [SerializeField]
-    PlayerPanel playerPanelPrefab;
+    GameObject playerPanelPrefab;
 
     Dictionary<string, GameObject> playerPanels = new Dictionary<string, GameObject>();
 
@@ -21,13 +21,17 @@ public class PlayerPanelsManager : MonoBehaviour
         foreach (KeyValuePair<string, Player> player in players) {
             GameObject playerPanelGO;
             if (!playerPanels.TryGetValue(player.Key, out playerPanelGO)) {
-                playerPanelGO = Instantiate(playerPanelPrefab.gameObject, gameCanvas.transform);
+                playerPanelGO = Instantiate(playerPanelPrefab, gameCanvas.transform);
                 // var playerColor = player.Value.gameObject.GetComponent<MeshRenderer>().material.color;
                 // nametagComponent.color = playerColor;
-				PlayerPanel playerPanel = playerPanelGO.GetComponent<PlayerPanel>();
-				// playerPanel.Initialize(player.Key, player.Value.Stats.CurrentHealth, player.Value.Stats.MaxHealth);
-				playerPanel.Initialize(player.Key, player.Value.Stats.CurrentHealth, player.Value.Stats.MaxHealth);
-				player.Value.onHealthChanged += playerPanel.UpdateHealthBar;
+				if (playerPanelGO.TryGetComponent(out PlayerPanel playerPanel))
+				{
+					playerPanel.Initialize(player.Key, player.Value.Stats.CurrentHealth, player.Value.Stats.MaxHealth);
+					player.Value.onHealthChanged += playerPanel.UpdateHealthBar;
+				}
+				else {
+					Debug.LogError("No PlayerPanel script in instantiated player panel prefab");
+				}
                 playerPanels[player.Key] = playerPanelGO;
             }
             Vector3 playerPosition = player.Value.transform.position;
