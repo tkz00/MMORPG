@@ -655,7 +655,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameCamera: {fileID: 963194227}
   gameCanvas: {fileID: 982960690}
-  playerPanelPrefab: {fileID: -7547665633225960698, guid: c21a5ed2a55b149ac830d01bc2abb51d, type: 3}
+  playerPanelPrefab: {fileID: 1044985334616851782, guid: c21a5ed2a55b149ac830d01bc2abb51d, type: 3}
 --- !u!1 &1287611648
 GameObject:
   m_ObjectHideFlags: 0
