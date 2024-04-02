@@ -49,7 +49,6 @@ func (gs GameState) UpdateState() {
 		if player.IsMoving() {
 			player.UpdatePosition()
 		}
-		player.RandomizeHealth()
 	}
 }
 

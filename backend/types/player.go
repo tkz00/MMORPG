@@ -71,15 +71,10 @@ func (p *Player) UpdatePosition() {
 	}
 }
 
-func (p *Player) RandomizeHealth() {
-	p.stats.currentHealth = rand.Intn(BASE_MAX_HEALTH) + 1
-}
-
 func (p Player) ToDTO(id string) PlayerDTO {
 	return PlayerDTO{
-		Id:       id,
-		Position: p.position.ToDTO(),
-
+		Id:            id,
+		Position:      p.position.ToDTO(),
 		MaxHealth:     p.stats.maxHealth,
 		CurrentHealth: p.stats.currentHealth,
 	}
