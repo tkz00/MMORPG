@@ -2,13 +2,21 @@ package types
 
 import (
 	"math"
+	"math/rand"
 	"unnamed-mmo/backend/utils"
 )
 
+const BASE_MAX_HEALTH = 100
 const SPEED float64 = 1
+const BOUNDS_RADIUS float64 = 0.5
+
+type Collisionable interface {
+	GetBounds() Position
+}
 
 type Player struct {
 	id 		  string
+	stats	  PlayerStats
 	position  Position
 	to        Position
 	direccion Position
@@ -24,8 +32,13 @@ func CreatePlayer(x, z float32, id string) *Player {
 		id: id,
 		position: initPosition,
 		to:       initPosition,
+		stats: 	  PlayerStats {
+			currentHealth: rand.Intn(BASE_MAX_HEALTH) + 1,
+			maxHealth: BASE_MAX_HEALTH,
+		},
 	}
 }
+
 
 func (p *Player) SetPosition(position Position) {
 	p.position = position
@@ -59,4 +72,8 @@ func (p *Player) UpdatePosition() {
 	} else {
 		p.position.Move(p.direccion)
 	}
+}
+
+func (p Player) GetRadius() float64 {
+	return BOUNDS_RADIUS
 }

@@ -18,8 +18,10 @@ func (g GameStateDTO) GetType() string {
 }
 
 type PlayerDTO struct {
-	Id       string      `json:"id"`
-	Position PositionDTO `json:"position"`
+	Id       		string      `json:"id"`
+	MaxHealth 		int			`json:"maxHealth"`	
+	CurrentHealth 	int			`json:"currentHealth"`	
+	Position 		PositionDTO `json:"position"`
 }
 
 func (p PlayerDTO) GetType() string {

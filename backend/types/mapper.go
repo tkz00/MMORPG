@@ -37,6 +37,10 @@ func (m Mapper) PlayerDTOToEntity(playerDTO PlayerDTO) *Player {
 	return &Player {
 		position: initialPosition,
 		to: initialPosition,
+		stats: PlayerStats{
+			maxHealth: playerDTO.MaxHealth,
+			currentHealth: playerDTO.CurrentHealth,
+		},
 	}
 }
 
@@ -44,6 +48,8 @@ func (m Mapper) PlayerToDTO(player Player) *PlayerDTO {
 	return &PlayerDTO {
 		Id: player.id,
 		Position: *m.PositionToDTO(player.position),
+		MaxHealth: player.stats.maxHealth,
+		CurrentHealth: player.stats.currentHealth,
 	}
 }
 
