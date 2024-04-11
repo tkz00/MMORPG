@@ -1,6 +1,8 @@
 package types
 
 import (
+	"unnamed-mmo/backend/utils"
+
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 )
@@ -52,4 +54,14 @@ func (gs GameState) UpdateState() {
 
 func (gs GameState) GetGameState() GameStateDTO {
 	return *GetMapper().GameStateToDTO(gs)
+}
+
+func (gs GameState) AreColliding(player1 Player, player2 Player) bool {
+	position1 := player1.GetPosition()
+	position2 := player2.GetPosition()
+
+	diffX, diffZ := utils.GetDiff(position1.x, position1.z, position2.x, position2.z)
+	playersDistance := utils.GetDistance(diffX, diffZ)
+
+	return playersDistance < player1.GetRadius() + player2.GetRadius()
 }

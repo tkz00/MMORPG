@@ -83,7 +83,10 @@ func (server *NativeServer) broadcastGameState() {
 
 func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 	server.addClient <- conn
-	defer func() { server.removeClient <- conn }()
+	defer func() { 
+		conn.Close()
+		server.removeClient <- conn 
+	}()
 	for {
 		var data []byte
 		err := websocket.Message.Receive(conn, &data)

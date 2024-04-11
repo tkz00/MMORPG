@@ -13,19 +13,44 @@ public class GameManager : MonoBehaviour
 
 	[SerializeField]
 	CinemachineVirtualCamera cinemachineVirtualCamera;
+	[SerializeField]
+	NametagBehaviour nametagBehaviour;
 
 	private string mainPlayerID;
 
-	Dictionary<string, PlayerMovement> players = new Dictionary<string, PlayerMovement>();
+	Dictionary<string, Player> players = new Dictionary<string, Player>();
 	
+	async void Awake() {
+		WebSocketConnection.SetHandler<string>(new Action<string>((playerId) => {
+			this.mainPlayerID = playerId;
+			Debug.Log(this.mainPlayerID);
+		}));
+
+		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => onGameStateUpdate(gameState)));
+
+		await WebSocketConnection.Connect();
+    }
+
+	void Update() {
+		nametagBehaviour.AssignNametags(players);
+	}
+	void OnDestroy() {
+		WebSocketConnection.ClearHandlers();
+	}
+
+	async void OnApplicationQuit() {
+		await WebSocketConnection.Disconnect();
+	}
+
 	void movePlayers(List<PlayerDTO> playerDTOS) {
         foreach(PlayerDTO player in playerDTOS) {
 			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == player.Id);
             if(playerExists) {
-            	this.players[player.Id].Move(new Vector3(player.Position.x, 0, player.Position.z));
+            	this.players[player.Id].Movement.Move(new Vector3(player.Position.x, 0, player.Position.z));
             } else {
             	GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.Position.x, 1, player.Position.z), Quaternion.identity);
-            	players[player.Id] = newPlayerGO.GetComponent<PlayerMovement>();
+            	players[player.Id] = newPlayerGO.GetComponent<Player>();
+				players[player.Id].Stats = new PlayerStats();
             	newPlayerGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 
             	if(this.mainPlayerID == player.Id) {
@@ -33,6 +58,8 @@ public class GameManager : MonoBehaviour
             		this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
             	}
             }
+			players[player.Id].Stats.MaxHealth = player.MaxHealth;
+			players[player.Id].Stats.CurrentHealth = player.CurrentHealth;
         }
 	}
 

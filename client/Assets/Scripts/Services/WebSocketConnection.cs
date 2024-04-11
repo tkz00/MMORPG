@@ -79,7 +79,8 @@ public static class WebSocketConnection
             }
             else if (result.MessageType == WebSocketMessageType.Close)
             {
-                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+                Debug.Log("You have been kicked from the server");
+                break;
             }
             else
             {
@@ -87,4 +88,12 @@ public static class WebSocketConnection
             }
         }
 	}
+
+    public static void ClearHandlers() {
+        _responseHandlers = new Dictionary<Type, Delegate>();
+    }
+
+    public static async Task Disconnect() {
+        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+    }
 }

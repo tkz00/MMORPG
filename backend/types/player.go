@@ -66,7 +66,7 @@ func (p Player) IsMoving() bool {
 
 func (p *Player) UpdatePosition() {
 	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
-	distanceToTarget := math.Hypot(diffX, diffZ)
+	distanceToTarget := utils.GetDistance(diffX, diffZ)
 	if distanceToTarget < SPEED {
 		p.position.Teleport(p.to)
 	} else {
