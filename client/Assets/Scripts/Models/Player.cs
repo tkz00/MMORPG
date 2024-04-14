@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class Player : MonoBehaviour
@@ -11,15 +12,29 @@ public class Player : MonoBehaviour
         get { return movement; }
     }
 
+	[SerializeField]
+	TMP_Text playerNameUI;
+
+	[SerializeField]
+	HealthBar healthBar;
+
 	private PlayerStats stats = new PlayerStats();
 	public PlayerStats Stats {
         get { return stats; }
     }
 
-	public Action<int, int> onHealthChanged; 
+	public void SetPlayerName(string playerName) {
+		playerNameUI.text = playerName;
+	}
 
 	public void UpdateHealth(int currentHealth, int maxHealth) {
 		this.Stats.UpdateHealth(currentHealth, maxHealth);
-		onHealthChanged?.Invoke(currentHealth, maxHealth);
+		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
+	}
+
+	// remove later
+	public void SetHealthBarColor(Color color)
+	{
+		this.healthBar.SetColor(color);
 	}
 }

@@ -13,8 +13,8 @@ public class GameManager : MonoBehaviour
 
 	[SerializeField]
 	CinemachineVirtualCamera cinemachineVirtualCamera;
-	[SerializeField]
-	PlayerPanelsManager PlayerPanelsManager;
+	// [SerializeField]
+	// PlayerPanelsManager PlayerPanelsManager;
 
 	private string mainPlayerID;
 
@@ -32,7 +32,7 @@ public class GameManager : MonoBehaviour
     }
 
 	void Update() {
-		PlayerPanelsManager.UpdatePanels(players);
+		// PlayerPanelsManager.UpdatePanels(players);
 	}
 	
 	void OnDestroy() {
@@ -57,10 +57,12 @@ public class GameManager : MonoBehaviour
             if(playerExists) {
             	this.players[player.Id].Movement.Move(new Vector3(player.Position.x, 0, player.Position.z));
             } else {
-            	GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.Position.x, 1, player.Position.z), Quaternion.identity);
-            	players[player.Id] = newPlayerGO.GetComponent<Player>();
-            	newPlayerGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-
+            	GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.Position.x, 0, player.Position.z), Quaternion.identity);
+				players[player.Id] = newPlayerGO.GetComponentInChildren<Player>();
+				Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+            	newPlayerGO.GetComponentInChildren<MeshRenderer>().material.color = playerColor;
+				players[player.Id].SetPlayerName(player.Id);
+				players[player.Id].SetHealthBarColor(playerColor);
             	if(this.mainPlayerID == player.Id) {
             		newPlayerGO.AddComponent<MainPlayer>();
             		this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;

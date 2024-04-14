@@ -89,9 +89,9 @@ func (server *NativeServer) broadcastGameState() {
 
 func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 	server.addClient <- conn
-	defer func() { 
+	defer func() {
 		conn.Close()
-		server.removeClient <- conn 
+		server.removeClient <- conn
 	}()
 	for {
 		var message string
