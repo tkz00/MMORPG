@@ -12,7 +12,7 @@ public static class WebSocketConnection
 {
     static ClientWebSocket webSocket;
     static String URL = "ws://localhost:3009/ws";
-	static Dictionary<Type, Delegate> _responseHandlers = new Dictionary<Type, Delegate>();
+	static Dictionary<string, Delegate> _responseHandlers = new Dictionary<string, Delegate>();
 	
     public static async Task Connect() {
         // handshake
@@ -28,9 +28,9 @@ public static class WebSocketConnection
         }
     }
 
-	public static void SetHandler<TResponse>(Action<TResponse> responseHandler) where TResponse : DTO
+	public static void SetHandler<TResponse>(Action<TResponse> responseHandler, string type) where TResponse : DTO
     {
-        _responseHandlers[typeof(TResponse)] = responseHandler;
+        _responseHandlers[type] = responseHandler;
     }
 
 	public static async void SendMessage(string messageJson)
@@ -71,9 +71,8 @@ public static class WebSocketConnection
                 WebSocketResponse response = JsonConvert.DeserializeObject<WebSocketResponse>(responseJson, settings);
                 messageBytes.Clear();
 
-                Type responseType = Type.GetType(response.Type);
-                if(_responseHandlers.ContainsKey(responseType)) {
-                    var handler = _responseHandlers[responseType];
+                if(_responseHandlers.ContainsKey(response.Type)) {
+                    var handler = _responseHandlers[response.Type];
                     handler.DynamicInvoke(response.Body);
                 }
             }
@@ -90,7 +89,7 @@ public static class WebSocketConnection
 	}
 
     public static void ClearHandlers() {
-        _responseHandlers = new Dictionary<Type, Delegate>();
+        _responseHandlers = new Dictionary<string, Delegate>();
     }
 
     public static async Task Disconnect() {
