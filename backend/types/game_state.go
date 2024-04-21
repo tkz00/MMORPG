@@ -19,13 +19,14 @@ func StartGameState() GameState {
 	}
 }
 
-func (gs *GameState) AddPlayer(conn *websocket.Conn) string {
+func (gs *GameState) AddPlayer(conn *websocket.Conn) PlayerDTO {
 	id := uuid.New()
 	playerId := id.String()
+	player := CreatePlayer(0, 0, playerId)
 	gs.playerIds[conn] = playerId
-	gs.players[playerId] = CreatePlayer(0, 0)
+	gs.players[playerId] = player
 
-	return playerId
+	return *GetMapper().PlayerToDTO(*player)
 }
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {
@@ -38,8 +39,7 @@ func (gs GameState) GetPlayerCount() int {
 	return len(gs.players)
 }
 
-func (gs GameState) MovePlayer(conn *websocket.Conn, positionMsg []byte) {
-	position := CreatePosition(positionMsg)
+func (gs GameState) MovePlayer(conn *websocket.Conn, position Position) {
 	playerId := gs.playerIds[conn]
 	gs.players[playerId].MoveTowards(position)
 }
@@ -52,18 +52,8 @@ func (gs GameState) UpdateState() {
 	}
 }
 
-func (gs GameState) GetGameState() GameDTO {
-	var players []PlayerDTO
-
-	for playerId, player := range gs.players {
-		players = append(players, player.ToDTO(playerId))
-	}
-
-	gameDTO := GameDTO{
-		Players: players,
-	}
-
-	return gameDTO
+func (gs GameState) GetGameState() GameStateDTO {
+	return *GetMapper().GameStateToDTO(gs)
 }
 
 func (gs GameState) AreColliding(player1 Player, player2 Player) bool {

@@ -19,18 +19,18 @@ public class GameManager : MonoBehaviour
 	private string mainPlayerID;
 
 	Dictionary<string, Player> players = new Dictionary<string, Player>();
-	
-	async void Awake() {
-		WebSocketConnection.SetHandler<string>(new Action<string>((playerId) => {
-			this.mainPlayerID = playerId;
-			Debug.Log(this.mainPlayerID);
-		}));
 
-		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => onGameStateUpdate(gameState)));
+	async void Awake() {
+		WebSocketConnection.SetHandler<PlayerDTO>(new Action<PlayerDTO>((playerDTO) => {
+			this.mainPlayerID = playerDTO.Id;
+			Debug.Log(this.mainPlayerID);
+		}), "PlayerDTO");
+
+		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => onGameStateUpdate(gameState)), "GameStateDTO");
 
 		await WebSocketConnection.Connect();
     }
-
+	
 	void Update() {
 		nametagBehaviour.AssignNametags(players);
 	}

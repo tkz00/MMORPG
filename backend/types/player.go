@@ -15,19 +15,21 @@ type Collisionable interface {
 }
 
 type Player struct {
+	id 		  string
 	stats	  PlayerStats
 	position  Position
 	to        Position
 	direccion Position
 }
 
-func CreatePlayer(x, z float32) *Player {
+func CreatePlayer(x, z float32, id string) *Player {
 	initPosition := Position{
 		x: x,
 		z: z,
 	}
 
 	return &Player{
+		id: id,
 		position: initPosition,
 		to:       initPosition,
 		stats: 	  PlayerStats {
@@ -36,6 +38,7 @@ func CreatePlayer(x, z float32) *Player {
 		},
 	}
 }
+
 
 func (p *Player) SetPosition(position Position) {
 	p.position = position
@@ -68,16 +71,6 @@ func (p *Player) UpdatePosition() {
 		p.position.Teleport(p.to)
 	} else {
 		p.position.Move(p.direccion)
-	}
-}
-
-func (p Player) ToDTO(id string) PlayerDTO {
-	return PlayerDTO{
-		Id:       id,
-		Position: p.position.ToDTO(),
-
-		MaxHealth: p.stats.maxHealth,
-		CurrentHealth: p.stats.currentHealth,
 	}
 }
 
