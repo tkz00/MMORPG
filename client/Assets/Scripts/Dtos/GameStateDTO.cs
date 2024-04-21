@@ -1,5 +1,5 @@
 using System.Collections.Generic;
 
-public class GameStateDTO {
+public class GameStateDTO : DTO {
 	public List<PlayerDTO> Players;
 }

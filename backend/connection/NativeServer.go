@@ -1,7 +1,6 @@
 package connection
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -44,29 +43,27 @@ func (server *NativeServer) readLoop() {
 	for {
 		select {
 		case client := <-server.addClient:
-			playerId := server.gameState.AddPlayer(client)
+			playerDTO := server.gameState.AddPlayer(client)
 			server.clients[client] = true
-			response := types.WebSocketResponse{
-				PlayerID: playerId,
-			}
-			responseBytes, _ := json.Marshal(response)
-			err := websocket.Message.Send(client, responseBytes)
-			if err != nil {
-				log.Println("Error broadcasting message:", err)
-				return
-			}
+			response := types.CreateWebSocketResponse(playerDTO)
+			message := response.Serialize()
+	        err := websocket.Message.Send(client, message)
+	        if err != nil {
+	        	log.Println("Error broadcasting message:", err)
+	        	return
+	        }
 			log.Println("Client connected", client.RemoteAddr())
 		case client := <-server.removeClient:
 			server.gameState.DeletePlayer(client)
 			delete(server.clients, client)
 			log.Println("Client disconnected", client.RemoteAddr())
-		case message := <-server.broadcast: //THIS IS AN OBSERVER
+		case message := <-server.broadcast: // THIS IS AN OBSERVER
 			for client := range server.clients {
-				err := websocket.Message.Send(client, message)
-				if err != nil {
-					log.Println("Error broadcasting message:", err)
-					return
-				}
+	            err := websocket.Message.Send(client, message)
+	            if err != nil {
+	            	log.Println("Error broadcasting message:", err)
+	            	return
+	            }
 			}
 		}
 	}
@@ -78,12 +75,9 @@ func (server *NativeServer) broadcastGameState() {
 
 	for range ticker.C {
 		server.gameState.UpdateState()
-		gameState := server.gameState.GetGameState()
-		webSocketResponse := types.WebSocketResponse{
-			GameStateDTO: &gameState,
-		}
-		responseBytes, _ := json.Marshal(webSocketResponse)
-		server.broadcast <- responseBytes
+		gameStateDTO := server.gameState.GetGameState()
+		webSocketResponse := types.CreateWebSocketResponse(gameStateDTO) 		
+		server.broadcast <- webSocketResponse.Serialize()
 	}
 }
 
@@ -94,15 +88,21 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 		server.removeClient <- conn 
 	}()
 	for {
-		var message string
-		err := websocket.Message.Receive(conn, &message)
+		var data []byte
+		err := websocket.Message.Receive(conn, &data)
 		if err != nil {
 			log.Println("Error reading message from client:", err)
 			break
 		}
-		// fmt.Println(message)
-		server.gameState.MovePlayer(conn, []byte(message))
+		server.handlePlayerMovement(conn, data)
 	}
+}
+
+func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionData []byte) {
+	positionDTO := types.CreatePositionDTO(positionData)
+	position := *types.GetMapper().PositionDTOToEntity(*positionDTO)
+
+	server.gameState.MovePlayer(client, position)
 }
 
 // {"x":3.6,"z":19.01}
