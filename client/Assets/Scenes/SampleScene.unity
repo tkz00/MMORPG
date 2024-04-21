@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481676, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -655,7 +655,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   gameCamera: {fileID: 963194227}
   gameCanvas: {fileID: 982960690}
-  nametagPrefab: {fileID: 3337311052444158579, guid: 0bc4add63e5533b45b43203998ff91fc, type: 3}
+  playerPanelPrefab: {fileID: 1044985334616851782, guid: c21a5ed2a55b149ac830d01bc2abb51d, type: 3}
 --- !u!1 &1287611648
 GameObject:
   m_ObjectHideFlags: 0
@@ -926,7 +926,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 8385747069691689648, guid: 5d58f493044954c519a6b741a4b66c51, type: 3}
   cinemachineVirtualCamera: {fileID: 1458421495}
-  nametagBehaviour: {fileID: 982960692}
+  PlayerPanelsManager: {fileID: 982960692}
 --- !u!4 &1535886752
 Transform:
   m_ObjectHideFlags: 0

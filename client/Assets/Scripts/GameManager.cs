@@ -14,7 +14,7 @@ public class GameManager : MonoBehaviour
 	[SerializeField]
 	CinemachineVirtualCamera cinemachineVirtualCamera;
 	[SerializeField]
-	NametagBehaviour nametagBehaviour;
+	PlayerPanelsManager PlayerPanelsManager;
 
 	private string mainPlayerID;
 
@@ -26,14 +26,15 @@ public class GameManager : MonoBehaviour
 			Debug.Log(this.mainPlayerID);
 		}), "PlayerDTO");
 
-		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => onGameStateUpdate(gameState)), "GameStateDTO");
+		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => OnGameStateUpdate(gameState)), "GameStateDTO");
 
 		await WebSocketConnection.Connect();
     }
 	
 	void Update() {
-		nametagBehaviour.AssignNametags(players);
+		PlayerPanelsManager.UpdatePanels(players);
 	}
+	
 	void OnDestroy() {
 		WebSocketConnection.ClearHandlers();
 	}
@@ -42,7 +43,15 @@ public class GameManager : MonoBehaviour
 		await WebSocketConnection.Disconnect();
 	}
 
-	void movePlayers(List<PlayerDTO> playerDTOS) {
+	void OnGameStateUpdate(GameStateDTO gameState) {
+        string[] currentPlayerIds = this.players.Keys.ToArray();
+		HashSet<string> playersToDestroy = new HashSet<string>(currentPlayerIds.Except(gameState.Players.Select(player => player.Id)));
+
+		DestroyPlayers(playersToDestroy.ToArray());
+		UpdatePlayersPositions(gameState.Players);
+	}
+
+	void UpdatePlayersPositions(List<PlayerDTO> playerDTOS) {
         foreach(PlayerDTO player in playerDTOS) {
 			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == player.Id);
             if(playerExists) {
@@ -50,7 +59,6 @@ public class GameManager : MonoBehaviour
             } else {
             	GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.Position.x, 1, player.Position.z), Quaternion.identity);
             	players[player.Id] = newPlayerGO.GetComponent<Player>();
-				players[player.Id].Stats = new PlayerStats();
             	newPlayerGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 
             	if(this.mainPlayerID == player.Id) {
@@ -58,23 +66,14 @@ public class GameManager : MonoBehaviour
             		this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
             	}
             }
-			players[player.Id].Stats.MaxHealth = player.MaxHealth;
-			players[player.Id].Stats.CurrentHealth = player.CurrentHealth;
+			players[player.Id].UpdateHealth(player.CurrentHealth, player.MaxHealth);
         }
 	}
 
-	void destroyPlayers(string[] playerIdsToDestroy) {
+	void DestroyPlayers(string[] playerIdsToDestroy) {
         foreach(string playerIdToDestroy in playerIdsToDestroy) {
             Destroy(this.players[playerIdToDestroy].gameObject);
             this.players.Remove(playerIdToDestroy);
         }
-	}
-
-	void onGameStateUpdate(GameStateDTO gameState) {
-        string[] currentPlayerIds = this.players.Keys.ToArray();
-		HashSet<string> playersToDestroy = new HashSet<string>(currentPlayerIds.Except(gameState.Players.Select(player => player.Id)));
-
-		destroyPlayers(playersToDestroy.ToArray());
-		movePlayers(gameState.Players);
 	}
 }

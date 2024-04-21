@@ -32,9 +32,9 @@ func CreatePlayer(x, z float32, id string) *Player {
 		id: id,
 		position: initPosition,
 		to:       initPosition,
-		stats: 	  PlayerStats {
+		stats: PlayerStats{
 			currentHealth: rand.Intn(BASE_MAX_HEALTH) + 1,
-			maxHealth: BASE_MAX_HEALTH,
+			maxHealth:     BASE_MAX_HEALTH,
 		},
 	}
 }
