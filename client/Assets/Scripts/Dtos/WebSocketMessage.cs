@@ -1,16 +1,16 @@
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-public class WebSocketResponse {
+public class WebSocketMessage {
 	public DTO Body;
 	public string ActionType;
 }
 
-public class WebSocketResponseConverter : JsonConverter
+public class WebSocketMessageConverter : JsonConverter
 {
     public override bool CanConvert(Type objectType)
     {
-        return objectType == typeof(WebSocketResponse);
+        return objectType == typeof(WebSocketMessage);
     }
 
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
@@ -28,9 +28,9 @@ public class WebSocketResponseConverter : JsonConverter
         switch (actionType)
         {
             case "Player":
-                return new WebSocketResponse { ActionType = actionType, Body = body.ToObject<PlayerDTO>() };
+                return new WebSocketMessage { ActionType = actionType, Body = body.ToObject<PlayerDTO>() };
             case "GameState":
-                return new WebSocketResponse { ActionType = actionType, Body = body.ToObject<GameStateDTO>() };
+                return new WebSocketMessage { ActionType = actionType, Body = body.ToObject<GameStateDTO>() };
             default:
                 throw new JsonSerializationException($"Unknown type '{actionType}' in JSON.");
         }

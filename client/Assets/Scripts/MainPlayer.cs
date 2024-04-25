@@ -31,7 +31,7 @@ public class MainPlayer : MonoBehaviour
 
 			float x = hit.point.x, z = hit.point.z;
 			PositionDTO inputPosition = new PositionDTO{x = x, z = z};
-            WebSocketResponse response = new WebSocketResponse {
+            WebSocketMessage response = new WebSocketMessage {
                 Body = inputPosition,
                 ActionType = "Position"
             };
