@@ -31,7 +31,11 @@ public class MainPlayer : MonoBehaviour
 
 			float x = hit.point.x, z = hit.point.z;
 			PositionDTO inputPosition = new PositionDTO{x = x, z = z};
-			string message = JsonConvert.SerializeObject(inputPosition);
+            WebSocketResponse response = new WebSocketResponse {
+                Body = inputPosition,
+                ActionType = "Position"
+            };
+			string message = JsonConvert.SerializeObject(response);
 			WebSocketConnection.SendMessage(message);
         }
     }

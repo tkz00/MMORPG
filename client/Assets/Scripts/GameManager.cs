@@ -24,9 +24,9 @@ public class GameManager : MonoBehaviour
 		WebSocketConnection.SetHandler<PlayerDTO>(new Action<PlayerDTO>((playerDTO) => {
 			this.mainPlayerID = playerDTO.Id;
 			Debug.Log(this.mainPlayerID);
-		}), "PlayerDTO");
+		}), "Player");
 
-		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => OnGameStateUpdate(gameState)), "GameStateDTO");
+		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => OnGameStateUpdate(gameState)), "GameState");
 
 		await WebSocketConnection.Connect();
     }

@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 public class WebSocketResponse {
 	public DTO Body;
-	public string Type;
+	public string ActionType;
 }
 
 public class WebSocketResponseConverter : JsonConverter
@@ -16,23 +16,23 @@ public class WebSocketResponseConverter : JsonConverter
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
         var jsonObject = JObject.Load(reader);
-        var type = jsonObject["type"]?.Value<string>();
+        var actionType = jsonObject["actionType"]?.Value<string>();
 
-        if (type == null)
+        if (actionType == null)
         {
             throw new JsonSerializationException("Missing 'Type' field in JSON.");
         }
 
         var body = jsonObject["body"];
 
-        switch (type)
+        switch (actionType)
         {
-            case "PlayerDTO":
-                return new WebSocketResponse { Type = type, Body = body.ToObject<PlayerDTO>() };
-            case "GameStateDTO":
-                return new WebSocketResponse { Type = type, Body = body.ToObject<GameStateDTO>() };
+            case "Player":
+                return new WebSocketResponse { ActionType = actionType, Body = body.ToObject<PlayerDTO>() };
+            case "GameState":
+                return new WebSocketResponse { ActionType = actionType, Body = body.ToObject<GameStateDTO>() };
             default:
-                throw new JsonSerializationException($"Unknown type '{type}' in JSON.");
+                throw new JsonSerializationException($"Unknown type '{actionType}' in JSON.");
         }
     }
 

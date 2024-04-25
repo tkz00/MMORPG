@@ -71,8 +71,8 @@ public static class WebSocketConnection
                 WebSocketResponse response = JsonConvert.DeserializeObject<WebSocketResponse>(responseJson, settings);
                 messageBytes.Clear();
 
-                if(_responseHandlers.ContainsKey(response.Type)) {
-                    var handler = _responseHandlers[response.Type];
+                if(_responseHandlers.ContainsKey(response.ActionType)) {
+                    var handler = _responseHandlers[response.ActionType];
                     handler.DynamicInvoke(response.Body);
                 }
             }

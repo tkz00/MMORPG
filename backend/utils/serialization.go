@@ -9,5 +9,5 @@ func ToJSON(s interface{}) ([]byte, error) {
 }
 
 func FromJSON(data []byte, s interface{}) error {
-    return json.Unmarshal(data, s)
+    return json.Unmarshal(data, &s)
 }
