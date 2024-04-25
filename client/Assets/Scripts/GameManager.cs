@@ -22,7 +22,7 @@ public class GameManager : MonoBehaviour
 
 	async void Awake() {
 		WebSocketConnection.SetHandler<PlayerDTO>(new Action<PlayerDTO>((playerDTO) => {
-			this.mainPlayerID = playerDTO.Id;
+			this.mainPlayerID = playerDTO.id;
 			Debug.Log(this.mainPlayerID);
 		}), "Player");
 
@@ -45,28 +45,28 @@ public class GameManager : MonoBehaviour
 
 	void OnGameStateUpdate(GameStateDTO gameState) {
         string[] currentPlayerIds = this.players.Keys.ToArray();
-		HashSet<string> playersToDestroy = new HashSet<string>(currentPlayerIds.Except(gameState.Players.Select(player => player.Id)));
+		HashSet<string> playersToDestroy = new HashSet<string>(currentPlayerIds.Except(gameState.players.Select(player => player.id)));
 
 		DestroyPlayers(playersToDestroy.ToArray());
-		UpdatePlayersPositions(gameState.Players);
+		UpdatePlayersPositions(gameState.players);
 	}
 
 	void UpdatePlayersPositions(List<PlayerDTO> playerDTOS) {
         foreach(PlayerDTO player in playerDTOS) {
-			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == player.Id);
+			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == player.id);
             if(playerExists) {
-            	this.players[player.Id].Movement.Move(new Vector3(player.Position.x, 0, player.Position.z));
+            	this.players[player.id].Movement.Move(new Vector3(player.position.x, 0, player.position.z));
             } else {
-            	GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.Position.x, 1, player.Position.z), Quaternion.identity);
-            	players[player.Id] = newPlayerGO.GetComponent<Player>();
+            	GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.position.x, 1, player.position.z), Quaternion.identity);
+            	players[player.id] = newPlayerGO.GetComponent<Player>();
             	newPlayerGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 
-            	if(this.mainPlayerID == player.Id) {
+            	if(this.mainPlayerID == player.id) {
             		newPlayerGO.AddComponent<MainPlayer>();
             		this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
             	}
             }
-			players[player.Id].UpdateHealth(player.CurrentHealth, player.MaxHealth);
+			players[player.id].UpdateHealth(player.currentHealth, player.maxHealth);
         }
 	}
 

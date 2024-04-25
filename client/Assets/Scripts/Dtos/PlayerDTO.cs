@@ -1,6 +1,6 @@
 public class PlayerDTO : DTO{
-	public string Id;
-	public PositionDTO Position;
-	public int MaxHealth;
-	public int CurrentHealth;
+	public string id;
+	public PositionDTO position;
+	public int maxHealth;
+	public int currentHealth;
 }
