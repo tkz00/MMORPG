@@ -10,12 +10,14 @@ import (
 type GameState struct {
 	playerIds map[*websocket.Conn]string
 	players   map[string]*Player
+	projectiles map[string]*Projectile
 }
 
 func StartGameState() GameState {
 	return GameState{
 		playerIds: make(map[*websocket.Conn]string),
 		players:   make(map[string]*Player),
+		projectiles: make(map[string]*Projectile),
 	}
 }
 
@@ -50,6 +52,10 @@ func (gs GameState) UpdateState() {
 			player.UpdatePosition()
 		}
 	}
+}
+
+func (gs *GameState) CastAbility(conn *websocket.Conn, abilityDirection Position, abilityName string) {
+	gs.projectiles[gs.playerIds[conn]] = CreateProjectile(abilityDirection)
 }
 
 func (gs GameState) GetGameState() GameStateDTO {
