@@ -10,7 +10,8 @@ type DTO interface {
 }
 
 type GameStateDTO struct {
-	Players []PlayerDTO `json:"players"`
+	Players 	[]PlayerDTO `json:"players"`
+	Projectiles []ProjectileDTO `json:"projectiles"`
 }
 
 func (g GameStateDTO) GetType() string {
@@ -56,4 +57,14 @@ type AbilityCastDTO struct {
 
 func (p AbilityCastDTO) GetType() string {
 	return "AbilityCast"
+}
+
+type ProjectileDTO struct {
+	Caster 		string
+	Position 	PositionDTO
+	Damage		int
+}
+
+func (p ProjectileDTO) GetType() string {
+	return "Projectile"
 }
