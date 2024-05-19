@@ -74,6 +74,10 @@ func (p *Player) UpdatePosition() {
 	}
 }
 
+func (p *Player) DealDamage(damagePoints int) {
+	p.stats.currentHealth -= damagePoints
+}
+
 func (p Player) GetRadius() float64 {
 	return BOUNDS_RADIUS
 }

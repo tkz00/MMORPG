@@ -10,11 +10,12 @@ type DTO interface {
 }
 
 type GameStateDTO struct {
-	Players []PlayerDTO `json:"players"`
+	Players 	[]PlayerDTO `json:"players"`
+	Projectiles []ProjectileDTO `json:"projectiles"`
 }
 
 func (g GameStateDTO) GetType() string {
-	return "GameStateDTO"
+	return "GameState"
 }
 
 type PlayerDTO struct {
@@ -25,7 +26,7 @@ type PlayerDTO struct {
 }
 
 func (p PlayerDTO) GetType() string {
-	return "PlayerDTO"
+	return "Player"
 }
 
 type PositionDTO struct {
@@ -46,5 +47,25 @@ func CreatePositionDTO(data []byte) *PositionDTO {
 }
 
 func (p PositionDTO) GetType() string {
-	return "PositionDTO"
+	return "Position"
+}
+
+type AbilityCastDTO struct {
+	Name	  string
+	Direction PositionDTO
+}
+
+func (p AbilityCastDTO) GetType() string {
+	return "AbilityCast"
+}
+
+type ProjectileDTO struct {
+	Id			string `json:"id"`
+	Caster 		string `json:"caster"`
+	Position 	PositionDTO `json:"position"`
+	Damage		int `json:"damage"`
+}
+
+func (p ProjectileDTO) GetType() string {
+	return "Projectile"
 }

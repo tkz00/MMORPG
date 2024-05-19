@@ -24,3 +24,7 @@ func (p *Position) Teleport(to Position) {
 	p.x = to.x
 	p.z = to.z
 }
+
+func (p Position) Equals(other Position) bool {
+	return p.x == other.x && p.z == other.z
+}

@@ -50,7 +50,7 @@ public static class WebSocketConnection
         byte[] receiveBuffer = new byte[1024];
 
         JsonSerializerSettings settings = new JsonSerializerSettings();
-        settings.Converters.Add(new WebSocketResponseConverter());
+        settings.Converters.Add(new WebSocketMessageConverter());
 
         while (webSocket.State == WebSocketState.Open)
         {
@@ -68,11 +68,11 @@ public static class WebSocketConnection
             if (result.MessageType == WebSocketMessageType.Binary)
             {
 				string responseJson = Encoding.UTF8.GetString(messageBytes.ToArray());
-                WebSocketResponse response = JsonConvert.DeserializeObject<WebSocketResponse>(responseJson, settings);
+                WebSocketMessage response = JsonConvert.DeserializeObject<WebSocketMessage>(responseJson, settings);
                 messageBytes.Clear();
 
-                if(_responseHandlers.ContainsKey(response.Type)) {
-                    var handler = _responseHandlers[response.Type];
+                if(_responseHandlers.ContainsKey(response.ActionType)) {
+                    var handler = _responseHandlers[response.ActionType];
                     handler.DynamicInvoke(response.Body);
                 }
             }

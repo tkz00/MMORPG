@@ -1,6 +1,8 @@
 package connection
 
 import (
+	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -82,27 +84,45 @@ func (server *NativeServer) broadcastGameState() {
 }
 
 func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
-	server.addClient <- conn
-	defer func() { 
-		conn.Close()
-		server.removeClient <- conn 
-	}()
-	for {
-		var data []byte
-		err := websocket.Message.Receive(conn, &data)
-		if err != nil {
-			log.Println("Error reading message from client:", err)
-			break
-		}
-		server.handlePlayerMovement(conn, data)
-	}
+    server.addClient <- conn
+    defer func() {
+        conn.Close()
+        server.removeClient <- conn
+    }()
+    for {
+        var data []byte
+        err := websocket.Message.Receive(conn, &data)
+        if err != nil {
+            log.Println("Error reading message from client:", err)
+            break
+        }
+
+        var message types.WebSocketMessage
+        if err := json.Unmarshal(data, &message); err != nil {
+            fmt.Println("Error decoding message:", err)
+            return
+        }
+
+        switch message.ActionType {
+        case "Position":
+            server.handlePlayerMovement(conn, message.Body.(types.PositionDTO))
+        case "AbilityCast":
+            server.handleAbilityCast(conn, message.Body.(types.AbilityCastDTO))
+        default:
+            fmt.Println("Unknown message type:", message.ActionType)
+        }
+    }
 }
 
-func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionData []byte) {
-	positionDTO := types.CreatePositionDTO(positionData)
-	position := *types.GetMapper().PositionDTOToEntity(*positionDTO)
+func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionDTO types.PositionDTO) {
+	position := *types.GetMapper().PositionDTOToEntity(positionDTO)
 
 	server.gameState.MovePlayer(client, position)
+}
+
+func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO types.AbilityCastDTO) {
+	abilityDirection := *types.GetMapper().PositionDTOToEntity(abilityCastDTO.Direction)
+	server.gameState.CastAbility(client, abilityDirection, abilityCastDTO.Name)
 }
 
 // {"x":3.6,"z":19.01}

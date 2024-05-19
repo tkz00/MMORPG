@@ -10,12 +10,14 @@ import (
 type GameState struct {
 	playerIds map[*websocket.Conn]string
 	players   map[string]*Player
+	projectiles map[string]*Projectile
 }
 
 func StartGameState() GameState {
 	return GameState{
 		playerIds: make(map[*websocket.Conn]string),
 		players:   make(map[string]*Player),
+		projectiles: make(map[string]*Projectile),
 	}
 }
 
@@ -50,18 +52,46 @@ func (gs GameState) UpdateState() {
 			player.UpdatePosition()
 		}
 	}
+	for key, projectile := range gs.projectiles {
+		isAtMaxRange := projectile.UpdatePosition()
+		// check collision
+		projectileCollided := gs.checkCollision(*projectile)
+
+		if isAtMaxRange || projectileCollided {
+			delete(gs.projectiles, key)
+		}
+	}
+}
+
+func (gs GameState) checkCollision(projectile Projectile) bool {
+	playerGotHit := false
+	for _,player := range gs.players {
+		if player.id != projectile.caster && gs.AreColliding(*player, projectile) {
+			player.DealDamage(projectile.damage)
+			playerGotHit = true
+		}
+	}
+
+	return playerGotHit
+}
+
+func (gs *GameState) CastAbility(conn *websocket.Conn, abilityInput Position, abilityName string) {
+	id := uuid.New().String()
+	caster := gs.playerIds[conn]
+	initPosition := gs.players[caster].position
+	gs.projectiles[id] = CreateProjectile(id, initPosition, abilityInput, caster)
 }
 
 func (gs GameState) GetGameState() GameStateDTO {
 	return *GetMapper().GameStateToDTO(gs)
 }
 
-func (gs GameState) AreColliding(player1 Player, player2 Player) bool {
+func (gs GameState) AreColliding(player1 Player, projectile Projectile) bool {
 	position1 := player1.GetPosition()
-	position2 := player2.GetPosition()
+	position2 := projectile.GetPosition()
 
 	diffX, diffZ := utils.GetDiff(position1.x, position1.z, position2.x, position2.z)
-	playersDistance := utils.GetDistance(diffX, diffZ)
+	distance := utils.GetDistance(diffX, diffZ)
 
-	return playersDistance < player1.GetRadius()+player2.GetRadius()
+	return distance < player1.GetRadius()
 }

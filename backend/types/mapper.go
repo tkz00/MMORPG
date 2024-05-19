@@ -53,14 +53,29 @@ func (m Mapper) PlayerToDTO(player Player) *PlayerDTO {
 	}
 }
 
+func (m Mapper) ProjectileToDTO(projectile Projectile) *ProjectileDTO {
+	return &ProjectileDTO {
+		Id: projectile.id,
+		Caster: projectile.caster,
+		Position: *m.PositionToDTO(projectile.position),
+		Damage: projectile.damage,
+	}
+}
+
 func (m Mapper) GameStateToDTO(gameState GameState) *GameStateDTO {
 	playerDTOS := make([]PlayerDTO, 0)
+	projectileDTOS := make([]ProjectileDTO, 0)
 
 	for _, player := range gameState.players {
 		playerDTOS = append(playerDTOS, *m.PlayerToDTO(*player))
 	}
 
+	for _, projectile := range gameState.projectiles {
+		projectileDTOS = append(projectileDTOS, *m.ProjectileToDTO(*projectile))
+	}
+
 	return &GameStateDTO {
 		Players: playerDTOS,
+		Projectiles: projectileDTOS,
 	}
 }
