@@ -55,6 +55,7 @@ func (m Mapper) PlayerToDTO(player Player) *PlayerDTO {
 
 func (m Mapper) ProjectileToDTO(projectile Projectile) *ProjectileDTO {
 	return &ProjectileDTO {
+		Id: projectile.id,
 		Caster: projectile.caster,
 		Position: *m.PositionToDTO(projectile.position),
 		Damage: projectile.damage,

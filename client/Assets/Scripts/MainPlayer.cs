@@ -62,7 +62,6 @@ public class MainPlayer : MonoBehaviour
             };
 			string message = JsonConvert.SerializeObject(response);
 			WebSocketConnection.SendMessage(message);
-            Debug.Log("howdy");
         }
     }
 }
