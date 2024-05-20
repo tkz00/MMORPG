@@ -925,6 +925,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 8385747069691689648, guid: 5d58f493044954c519a6b741a4b66c51, type: 3}
+  projectilePrefab: {fileID: 4053404763821288570, guid: 1dbc52c46d937d34fa297a0c1abc8794, type: 3}
   cinemachineVirtualCamera: {fileID: 1458421495}
   PlayerPanelsManager: {fileID: 982960692}
 --- !u!4 &1535886752
