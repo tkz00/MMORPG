@@ -75,7 +75,7 @@ public class GameManager : MonoBehaviour
 			}
 			else
 			{
-				GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.position.x, 1, player.position.z), Quaternion.identity);
+				GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.position.x, 0, player.position.z), Quaternion.identity);
 				players[player.id] = newPlayerGO.GetComponentInChildren<Player>();
 				Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 				newPlayerGO.GetComponentInChildren<MeshRenderer>().material.color = playerColor;
