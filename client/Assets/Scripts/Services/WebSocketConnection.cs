@@ -6,12 +6,13 @@ using System.Net.WebSockets;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 public static class WebSocketConnection 
 {
     static ClientWebSocket webSocket;
     static String URL = "ws://localhost:3009/ws";
-	static Dictionary<Type, Delegate> _responseHandlers = new Dictionary<Type, Delegate>();
+	static Dictionary<string, Delegate> _responseHandlers = new Dictionary<string, Delegate>();
 	
     public static async Task Connect() {
         // handshake
@@ -27,9 +28,9 @@ public static class WebSocketConnection
         }
     }
 
-	public static void SetHandler<TResponse>(Action<TResponse> responseHandler)
+	public static void SetHandler<TResponse>(Action<TResponse> responseHandler, string type) where TResponse : DTO
     {
-        _responseHandlers[typeof(TResponse)] = responseHandler;
+        _responseHandlers[type] = responseHandler;
     }
 
 	public static async void SendMessage(string messageJson)
@@ -48,6 +49,9 @@ public static class WebSocketConnection
 		List<byte> messageBytes = new List<byte>();
         byte[] receiveBuffer = new byte[1024];
 
+        JsonSerializerSettings settings = new JsonSerializerSettings();
+        settings.Converters.Add(new WebSocketMessageConverter());
+
         while (webSocket.State == WebSocketState.Open)
         {
             WebSocketReceiveResult result = null;
@@ -64,24 +68,13 @@ public static class WebSocketConnection
             if (result.MessageType == WebSocketMessageType.Binary)
             {
 				string responseJson = Encoding.UTF8.GetString(messageBytes.ToArray());
-				WebSocketResponse response = JsonConvert.DeserializeObject<WebSocketResponse>(responseJson);
-				messageBytes.Clear();
+                WebSocketMessage response = JsonConvert.DeserializeObject<WebSocketMessage>(responseJson, settings);
+                messageBytes.Clear();
 
-				Type responseType = typeof(WebSocketResponse);
-				var fields = responseType.GetFields();
-
-				foreach (var field in fields) {
-					var value = field.GetValue(response);
-					if (value != null) {
-						Type propertyType = value.GetType();
-
-						if (_responseHandlers.ContainsKey(propertyType)) {
-							var handler = _responseHandlers[propertyType];
-							handler.DynamicInvoke(value);
-							break;
-						}
-					}
-				}
+                if(_responseHandlers.ContainsKey(response.ActionType)) {
+                    var handler = _responseHandlers[response.ActionType];
+                    handler.DynamicInvoke(response.Body);
+                }
             }
             else if (result.MessageType == WebSocketMessageType.Close)
             {
@@ -96,7 +89,7 @@ public static class WebSocketConnection
 	}
 
     public static void ClearHandlers() {
-        _responseHandlers = new Dictionary<Type, Delegate>();
+        _responseHandlers = new Dictionary<string, Delegate>();
     }
 
     public static async Task Disconnect() {
