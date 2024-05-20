@@ -1,7 +1,6 @@
 package types
 
 import (
-	"math/rand"
 	"unnamed-mmo/backend/utils"
 
 	"github.com/google/uuid"
@@ -49,7 +48,6 @@ func (gs GameState) MovePlayer(conn *websocket.Conn, position Position) {
 
 func (gs GameState) UpdateState() {
 	for _, player := range gs.players {
-		player.stats.currentHealth = rand.Intn(BASE_MAX_HEALTH) + 1
 		if player.IsMoving() {
 			player.UpdatePosition()
 		}
