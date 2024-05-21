@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 
-public class GameStateDTO {
-	public List<PlayerDTO> Players;
+public class GameStateDTO : DTO {
+	public List<PlayerDTO> players;
+	public List<ProjectileDTO> projectiles;
 }
