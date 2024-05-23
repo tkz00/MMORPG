@@ -108,7 +108,7 @@ public class GameManager : MonoBehaviour
 			}
 		}
 	}
-
+	//qdwqwqw
 	void DestroyPlayers(string[] playerIdsToDestroy)
 	{
 		foreach (string playerIdToDestroy in playerIdsToDestroy)
