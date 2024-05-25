@@ -2,7 +2,6 @@ package types
 
 import (
 	"math"
-	"math/rand"
 	"unnamed-mmo/backend/utils"
 )
 
@@ -33,7 +32,7 @@ func CreatePlayer(x, z float64, id string) *Player {
 		position: initPosition,
 		to:       initPosition,
 		stats: PlayerStats{
-			currentHealth: rand.Intn(BASE_MAX_HEALTH) + 1,
+			currentHealth: BASE_MAX_HEALTH,
 			maxHealth:     BASE_MAX_HEALTH,
 		},
 	}
