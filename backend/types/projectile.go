@@ -25,13 +25,13 @@ func CreateProjectile(id string, position Position, input Position, caster strin
 	zNormalized := diffZ / distanceMagnitude
 
 	to := Position{
-		x: float32(xNormalized * RANGE) + position.x,
-		z: float32(zNormalized * RANGE) + position.z,
+		x: xNormalized * RANGE + position.x,
+		z: zNormalized * RANGE + position.z,
 	}
 
 	direction := Position{
-		x: float32(xNormalized * PROJECTILE_SPEED),
-		z: float32(zNormalized * PROJECTILE_SPEED),
+		x: xNormalized * PROJECTILE_SPEED,
+		z: zNormalized * PROJECTILE_SPEED,
 	}
 
 	return &Projectile{

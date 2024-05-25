@@ -22,7 +22,7 @@ type Player struct {
 	direccion Position
 }
 
-func CreatePlayer(x, z float32, id string) *Player {
+func CreatePlayer(x, z float64, id string) *Player {
 	initPosition := Position{
 		x: x,
 		z: z,
@@ -55,8 +55,8 @@ func (p *Player) MoveTowards(to Position) {
 	distanceMagnitude := math.Hypot(diffX, diffZ)
 
 	p.direccion = Position{
-		x: float32(diffX * PLAYER_SPEED / distanceMagnitude),
-		z: float32(diffZ * PLAYER_SPEED / distanceMagnitude),
+		x: float64(diffX * PLAYER_SPEED / distanceMagnitude),
+		z: float64(diffZ * PLAYER_SPEED / distanceMagnitude),
 	}
 }
 

@@ -31,8 +31,8 @@ func (p PlayerDTO) GetType() string {
 }
 
 type PositionDTO struct {
-	X float32 `json:"x"`
-	Z float32 `json:"z"`
+	X float64 `json:"x"`
+	Z float64 `json:"z"`
 }
 
 func CreatePositionDTO(data []byte) *PositionDTO {
