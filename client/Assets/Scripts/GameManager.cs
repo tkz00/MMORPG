@@ -74,6 +74,7 @@ public class GameManager : MonoBehaviour
             	}
             }
 			players[player.id].UpdateHealth(player.currentHealth, player.maxHealth);
+			players[player.id].SetScale(player.radius * 2);
         }
 	}
 
@@ -87,6 +88,7 @@ public class GameManager : MonoBehaviour
 				projectiles[projectile.id] = newProjectileGO.GetComponent<Projectile>();
             	newProjectileGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 			}
+			projectiles[projectile.id].SetScale(projectile.radius * 2);
 		}
 	}
 
