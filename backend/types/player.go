@@ -54,8 +54,8 @@ func (p *Player) MoveTowards(to Position) {
 	distanceMagnitude := math.Hypot(diffX, diffZ)
 
 	p.direccion = Position{
-		x: float64(diffX * PLAYER_SPEED / distanceMagnitude),
-		z: float64(diffZ * PLAYER_SPEED / distanceMagnitude),
+		x: diffX * PLAYER_SPEED / distanceMagnitude,
+		z: diffZ * PLAYER_SPEED / distanceMagnitude,
 	}
 }
 
