@@ -28,3 +28,7 @@ func (p *Position) Teleport(to Position) {
 func (p Position) Equals(other Position) bool {
 	return p.x == other.x && p.z == other.z
 }
+
+func (p Position) Multiply(multiplier float64) Position {
+	return Position{p.x * multiplier, p.z * multiplier}
+}
