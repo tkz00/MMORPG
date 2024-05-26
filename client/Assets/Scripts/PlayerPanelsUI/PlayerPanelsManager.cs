@@ -26,8 +26,8 @@ public class PlayerPanelsManager : MonoBehaviour
 				{
 					playerPanel.SetPlayerName(player.Key);
 					// remove in the future
-                	var playerColor = player.Value.gameObject.GetComponent<MeshRenderer>().material.color;
-					playerPanel.SetHealthBarColor(playerColor);
+                	// var playerColor = player.Value.gameObject.GetComponent<MeshRenderer>().material.color;
+					// playerPanel.SetHealthBarColor(playerColor);
 					player.Value.onHealthChanged += playerPanel.UpdateHealthBar;
 				}
 				else {
@@ -36,7 +36,7 @@ public class PlayerPanelsManager : MonoBehaviour
                 playerPanels[player.Key] = playerPanelGO;
             }
             Vector3 playerPosition = player.Value.transform.position;
-            playerPanelGO.transform.position = gameCamera.WorldToScreenPoint(playerPosition) + new Vector3(0, 75, 0);
+            playerPanelGO.transform.position = gameCamera.WorldToScreenPoint(playerPosition) + new Vector3(0, 140, 0);
         }
     }
 }

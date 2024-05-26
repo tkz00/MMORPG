@@ -22,4 +22,8 @@ public class Player : MonoBehaviour
 		this.Stats.UpdateHealth(currentHealth, maxHealth);
 		onHealthChanged?.Invoke(currentHealth, maxHealth);
 	}
+
+    public void SetMovement(PlayerMovement movement) {
+        this.movement = movement;
+    }
 }
