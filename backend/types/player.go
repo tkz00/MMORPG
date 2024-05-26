@@ -18,7 +18,7 @@ type Player struct {
 	stats	  PlayerStats
 	position  Position
 	to        Position
-	direccion Position
+	direction Position
 }
 
 func CreatePlayer(x, z float64, id string) *Player {
@@ -53,7 +53,7 @@ func (p *Player) MoveTowards(to Position) {
 	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
 	distanceMagnitude := math.Hypot(diffX, diffZ)
 
-	p.direccion = Position{
+	p.direction = Position{
 		x: diffX * PLAYER_SPEED / distanceMagnitude,
 		z: diffZ * PLAYER_SPEED / distanceMagnitude,
 	}
@@ -69,7 +69,7 @@ func (p *Player) UpdatePosition() {
 	if distanceToTarget < PLAYER_SPEED {
 		p.position.Teleport(p.to)
 	} else {
-		p.position.Move(p.direccion)
+		p.position.Move(p.direction)
 	}
 }
 
