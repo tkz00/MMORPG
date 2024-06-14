@@ -4,5 +4,12 @@ using System.Collections.Generic;
 public class AbilityCastDTO : DTO
 {
     public string name;
-    public PositionDTO direction;
+    public Dictionary<AbilityParameters, object> abilityParameters;
 }
+
+public enum AbilityParameters
+{
+    TargetPosition,
+    TargetId
+}
+

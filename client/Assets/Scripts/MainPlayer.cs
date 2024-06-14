@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 
 public class MainPlayer : MonoBehaviour
 {
-	private Camera mainCamera;
+    private Camera mainCamera;
 
     public InputAction mouseClickAction = new InputAction(binding: "<Mouse>/rightButton");
     public InputAction projectileAbilityAction = new InputAction(binding: "<Keyboard>/q");
@@ -15,9 +15,9 @@ public class MainPlayer : MonoBehaviour
     private LayerMask groundLayer;
     private LayerMask playersLayer;
 
-	void Awake() {
+    void Awake() {
         mainCamera = Camera.main;
-	}
+    }
 
     void Start() {
         // The type of shit Unity makes you do:
@@ -25,7 +25,7 @@ public class MainPlayer : MonoBehaviour
         playersLayer = (1 << LayerMask.NameToLayer("Players"));
     }
 
-	private void OnEnable() {
+    private void OnEnable() {
         mouseClickAction.Enable();
         mouseClickAction.performed += SendMovementMessage;
 
@@ -51,14 +51,14 @@ public class MainPlayer : MonoBehaviour
     {
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && hit.collider) {
-			float x = hit.point.x, z = hit.point.z;
-			PositionDTO inputPosition = new PositionDTO{x = x, z = z};
+            float x = hit.point.x, z = hit.point.z;
+            PositionDTO inputPosition = new PositionDTO{x = x, z = z};
             WebSocketMessage response = new WebSocketMessage {
                 Body = inputPosition,
                 ActionType = "Position"
             };
-			string message = JsonConvert.SerializeObject(response);
-			WebSocketConnection.SendMessage(message);
+            string message = JsonConvert.SerializeObject(response);
+            WebSocketConnection.SendMessage(message);
         }
     }
 
@@ -67,17 +67,22 @@ public class MainPlayer : MonoBehaviour
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && hit.collider) {
 
-			float x = hit.point.x, z = hit.point.z;
-			PositionDTO inputPosition = new PositionDTO{x = x, z = z};
+            float x = hit.point.x, z = hit.point.z;
+            PositionDTO inputPosition = new PositionDTO{x = x, z = z};
+            Dictionary<AbilityParameters, object> abilityParameters =
+                new Dictionary<AbilityParameters, object>{
+                    {AbilityParameters.TargetPosition, inputPosition}
+                };
+
             WebSocketMessage response = new WebSocketMessage {
                 Body = new AbilityCastDTO {
-                    direction = inputPosition,
+                    abilityParameters = abilityParameters,
                     name = "projectile"
                 },
                 ActionType = "AbilityCast"
             };
-			string message = JsonConvert.SerializeObject(response);
-			WebSocketConnection.SendMessage(message);
+            string message = JsonConvert.SerializeObject(response);
+            WebSocketConnection.SendMessage(message);
         }
     }
 
@@ -86,17 +91,22 @@ public class MainPlayer : MonoBehaviour
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, playersLayer) && hit.collider) {
             
-            float x = hit.point.x, z = hit.point.z;
-			PositionDTO inputPosition = new PositionDTO{x = x, z = z};
+            string targetId = hit.collider.GetComponent<Player>().id;
+            Dictionary<AbilityParameters, object> abilityParameters =
+                new Dictionary<AbilityParameters, object>{
+                    {AbilityParameters.TargetId, targetId}
+                };
+
             WebSocketMessage response = new WebSocketMessage {
                 Body = new AbilityCastDTO {
-                    direction = inputPosition,
+                    abilityParameters = abilityParameters,
                     name = "heal"
                 },
                 ActionType = "AbilityCast"
             };
-			string message = JsonConvert.SerializeObject(response);
-			WebSocketConnection.SendMessage(message);
+            string message = JsonConvert.SerializeObject(response);
+            WebSocketConnection.SendMessage(message);
         }
     }
 }
+
