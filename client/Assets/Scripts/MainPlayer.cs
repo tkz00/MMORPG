@@ -9,9 +9,11 @@ public class MainPlayer : MonoBehaviour
 	private Camera mainCamera;
 
     public InputAction mouseClickAction = new InputAction(binding: "<Mouse>/rightButton");
-    public InputAction abilityAction = new InputAction(binding: "<Keyboard>/q");
+    public InputAction projectileAbilityAction = new InputAction(binding: "<Keyboard>/q");
+    public InputAction healAbilityAction = new InputAction(binding: "<Keyboard>/w");
 
     private LayerMask groundLayer;
+    private LayerMask playersLayer;
 
 	void Awake() {
         mainCamera = Camera.main;
@@ -20,22 +22,29 @@ public class MainPlayer : MonoBehaviour
     void Start() {
         // The type of shit Unity makes you do:
         groundLayer = (1 << LayerMask.NameToLayer("Ground"));
+        playersLayer = (1 << LayerMask.NameToLayer("Players"));
     }
 
 	private void OnEnable() {
         mouseClickAction.Enable();
         mouseClickAction.performed += SendMovementMessage;
 
-        abilityAction.Enable();
-        abilityAction.performed += CastAbilityMessage;
+        projectileAbilityAction.Enable();
+        projectileAbilityAction.performed += CastProjectileAbility;
+
+        healAbilityAction.Enable();
+        healAbilityAction.performed += CastHealAbility;
     }
 
     private void OnDisable() {
         mouseClickAction.performed -= SendMovementMessage;
         mouseClickAction.Disable();
 
-        abilityAction.Disable();
-        abilityAction.performed -= CastAbilityMessage;
+        projectileAbilityAction.Disable();
+        projectileAbilityAction.performed -= CastProjectileAbility;
+
+        healAbilityAction.Disable();
+        healAbilityAction.performed -= CastHealAbility;
     }
 
     private void SendMovementMessage(InputAction.CallbackContext context)
@@ -53,7 +62,8 @@ public class MainPlayer : MonoBehaviour
         }
     }
 
-    private void CastAbilityMessage(InputAction.CallbackContext context) {
+    private void CastProjectileAbility(InputAction.CallbackContext context)
+    {
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && hit.collider) {
 
@@ -62,7 +72,26 @@ public class MainPlayer : MonoBehaviour
             WebSocketMessage response = new WebSocketMessage {
                 Body = new AbilityCastDTO {
                     direction = inputPosition,
-                    name = "first-ability"
+                    name = "projectile"
+                },
+                ActionType = "AbilityCast"
+            };
+			string message = JsonConvert.SerializeObject(response);
+			WebSocketConnection.SendMessage(message);
+        }
+    }
+
+    private void CastHealAbility(InputAction.CallbackContext context)
+    {
+        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+        if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, playersLayer) && hit.collider) {
+            
+            float x = hit.point.x, z = hit.point.z;
+			PositionDTO inputPosition = new PositionDTO{x = x, z = z};
+            WebSocketMessage response = new WebSocketMessage {
+                Body = new AbilityCastDTO {
+                    direction = inputPosition,
+                    name = "heal"
                 },
                 ActionType = "AbilityCast"
             };
