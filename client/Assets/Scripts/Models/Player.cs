@@ -5,6 +5,9 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    // this field shouldn't be public, it should be set on creation of the player and be readonly from then on
+    public string id;
+
     [SerializeField]
     private PlayerMovement movement;
     public PlayerMovement Movement {
