@@ -10,10 +10,6 @@ const BASE_MAX_HEALTH = 100
 const SPEED float64 = 1
 const BOUNDS_RADIUS float64 = 0.5
 
-type Collisionable interface {
-	GetBounds() Position
-}
-
 type Player struct {
 	id 		  string
 	stats	  PlayerStats

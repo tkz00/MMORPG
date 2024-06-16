@@ -51,9 +51,6 @@ func (p PositionDTO) GetType() string {
 	return "Position"
 }
 
-
-
-
 type AbilityParameters int
 
 const (
@@ -99,17 +96,6 @@ func (a *AbilityCastDTO) UnmarshalJSON(data []byte) error {
 
 	return nil
 }
-
-
-
-// type AbilityCastDTO struct {
-// 	Name	  string
-// 	Direction PositionDTO
-// }
-
-// func (p AbilityCastDTO) GetType() string {
-// 	return "AbilityCast"
-// }
 
 type ProjectileDTO struct {
 	Id			string 		`json:"id"`
