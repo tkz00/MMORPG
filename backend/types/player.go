@@ -101,7 +101,7 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastD
             return
         }
 
-		fmt.Printf("heal target id: %s", targetId)
+		gameState.players[targetId].DealDamage(-10)
 	default:
 	}
 }
