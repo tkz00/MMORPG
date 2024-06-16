@@ -121,10 +121,7 @@ func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positio
 }
 
 func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO types.AbilityCastDTO) {
-	// abilityDirection := *types.GetMapper().PositionDTOToEntity(abilityCastDTO.Direction)
-	// server.gameState.CastAbility(client, abilityDirection, abilityCastDTO.Name)
-
-	fmt.Printf("ability: %s\n", abilityCastDTO.Name)
+	server.gameState.CastAbility(client, abilityCastDTO)
 }
 
 // {"x":3.6,"z":19.01}

@@ -75,11 +75,10 @@ func (gs GameState) checkCollision(projectile Projectile) bool {
 	return playerGotHit
 }
 
-func (gs *GameState) CastAbility(conn *websocket.Conn, abilityInput Position, abilityName string) {
-	id := uuid.New().String()
-	caster := gs.playerIds[conn]
-	initPosition := gs.players[caster].position
-	gs.projectiles[id] = CreateProjectile(id, initPosition, abilityInput, caster)
+func (gs *GameState) CastAbility(conn *websocket.Conn, abilityInfo AbilityCastDTO) {
+	casterId := gs.playerIds[conn]
+	caster := gs.players[casterId]
+	caster.CastAbility(gs, abilityInfo)
 }
 
 func (gs GameState) GetGameState() GameStateDTO {

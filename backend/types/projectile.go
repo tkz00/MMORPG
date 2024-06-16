@@ -17,8 +17,8 @@ type Projectile struct {
 	damage		int
 }
 
-func CreateProjectile(id string, position Position, input Position, caster string) *Projectile {
-	diffX, diffZ := utils.GetDiff(position.x, position.z, input.x, input.z)
+func CreateProjectile(id string, position Position, targetDirection Position, caster string) *Projectile {
+	diffX, diffZ := utils.GetDiff(position.x, position.z, targetDirection.x, targetDirection.z)
 	distanceMagnitude := math.Hypot(diffX, diffZ)
 	xNormalized := diffX / distanceMagnitude
 	zNormalized := diffZ / distanceMagnitude

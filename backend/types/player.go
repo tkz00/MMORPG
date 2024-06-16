@@ -1,9 +1,12 @@
 package types
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
 	"unnamed-mmo/backend/utils"
+
+	"github.com/google/uuid"
 )
 
 const BASE_MAX_HEALTH = 100
@@ -76,4 +79,45 @@ func (p *Player) DealDamage(damagePoints int) {
 
 func (p Player) GetRadius() float64 {
 	return BOUNDS_RADIUS
+}
+
+func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastDTO) {
+	switch abilityInfo.Name {
+	case "projectile":
+		id := uuid.New().String()
+		// Extract the target position map
+		targetPositionMap, ok := abilityInfo.AbilityParameters[TargetPosition].(map[string]interface{})
+		if !ok {
+			fmt.Println("Error: Unable to cast TargetPosition to map[string]interface{}")
+			return
+		}
+
+		// Extract the x and z values, converting them to float64
+		xValue, xOk := targetPositionMap["x"]
+		zValue, zOk := targetPositionMap["z"]
+
+		if !xOk || !zOk {
+			fmt.Println("Error: x or z value not found in the target position map")
+			return
+		}
+
+		// Convert xValue and zValue to float64
+		x, xConvOk := xValue.(float64)
+		z, zConvOk := zValue.(float64)
+
+		if !xConvOk || !zConvOk {
+			fmt.Println("Error: x or z value could not be converted to float64")
+			return
+		}
+
+		// Create a new Position instance
+		targetPosition := Position{
+			x: float32(x),
+			z: float32(z),
+		}
+	
+		gameState.projectiles[id] = CreateProjectile(id, player.position, targetPosition, player.id)
+	case "heal":
+	default:
+	}
 }
