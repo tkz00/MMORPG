@@ -76,3 +76,12 @@ func extractTargetPosition(abilityParameters map[AbilityParameters]interface{}) 
         z: float32(z),
     }, nil
 }
+
+func extractTargetId(abilityParameters map[AbilityParameters]interface{}) (string, error) {
+	targetId, ok := abilityParameters[TargetId].(string)
+    if !ok {
+        return "", fmt.Errorf("unable to cast TargetId to string")
+    }
+
+    return targetId, nil
+}

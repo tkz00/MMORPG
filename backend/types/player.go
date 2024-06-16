@@ -84,6 +84,7 @@ func (p Player) GetRadius() float64 {
 func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastDTO) {
 	switch abilityInfo.Name {
 	case "projectile":
+		// is this ID necessary?
 		projectileId := uuid.New().String()
 
 		targetPosition, err := extractTargetPosition(abilityInfo.AbilityParameters)
@@ -94,6 +95,13 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastD
 	
 		gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, player.id)
 	case "heal":
+		targetId, err := extractTargetId(abilityInfo.AbilityParameters)
+		if err != nil {
+            fmt.Println("Error:", err)
+            return
+        }
+
+		fmt.Printf("heal target id: %s", targetId)
 	default:
 	}
 }
