@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 705507994}
-  m_IndirectSpecularColor: {r: 0.44657844, g: 0.49641222, b: 0.57481676, a: 1}
+  m_IndirectSpecularColor: {r: 0.44657898, g: 0.4964133, b: 0.5748178, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -184,7 +184,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 43d91cc396861f443b5574aef062e3d3, type: 2}
+  - {fileID: 2100000, guid: 0606ef6a7095ba042b3dd808b1d82825, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -653,9 +653,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b5e4d2a969001b439ba8666b378045e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameCamera: {fileID: 963194227}
-  gameCanvas: {fileID: 982960690}
-  playerPanelPrefab: {fileID: 1044985334616851782, guid: c21a5ed2a55b149ac830d01bc2abb51d, type: 3}
 --- !u!1 &1287611648
 GameObject:
   m_ObjectHideFlags: 0
@@ -924,10 +921,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 831d63d3bfc8f49b0a5f3ee8c37198bc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPrefab: {fileID: 8385747069691689648, guid: 5d58f493044954c519a6b741a4b66c51, type: 3}
+  playerPrefab: {fileID: 8385747069691689648, guid: 3476ac8a795794930a1bbb00f3b3fbb4, type: 3}
   projectilePrefab: {fileID: 4053404763821288570, guid: 1dbc52c46d937d34fa297a0c1abc8794, type: 3}
   cinemachineVirtualCamera: {fileID: 1458421495}
-  PlayerPanelsManager: {fileID: 982960692}
 --- !u!4 &1535886752
 Transform:
   m_ObjectHideFlags: 0

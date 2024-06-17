@@ -6,7 +6,8 @@ import (
 )
 
 const RANGE float64 = 12
-const ABILITY_SPEED float64 = 1
+const PROJECTILE_SPEED float64 = 15
+const PROJECTILE_BOUNDS_RADIUS float64 = 0.25
 
 type Projectile struct {
 	id			string
@@ -24,13 +25,13 @@ func CreateProjectile(id string, position Position, targetDirection Position, ca
 	zNormalized := diffZ / distanceMagnitude
 
 	to := Position{
-		x: float32(xNormalized * RANGE) + position.x,
-		z: float32(zNormalized * RANGE) + position.z,
+		x: xNormalized * RANGE + position.x,
+		z: zNormalized * RANGE + position.z,
 	}
 
 	direction := Position{
-		x: float32(xNormalized * ABILITY_SPEED),
-		z: float32(zNormalized * ABILITY_SPEED),
+		x: xNormalized * PROJECTILE_SPEED,
+		z: zNormalized * PROJECTILE_SPEED,
 	}
 
 	return &Projectile{
@@ -43,18 +44,22 @@ func CreateProjectile(id string, position Position, targetDirection Position, ca
 	}
 }
 
-func (p *Projectile) UpdatePosition() bool {
+func (p *Projectile) UpdatePosition(deltaTime float64) bool {
 	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
 	distanceToTarget := utils.GetDistance(diffX, diffZ)
-	if distanceToTarget < ABILITY_SPEED {
+	if distanceToTarget < (PROJECTILE_SPEED * deltaTime) {
 		p.position.Teleport(p.to)
 		return true
 	} else {
-		p.position.Move(p.direction)
+		p.position.Move(p.direction.Multiply(deltaTime))
 		return false
 	}
 }
 
 func (p Projectile) GetPosition() Position {
 	return p.position
+}
+
+func (p Projectile) GetRadius() float64 {
+	return PROJECTILE_BOUNDS_RADIUS
 }

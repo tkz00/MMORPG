@@ -74,9 +74,14 @@ func (server *NativeServer) readLoop() {
 func (server *NativeServer) broadcastGameState() {
 	ticker := time.NewTicker(TICKER_TIME)
 	defer ticker.Stop()
+	previousUpdateTime := time.Now()
 
 	for range ticker.C {
-		server.gameState.UpdateState()
+		currentUpdateTime := time.Now()
+		deltaTime := currentUpdateTime.Sub(previousUpdateTime)
+		previousUpdateTime = currentUpdateTime
+		server.gameState.UpdateState(deltaTime.Seconds())
+
 		gameStateDTO := server.gameState.GetGameState()
 		webSocketResponse := types.CreateWebSocketResponse(gameStateDTO) 		
 		server.broadcast <- webSocketResponse.Serialize()
@@ -121,7 +126,6 @@ func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positio
 }
 
 func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO types.AbilityCastDTO) {
+	fmt.Println(abilityCastDTO)
 	server.gameState.CastAbility(client, abilityCastDTO)
 }
-
-// {"x":3.6,"z":19.01}

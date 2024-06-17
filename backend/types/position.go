@@ -1,8 +1,8 @@
 package types
 
 type Position struct {
-	x float32
-	z float32
+	x float64
+	z float64
 }
 
 func CreatePosition(data []byte) Position {
@@ -11,7 +11,7 @@ func CreatePosition(data []byte) Position {
 	return *GetMapper().PositionDTOToEntity(*positionDTO)
 }
 
-func (p Position) GetPosition() (float32, float32) {
+func (p Position) GetPosition() (float64, float64) {
 	return p.x, p.z
 }
 
@@ -27,4 +27,8 @@ func (p *Position) Teleport(to Position) {
 
 func (p Position) Equals(other Position) bool {
 	return p.x == other.x && p.z == other.z
+}
+
+func (p Position) Multiply(multiplier float64) Position {
+	return Position{p.x * multiplier, p.z * multiplier}
 }

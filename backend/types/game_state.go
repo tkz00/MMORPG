@@ -46,14 +46,14 @@ func (gs GameState) MovePlayer(conn *websocket.Conn, position Position) {
 	gs.players[playerId].MoveTowards(position)
 }
 
-func (gs GameState) UpdateState() {
+func (gs GameState) UpdateState(deltaTime float64) {
 	for _, player := range gs.players {
 		if player.IsMoving() {
-			player.UpdatePosition()
+			player.UpdatePosition(deltaTime)
 		}
 	}
 	for key, projectile := range gs.projectiles {
-		isAtMaxRange := projectile.UpdatePosition()
+		isAtMaxRange := projectile.UpdatePosition(deltaTime)
 		// check collision
 		projectileCollided := gs.checkCollision(*projectile)
 
@@ -85,12 +85,13 @@ func (gs GameState) GetGameState() GameStateDTO {
 	return *GetMapper().GameStateToDTO(gs)
 }
 
-func (gs GameState) AreColliding(player1 Player, projectile Projectile) bool {
-	position1 := player1.GetPosition()
-	position2 := projectile.GetPosition()
+func (gs GameState) AreColliding(player Player, projectile Projectile) bool {
+	playerPosition := player.GetPosition()
+	projectilePosition := projectile.GetPosition()
 
-	diffX, diffZ := utils.GetDiff(position1.x, position1.z, position2.x, position2.z)
+	diffX, diffZ := utils.GetDiff(playerPosition.x, playerPosition.z, projectilePosition.x, projectilePosition.z)
 	distance := utils.GetDistance(diffX, diffZ)
 
-	return distance < player1.GetRadius()
+	return distance < (player.GetRadius() + projectile.GetRadius())
 }
+

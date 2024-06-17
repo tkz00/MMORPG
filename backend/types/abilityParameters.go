@@ -72,8 +72,8 @@ func extractTargetPosition(abilityParameters map[AbilityParameters]interface{}) 
     }
 
     return Position{
-        x: float32(x),
-        z: float32(z),
+        x: x,
+        z: z,
     }, nil
 }
 

@@ -4,9 +4,13 @@ using UnityEngine;
 
 public class Projectile : MonoBehaviour
 {
-    private Coroutine movementCoroutine;
-    private float projectileSpeed = 10f;
+    [SerializeField]
+    private Transform model;
 
+    private Coroutine movementCoroutine;
+
+    private float projectileSpeed = 10f;
+    
     public void Move(Vector3 target)
     {
         if (movementCoroutine != null)
@@ -15,7 +19,6 @@ public class Projectile : MonoBehaviour
         }
         movementCoroutine = StartCoroutine(MoveTowards(new Vector3(target.x, this.transform.position.y, target.z)));
     }
-
     private IEnumerator MoveTowards(Vector3 target)
     {
         float distanceToGround = transform.position.y - target.y;
@@ -28,5 +31,10 @@ public class Projectile : MonoBehaviour
             transform.rotation = Quaternion.LookRotation(direction.normalized);
             yield return null;
         }
+    }
+
+    public void SetScale(float scale)
+    {
+        model.localScale = Vector3.one * scale;
     }
 }

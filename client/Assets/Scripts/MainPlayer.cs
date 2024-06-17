@@ -88,9 +88,11 @@ public class MainPlayer : MonoBehaviour
 
     private void CastHealAbility(InputAction.CallbackContext context)
     {
+        Debug.Log("asdkjhasdkjah");
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, playersLayer) && hit.collider) {
             
+            Debug.Log("merge error");
             string targetId = hit.collider.GetComponent<ITargeteable>().GetTargetId();
             Dictionary<AbilityParameters, object> abilityParameters =
                 new Dictionary<AbilityParameters, object>{
@@ -105,6 +107,7 @@ public class MainPlayer : MonoBehaviour
                 ActionType = "AbilityCast"
             };
             string message = JsonConvert.SerializeObject(response);
+            Debug.Log(message);
             WebSocketConnection.SendMessage(message);
         }
     }
