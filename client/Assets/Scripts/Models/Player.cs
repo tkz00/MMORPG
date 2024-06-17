@@ -7,6 +7,9 @@ using UnityEngine;
 public class Player : MonoBehaviour
 {
     [SerializeField]
+    private Transform model;
+
+    [SerializeField]
     private PlayerMovement movement;
     public PlayerMovement Movement {
         get { return movement; }
@@ -37,4 +40,9 @@ public class Player : MonoBehaviour
 	{
 		this.healthBar.SetColor(color);
 	}
+
+    public void SetScale(float scale)
+    {
+        model.localScale = Vector3.one * scale;
+    }
 }

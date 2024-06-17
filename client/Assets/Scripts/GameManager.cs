@@ -76,7 +76,7 @@ public class GameManager : MonoBehaviour
 			else
 			{
 				GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.position.x, 0, player.position.z), Quaternion.identity);
-				players[player.id] = newPlayerGO.GetComponentInChildren<Player>();
+				players[player.id] = newPlayerGO.GetComponent<Player>();
 				Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 				newPlayerGO.GetComponentInChildren<MeshRenderer>().material.color = playerColor;
 				players[player.id].SetPlayerName(player.id);
@@ -88,7 +88,8 @@ public class GameManager : MonoBehaviour
 				}
 			}
 			players[player.id].UpdateHealth(player.currentHealth, player.maxHealth);
-		}
+			players[player.id].SetScale(player.radius * 2);
+        }
 	}
 
 	void UpdateProjectilesPositions(List<ProjectileDTO> projectileDTOS)
@@ -106,6 +107,7 @@ public class GameManager : MonoBehaviour
 				projectiles[projectile.id] = newProjectileGO.GetComponent<Projectile>();
 				newProjectileGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 			}
+			projectiles[projectile.id].SetScale(projectile.radius * 2);
 		}
 	}
 

@@ -48,6 +48,7 @@ func (m Mapper) PlayerToDTO(player Player) *PlayerDTO {
 	return &PlayerDTO {
 		Id: player.id,
 		Position: *m.PositionToDTO(player.position),
+		Radius: player.GetRadius(),
 		MaxHealth: player.stats.maxHealth,
 		CurrentHealth: player.stats.currentHealth,
 	}
@@ -58,6 +59,7 @@ func (m Mapper) ProjectileToDTO(projectile Projectile) *ProjectileDTO {
 		Id: projectile.id,
 		Caster: projectile.caster,
 		Position: *m.PositionToDTO(projectile.position),
+		Radius: projectile.GetRadius(),
 		Damage: projectile.damage,
 	}
 }
