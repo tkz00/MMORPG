@@ -6,23 +6,13 @@ using UnityEngine;
 
 public class PlayerPanel : MonoBehaviour
 {
-	[SerializeField]
-	TMP_Text playerName;
+	Transform cameraTransform;
 
-	[SerializeField]
-	HealthBar healthBar;
-
-	public void SetPlayerName(string name) {
-		this.playerName.text = name;
+	void Start() {
+		cameraTransform = Camera.main.transform;
 	}
 
-	public void UpdateHealthBar(int currentHealth, int maxHealth) {
-		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
-	}
-
-	// remove later
-	public void SetHealthBarColor(Color color)
-	{
-		this.healthBar.SetColor(color);
+	void LateUpdate() {
+		transform.LookAt(transform.position + cameraTransform.forward);
 	}
 }
