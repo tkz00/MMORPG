@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, ITargeteable
 {
     // this field shouldn't be public, it should be set on creation of the player and be readonly from then on
     public string id;
@@ -25,4 +25,9 @@ public class Player : MonoBehaviour
 		this.Stats.UpdateHealth(currentHealth, maxHealth);
 		onHealthChanged?.Invoke(currentHealth, maxHealth);
 	}
+
+    public string GetTargetId()
+    {
+        return id;
+    }
 }

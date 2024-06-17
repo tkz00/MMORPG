@@ -91,7 +91,7 @@ public class MainPlayer : MonoBehaviour
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, playersLayer) && hit.collider) {
             
-            string targetId = hit.collider.GetComponent<Player>().id;
+            string targetId = hit.collider.GetComponent<ITargeteable>().GetTargetId();
             Dictionary<AbilityParameters, object> abilityParameters =
                 new Dictionary<AbilityParameters, object>{
                     {AbilityParameters.TargetId, targetId}
