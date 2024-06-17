@@ -35,6 +35,9 @@ public class Player : MonoBehaviour
 		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
 	}
 
+    public void SetMovement(PlayerMovement movement) {
+        this.movement = movement;
+	}
 	// remove later
 	public void SetHealthBarColor(Color color)
 	{

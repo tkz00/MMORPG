@@ -51,6 +51,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 387d1e1a11afb463281d156e9ef6b2aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerName: {fileID: 6260434122960224975}
+  healthBar: {fileID: 4980293910190688287}
 --- !u!223 &1347126284256943876
 Canvas:
   m_ObjectHideFlags: 0

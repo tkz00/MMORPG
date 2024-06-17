@@ -75,10 +75,9 @@ public class GameManager : MonoBehaviour
 			}
 			else
 			{
+				Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 				GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.position.x, 0, player.position.z), Quaternion.identity);
 				players[player.id] = newPlayerGO.GetComponent<Player>();
-				Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-				newPlayerGO.GetComponentInChildren<MeshRenderer>().material.color = playerColor;
 				players[player.id].SetPlayerName(player.id);
 				players[player.id].SetHealthBarColor(playerColor);
 				if (this.mainPlayerID == player.id)

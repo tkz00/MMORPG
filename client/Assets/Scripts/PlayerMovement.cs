@@ -7,6 +7,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerMovement : MonoBehaviour
 {
+    [SerializeField]
+    Animator playerAnimator;
     private Coroutine movementCoroutine;
     private float playerSpeed = 10f;
     private CharacterController characterController;
@@ -23,6 +25,9 @@ public class PlayerMovement : MonoBehaviour
 	}
 
     private IEnumerator MoveTowards(Vector3 target) {
+        playerAnimator.SetBool("IsMoving", true);
+        float playerDistanceToGround = transform.position.y - target.y;
+        target.y += playerDistanceToGround;
         while(Vector3.Distance(transform.position, target) > 0.1f) {
             Vector3 direction = target - transform.position;
             Vector3 movement = direction.normalized * playerSpeed * Time.deltaTime;
@@ -31,5 +36,6 @@ public class PlayerMovement : MonoBehaviour
             // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction.normalized), 1f * Time.deltaTime);
             yield return null;
         }
+        playerAnimator.SetBool("IsMoving", false);
     }
 }
