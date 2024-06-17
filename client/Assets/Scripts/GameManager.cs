@@ -15,16 +15,18 @@ public class GameManager : MonoBehaviour
 
 	[SerializeField]
 	CinemachineVirtualCamera cinemachineVirtualCamera;
-	[SerializeField]
-	PlayerPanelsManager PlayerPanelsManager;
+	// [SerializeField]
+	// PlayerPanelsManager PlayerPanelsManager;
 
 	private string mainPlayerID;
 
 	Dictionary<string, Player> players = new Dictionary<string, Player>();
 	Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
 
-	async void Awake() {
-		WebSocketConnection.SetHandler<PlayerDTO>(new Action<PlayerDTO>((playerDTO) => {
+	async void Awake()
+	{
+		WebSocketConnection.SetHandler<PlayerDTO>(new Action<PlayerDTO>((playerDTO) =>
+		{
 			this.mainPlayerID = playerDTO.id;
 			Debug.Log(this.mainPlayerID);
 		}), "Player");
@@ -32,22 +34,26 @@ public class GameManager : MonoBehaviour
 		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => OnGameStateUpdate(gameState)), "GameState");
 
 		await WebSocketConnection.Connect();
-    }
-	
-	void Update() {
-		PlayerPanelsManager.UpdatePanels(players);
 	}
-	
-	void OnDestroy() {
+
+	void Update()
+	{
+		// PlayerPanelsManager.UpdatePanels(players);
+	}
+
+	void OnDestroy()
+	{
 		WebSocketConnection.ClearHandlers();
 	}
 
-	async void OnApplicationQuit() {
+	async void OnApplicationQuit()
+	{
 		await WebSocketConnection.Disconnect();
 	}
 
-	void OnGameStateUpdate(GameStateDTO gameState) {
-        string[] currentPlayerIds = this.players.Keys.ToArray();
+	void OnGameStateUpdate(GameStateDTO gameState)
+	{
+		string[] currentPlayerIds = this.players.Keys.ToArray();
 		string[] currentProjectileIds = this.projectiles.Keys.ToArray();
 		HashSet<string> playersToDestroy = new HashSet<string>(currentPlayerIds.Except(gameState.players.Select(player => player.id)));
 		HashSet<string> projectilesToDestroy = new HashSet<string>(currentProjectileIds.Except(gameState.projectiles.Select(projectile => projectile.id)));
@@ -58,49 +64,67 @@ public class GameManager : MonoBehaviour
 		UpdateProjectilesPositions(gameState.projectiles);
 	}
 
-	void UpdatePlayersPositions(List<PlayerDTO> playerDTOS) {
-        foreach(PlayerDTO player in playerDTOS) {
+	void UpdatePlayersPositions(List<PlayerDTO> playerDTOS)
+	{
+		foreach (PlayerDTO player in playerDTOS)
+		{
 			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == player.id);
-            if(playerExists) {
-            	this.players[player.id].Movement.Move(new Vector3(player.position.x, 0, player.position.z));
-            } else {
-            	GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.position.x, 1, player.position.z), Quaternion.identity);
-            	players[player.id] = newPlayerGO.GetComponent<Player>();
-            	// newPlayerGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-
-            	if(this.mainPlayerID == player.id) {
-            		newPlayerGO.AddComponent<MainPlayer>();
-            		this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
-            	}
-            }
+			if (playerExists)
+			{
+				this.players[player.id].Movement.Move(new Vector3(player.position.x, 0, player.position.z));
+			}
+			else
+			{
+				Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+				GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(player.position.x, 0, player.position.z), Quaternion.identity);
+				players[player.id] = newPlayerGO.GetComponent<Player>();
+				players[player.id].SetPlayerName(player.id);
+				players[player.id].SetHealthBarColor(playerColor);
+				if (this.mainPlayerID == player.id)
+				{
+					newPlayerGO.AddComponent<MainPlayer>();
+					this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
+				}
+			}
 			players[player.id].UpdateHealth(player.currentHealth, player.maxHealth);
+			players[player.id].SetScale(player.radius * 2);
         }
 	}
 
-	void UpdateProjectilesPositions(List<ProjectileDTO> projectileDTOS) {
-		foreach(ProjectileDTO projectile in projectileDTOS) {
+	void UpdateProjectilesPositions(List<ProjectileDTO> projectileDTOS)
+	{
+		foreach (ProjectileDTO projectile in projectileDTOS)
+		{
 			bool projectileExists = this.projectiles.Any(p => p.Key == projectile.id);
-			if(projectileExists) {
+			if (projectileExists)
+			{
 				this.projectiles[projectile.id].Move(new Vector3(projectile.position.x, 0, projectile.position.z));
-			} else {
+			}
+			else
+			{
 				GameObject newProjectileGO = Instantiate(this.projectilePrefab, new Vector3(projectile.position.x, 1, projectile.position.z), Quaternion.identity);
 				projectiles[projectile.id] = newProjectileGO.GetComponent<Projectile>();
-            	newProjectileGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+				newProjectileGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 			}
+			projectiles[projectile.id].SetScale(projectile.radius * 2);
 		}
 	}
 
-	void DestroyPlayers(string[] playerIdsToDestroy) {
-        foreach(string playerIdToDestroy in playerIdsToDestroy) {
-            Destroy(this.players[playerIdToDestroy].gameObject);
-            this.players.Remove(playerIdToDestroy);
-        }
+	void DestroyPlayers(string[] playerIdsToDestroy)
+	{
+		foreach (string playerIdToDestroy in playerIdsToDestroy)
+		{
+			Destroy(this.players[playerIdToDestroy].gameObject);
+			this.players.Remove(playerIdToDestroy);
+		}
 	}
 
-	void DestroyProjectiles(string[] projectilesToDestroy) {
-        foreach(string projectileId in projectilesToDestroy) {
-            Destroy(this.projectiles[projectileId].gameObject);
-            this.projectiles.Remove(projectileId);
-        }
+	void DestroyProjectiles(string[] projectilesToDestroy)
+	{
+		foreach (string projectileId in projectilesToDestroy)
+		{
+			Destroy(this.projectiles[projectileId].gameObject);
+			this.projectiles.Remove(projectileId);
+		}
 	}
 }

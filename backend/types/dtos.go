@@ -21,7 +21,8 @@ func (g GameStateDTO) GetType() string {
 type PlayerDTO struct {
 	Id       		string      `json:"id"`
 	MaxHealth 		int			`json:"maxHealth"`	
-	CurrentHealth 	int			`json:"currentHealth"`	
+	CurrentHealth 	int			`json:"currentHealth"`
+	Radius 			float64 	`json:"radius"`	
 	Position 		PositionDTO `json:"position"`
 }
 
@@ -30,8 +31,8 @@ func (p PlayerDTO) GetType() string {
 }
 
 type PositionDTO struct {
-	X float32 `json:"x"`
-	Z float32 `json:"z"`
+	X float64 `json:"x"`
+	Z float64 `json:"z"`
 }
 
 func CreatePositionDTO(data []byte) *PositionDTO {
@@ -60,10 +61,11 @@ func (p AbilityCastDTO) GetType() string {
 }
 
 type ProjectileDTO struct {
-	Id			string `json:"id"`
-	Caster 		string `json:"caster"`
+	Id			string 		`json:"id"`
+	Caster 		string 		`json:"caster"`
 	Position 	PositionDTO `json:"position"`
-	Damage		int `json:"damage"`
+	Radius 		float64 	`json:"radius"`
+	Damage		int 		`json:"damage"`
 }
 
 func (p ProjectileDTO) GetType() string {

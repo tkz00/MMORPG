@@ -86,12 +86,13 @@ func (gs GameState) GetGameState() GameStateDTO {
 	return *GetMapper().GameStateToDTO(gs)
 }
 
-func (gs GameState) AreColliding(player1 Player, projectile Projectile) bool {
-	position1 := player1.GetPosition()
-	position2 := projectile.GetPosition()
+func (gs GameState) AreColliding(player Player, projectile Projectile) bool {
+	playerPosition := player.GetPosition()
+	projectilePosition := projectile.GetPosition()
 
-	diffX, diffZ := utils.GetDiff(position1.x, position1.z, position2.x, position2.z)
+	diffX, diffZ := utils.GetDiff(playerPosition.x, playerPosition.z, projectilePosition.x, projectilePosition.z)
 	distance := utils.GetDistance(diffX, diffZ)
 
-	return distance < player1.GetRadius()
+	return distance < (player.GetRadius() + projectile.GetRadius())
 }
+

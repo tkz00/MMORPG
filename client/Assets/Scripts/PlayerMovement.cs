@@ -21,7 +21,7 @@ public class PlayerMovement : MonoBehaviour
 		if(movementCoroutine != null) {
 			StopCoroutine(movementCoroutine);
 		}
-		movementCoroutine = StartCoroutine(MoveTowards(new Vector3(target.x, this.transform.position.y, target.z)));
+		movementCoroutine = StartCoroutine(MoveTowards(target));
 	}
 
     private IEnumerator MoveTowards(Vector3 target) {
@@ -31,8 +31,9 @@ public class PlayerMovement : MonoBehaviour
         while(Vector3.Distance(transform.position, target) > 0.1f) {
             Vector3 direction = target - transform.position;
             Vector3 movement = direction.normalized * playerSpeed * Time.deltaTime;
+			movement.y = 0;
             characterController.Move(movement);
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction.normalized), 1f * Time.deltaTime);
+            // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction.normalized), 1f * Time.deltaTime);
             yield return null;
         }
         playerAnimator.SetBool("IsMoving", false);
