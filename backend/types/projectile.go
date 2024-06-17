@@ -6,7 +6,7 @@ import (
 )
 
 const RANGE float64 = 12
-const PROJECTILE_SPEED float64 = 1
+const PROJECTILE_SPEED float64 = 15
 const PROJECTILE_BOUNDS_RADIUS float64 = 0.25
 
 type Projectile struct {
@@ -44,14 +44,14 @@ func CreateProjectile(id string, position Position, input Position, caster strin
 	}
 }
 
-func (p *Projectile) UpdatePosition() bool {
+func (p *Projectile) UpdatePosition(deltaTime float64) bool {
 	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
 	distanceToTarget := utils.GetDistance(diffX, diffZ)
-	if distanceToTarget < PROJECTILE_SPEED {
+	if distanceToTarget < (PROJECTILE_SPEED * deltaTime) {
 		p.position.Teleport(p.to)
 		return true
 	} else {
-		p.position.Move(p.direction)
+		p.position.Move(p.direction.Multiply(deltaTime))
 		return false
 	}
 }

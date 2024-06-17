@@ -223,7 +223,7 @@ Transform:
   m_GameObject: {fileID: 138441539}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 10, y: 1, z: 10}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -653,9 +653,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b5e4d2a969001b439ba8666b378045e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameCamera: {fileID: 963194227}
-  gameCanvas: {fileID: 982960690}
-  playerPanelPrefab: {fileID: 1044985334616851782, guid: c21a5ed2a55b149ac830d01bc2abb51d, type: 3}
 --- !u!1 &1287611648
 GameObject:
   m_ObjectHideFlags: 0

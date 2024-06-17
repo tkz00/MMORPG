@@ -6,7 +6,7 @@ import (
 )
 
 const BASE_MAX_HEALTH = 100
-const PLAYER_SPEED float64 = 1
+const PLAYER_SPEED float64 = 10
 const PLAYER_BOUNDS_RADIUS float64 = 0.5
 
 type Collisionable interface {
@@ -18,7 +18,7 @@ type Player struct {
 	stats	  PlayerStats
 	position  Position
 	to        Position
-	direccion Position
+	direction Position
 }
 
 func CreatePlayer(x, z float64, id string) *Player {
@@ -53,7 +53,7 @@ func (p *Player) MoveTowards(to Position) {
 	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
 	distanceMagnitude := math.Hypot(diffX, diffZ)
 
-	p.direccion = Position{
+	p.direction = Position{
 		x: diffX * PLAYER_SPEED / distanceMagnitude,
 		z: diffZ * PLAYER_SPEED / distanceMagnitude,
 	}
@@ -63,13 +63,13 @@ func (p Player) IsMoving() bool {
 	return p.position.x != p.to.x || p.position.z != p.to.z
 }
 
-func (p *Player) UpdatePosition() {
+func (p *Player) UpdatePosition(deltaTime float64) {
 	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
 	distanceToTarget := utils.GetDistance(diffX, diffZ)
-	if distanceToTarget < PLAYER_SPEED {
+	if distanceToTarget < (PLAYER_SPEED * deltaTime){
 		p.position.Teleport(p.to)
 	} else {
-		p.position.Move(p.direccion)
+		p.position.Move(p.direction.Multiply(deltaTime))
 	}
 }
 

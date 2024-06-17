@@ -46,14 +46,14 @@ func (gs GameState) MovePlayer(conn *websocket.Conn, position Position) {
 	gs.players[playerId].MoveTowards(position)
 }
 
-func (gs GameState) UpdateState() {
+func (gs GameState) UpdateState(deltaTime float64) {
 	for _, player := range gs.players {
 		if player.IsMoving() {
-			player.UpdatePosition()
+			player.UpdatePosition(deltaTime)
 		}
 	}
 	for key, projectile := range gs.projectiles {
-		isAtMaxRange := projectile.UpdatePosition()
+		isAtMaxRange := projectile.UpdatePosition(deltaTime)
 		// check collision
 		projectileCollided := gs.checkCollision(*projectile)
 
