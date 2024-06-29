@@ -89,6 +89,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   model: {fileID: 6697845729446549841}
+  hitbox: {fileID: 5077450397838820072}
   movement: {fileID: 1589206342549357210}
   playerNameUI: {fileID: 3918072352302946623}
   healthBar: {fileID: 2712226138175411183}
