@@ -52,4 +52,9 @@ public class Player : MonoBehaviour
         model.localScale = Vector3.one * scale;
 		hitbox.localScale = Vector3.one * scale;
     }
+
+    public void SetHitbox(bool hitboxOn)
+    {
+        hitbox.gameObject.SetActive(hitboxOn);
+    }
 }
