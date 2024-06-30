@@ -61,11 +61,17 @@ func (gs GameState) updatePlayers(deltaTime float64) {
 
 func (gs GameState) updateProjectiles(deltaTime float64) {
 	for key, projectile := range gs.projectiles {
-		isAtMaxRange := projectile.UpdatePosition(deltaTime)
+		if projectile.state == Hit {
+			delete(gs.projectiles, key)
+			continue
+		}
 		
 		if projectile.state == Active && gs.checkCollision(*projectile) {
 			projectile.state = Hit;
+			continue
 		}
+		
+		isAtMaxRange := projectile.UpdatePosition(deltaTime)
 
 		if isAtMaxRange {
 			delete(gs.projectiles, key)
