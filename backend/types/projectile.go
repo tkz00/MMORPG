@@ -9,6 +9,13 @@ const RANGE float64 = 12
 const PROJECTILE_SPEED float64 = 15
 const PROJECTILE_BOUNDS_RADIUS float64 = 0.25
 
+type ProjectileState int
+
+const (
+	Active ProjectileState = iota
+	Hit
+)
+
 type Projectile struct {
 	id			string
 	caster		string
@@ -16,6 +23,7 @@ type Projectile struct {
 	position 	Position
 	to 			Position
 	damage		int
+	state 		ProjectileState
 }
 
 func CreateProjectile(id string, position Position, input Position, caster string) *Projectile {
@@ -41,6 +49,7 @@ func CreateProjectile(id string, position Position, input Position, caster strin
 		position: position,
 		to: to,
 		damage: 30,
+		state: Active,
 	}
 }
 
@@ -62,4 +71,15 @@ func (p Projectile) GetPosition() Position {
 
 func (p Projectile) GetRadius() float64 {
 	return PROJECTILE_BOUNDS_RADIUS
+}
+
+func (s ProjectileState) String() string {
+    switch s {
+    case Active:
+        return "Active"
+    case Hit:
+        return "Hit"
+    default:
+        return "Unknown"
+    }
 }
