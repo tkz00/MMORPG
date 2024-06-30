@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"sync"
 )
 
@@ -75,7 +74,6 @@ func (m Mapper) GameStateToDTO(gameState GameState) *GameStateDTO {
 	}
 
 	for _, projectile := range gameState.projectiles {
-		fmt.Println(m.ProjectileToDTO(*projectile).State)
 		projectileDTOS = append(projectileDTOS, *m.ProjectileToDTO(*projectile))
 	}
 
