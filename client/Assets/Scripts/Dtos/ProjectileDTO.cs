@@ -1,5 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
+using System.Runtime.Serialization;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 public class ProjectileDTO : DTO
 {
@@ -7,5 +8,17 @@ public class ProjectileDTO : DTO
    public string caster;
    public PositionDTO position;
    public float radius;
-   public int damage; 
+   public int damage;
+
+   [JsonProperty("state")]
+   [JsonConverter(typeof(StringEnumConverter))]
+   public State state;
+}
+
+public enum State
+{
+   [EnumMember(Value = "active")]
+   Active,
+   [EnumMember(Value = "hit")]
+   Hit
 }
