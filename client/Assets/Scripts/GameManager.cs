@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cinemachine;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -17,6 +18,8 @@ public class GameManager : MonoBehaviour
 	CinemachineVirtualCamera cinemachineVirtualCamera;
 	// [SerializeField]
 	// PlayerPanelsManager PlayerPanelsManager;
+
+	bool hitboxOn = false;
 
 	private string mainPlayerID;
 
@@ -88,6 +91,7 @@ public class GameManager : MonoBehaviour
 			}
 			players[player.id].UpdateHealth(player.currentHealth, player.maxHealth);
 			players[player.id].SetScale(player.radius * 2);
+			players[player.id].SetHitbox(hitboxOn);
         }
 	}
 
@@ -125,6 +129,16 @@ public class GameManager : MonoBehaviour
 		{
 			Destroy(this.projectiles[projectileId].gameObject);
 			this.projectiles.Remove(projectileId);
+		}
+	}
+
+	public void ToggleHitboxes()
+	{
+		hitboxOn = !hitboxOn;
+
+		foreach(Player player in this.players.Values)
+		{
+			player.SetHitbox(hitboxOn);
 		}
 	}
 }
