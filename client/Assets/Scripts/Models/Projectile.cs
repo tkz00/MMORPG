@@ -9,7 +9,7 @@ public class Projectile : MonoBehaviour
 
     private Coroutine movementCoroutine;
 
-    private float projectileSpeed = 10f;
+    private float projectileSpeed = 15f;
     
     public void Move(Vector3 target)
     {
