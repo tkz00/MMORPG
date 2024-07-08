@@ -61,6 +61,7 @@ func (m Mapper) ProjectileToDTO(projectile Projectile) *ProjectileDTO {
 		Position: *m.PositionToDTO(projectile.position),
 		Radius: projectile.GetRadius(),
 		Damage: projectile.damage,
+		State: projectile.state.String(),
 	}
 }
 
