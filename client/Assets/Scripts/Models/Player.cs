@@ -12,6 +12,9 @@ public class Player : MonoBehaviour, ITargeteable
     [SerializeField]
     private Transform model;
 
+	[SerializeField]
+    private Transform hitbox;
+
     [SerializeField]
     private PlayerMovement movement;
     public PlayerMovement Movement {
@@ -54,5 +57,11 @@ public class Player : MonoBehaviour, ITargeteable
     public void SetScale(float scale)
     {
         model.localScale = Vector3.one * scale;
+		hitbox.localScale = Vector3.one * scale;
+    }
+
+    public void SetHitbox(bool hitboxOn)
+    {
+        hitbox.gameObject.SetActive(hitboxOn);
     }
 }
