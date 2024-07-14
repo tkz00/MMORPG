@@ -10,6 +10,9 @@ public class Projectile : MonoBehaviour
     private Coroutine movementCoroutine;
 
     private float projectileSpeed = 15f;
+
+    [SerializeField]
+    private ParticleSystem hitParticle;
     
     public void Move(Vector3 target)
     {
@@ -41,5 +44,7 @@ public class Projectile : MonoBehaviour
     public void TriggerHit()
     {
         GetComponent<MeshRenderer>().material.color = Color.red;
+        ParticleSystem hitParticleInstance = Instantiate(hitParticle);
+        Destroy(hitParticleInstance.gameObject, hitParticleInstance.main.duration);
     }
 }

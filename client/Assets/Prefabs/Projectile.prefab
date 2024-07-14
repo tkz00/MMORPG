@@ -97,3 +97,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   model: {fileID: 8346663256755331716}
+  hitParticle: {fileID: 6656822402335154195, guid: 672f7bbdc180346e0a664e5be351f399, type: 3}
