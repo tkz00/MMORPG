@@ -13,8 +13,15 @@ public class PlayerMovement : MonoBehaviour
     private float playerSpeed = 10f;
     private CharacterController characterController;
 
+    private static PlayerMovement instance;
+
+    public static PlayerMovement Instance (){
+        return instance;
+    }
+
     void Awake() {
         characterController = GetComponent<CharacterController>();
+        instance = this;
     }
 
 	public void Move(Vector3 target) {
@@ -37,5 +44,11 @@ public class PlayerMovement : MonoBehaviour
             yield return null;
         }
         playerAnimator.SetBool("IsMoving", false);
+    }
+
+    public void AttackAnimation()
+    {
+        Debug.Log("attack animation", playerAnimator);
+        playerAnimator.SetTrigger("Attack");
     }
 }
