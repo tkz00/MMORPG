@@ -14,6 +14,7 @@ public class Player : MonoBehaviour, ITargeteable
 
     [SerializeField]
     private PlayerMovement movement;
+
     public PlayerMovement Movement {
         get { return movement; }
     }
@@ -24,7 +25,10 @@ public class Player : MonoBehaviour, ITargeteable
 	[SerializeField]
 	HealthBar healthBar;
 
+    [SerializeField] PlayerVFXsHandler playerVFXsHandler;
+
 	private PlayerStats stats = new PlayerStats();
+
 	public PlayerStats Stats {
         get { return stats; }
     }
@@ -34,6 +38,12 @@ public class Player : MonoBehaviour, ITargeteable
 	}
 
 	public void UpdateHealth(int currentHealth, int maxHealth) {
+        // this logic should be changed, "states" should come from the backend and them trigger specific feedbacks, i.e.: the "healed" state should trigger the respective healing vfx
+        if(this.Stats.CurrentHealth < currentHealth)
+        {
+            this.playerVFXsHandler.TriggerHealingVFX();
+        }
+
 		this.Stats.UpdateHealth(currentHealth, maxHealth);
 		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
 	}
@@ -42,9 +52,11 @@ public class Player : MonoBehaviour, ITargeteable
     {
         return id;
 	}
+
     public void SetMovement(PlayerMovement movement) {
         this.movement = movement;
 	}
+
 	// remove later
 	public void SetHealthBarColor(Color color)
 	{
