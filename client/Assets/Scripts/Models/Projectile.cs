@@ -37,4 +37,9 @@ public class Projectile : MonoBehaviour
     {
         model.localScale = Vector3.one * scale;
     }
+
+    public void TriggerHit()
+    {
+        GetComponent<MeshRenderer>().material.color = Color.red;
+    }
 }

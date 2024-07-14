@@ -110,9 +110,14 @@ public class GameManager : MonoBehaviour
 			{
 				GameObject newProjectileGO = Instantiate(this.projectilePrefab, new Vector3(projectile.position.x, 1, projectile.position.z), Quaternion.identity);
 				projectiles[projectile.id] = newProjectileGO.GetComponent<Projectile>();
-				newProjectileGO.GetComponent<MeshRenderer>().material.color = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+				newProjectileGO.GetComponent<MeshRenderer>().material.color = Color.blue;
 			}
 			projectiles[projectile.id].SetScale(projectile.radius * 2);
+
+			if(projectile.state == State.Hit)
+			{
+				projectiles[projectile.id].TriggerHit();
+			}
 		}
 	}
 

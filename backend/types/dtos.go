@@ -57,6 +57,7 @@ type ProjectileDTO struct {
 	Position 	PositionDTO `json:"position"`
 	Radius 		float64 	`json:"radius"`
 	Damage		int 		`json:"damage"`
+	State		string 		`json:"state"`
 }
 
 func (p ProjectileDTO) GetType() string {

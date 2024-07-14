@@ -47,21 +47,38 @@ func (gs GameState) MovePlayer(conn *websocket.Conn, position Position) {
 }
 
 func (gs GameState) UpdateState(deltaTime float64) {
+	gs.updatePlayers(deltaTime)
+	gs.updateProjectiles(deltaTime)
+}
+
+func (gs GameState) updatePlayers(deltaTime float64) {
 	for _, player := range gs.players {
 		if player.IsMoving() {
 			player.UpdatePosition(deltaTime)
 		}
 	}
-	for key, projectile := range gs.projectiles {
-		isAtMaxRange := projectile.UpdatePosition(deltaTime)
-		// check collision
-		projectileCollided := gs.checkCollision(*projectile)
+}
 
-		if isAtMaxRange || projectileCollided {
+func (gs GameState) updateProjectiles(deltaTime float64) {
+	for key, projectile := range gs.projectiles {
+		if projectile.state == Hit {
+			delete(gs.projectiles, key)
+			continue
+		}
+		
+		if projectile.state == Active && gs.checkCollision(*projectile) {
+			projectile.state = Hit;
+			continue
+		}
+		
+		isAtMaxRange := projectile.UpdatePosition(deltaTime)
+
+		if isAtMaxRange {
 			delete(gs.projectiles, key)
 		}
 	}
 }
+
 
 func (gs GameState) checkCollision(projectile Projectile) bool {
 	playerGotHit := false
