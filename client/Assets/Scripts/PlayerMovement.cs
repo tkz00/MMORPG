@@ -33,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
             Vector3 movement = direction.normalized * playerSpeed * Time.deltaTime;
 			movement.y = 0;
             characterController.Move(movement);
-            // transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction.normalized), 1f * Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction.normalized), 5f * Time.deltaTime);
             yield return null;
         }
         playerAnimator.SetBool("IsMoving", false);
