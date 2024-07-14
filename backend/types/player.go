@@ -1,17 +1,16 @@
 package types
 
 import (
+	"fmt"
 	"math"
 	"unnamed-mmo/backend/utils"
+
+	"github.com/google/uuid"
 )
 
 const BASE_MAX_HEALTH = 100
 const PLAYER_SPEED float64 = 10
 const PLAYER_BOUNDS_RADIUS float64 = 0.5
-
-type Collisionable interface {
-	GetBounds() Position
-}
 
 type Player struct {
 	id 		  string
@@ -79,4 +78,30 @@ func (p *Player) DealDamage(damagePoints int) {
 
 func (p Player) GetRadius() float64 {
 	return PLAYER_BOUNDS_RADIUS
+}
+
+func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastDTO) {
+	switch abilityInfo.Name {
+	case "projectile":
+		// is this ID necessary?
+		projectileId := uuid.New().String()
+
+		targetPosition, err := extractTargetPosition(abilityInfo.AbilityParameters)
+        if err != nil {
+            fmt.Println("Error:", err)
+            return
+        }
+	
+		gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, player.id)
+	case "heal":
+		targetId, err := extractTargetId(abilityInfo.AbilityParameters)
+		if err != nil {
+            fmt.Println("Error:", err)
+            return
+        }
+        fmt.Println(targetId)
+
+		gameState.players[targetId].DealDamage(-10)
+	default:
+	}
 }

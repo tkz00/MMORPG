@@ -4,8 +4,11 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, ITargeteable
 {
+    // this field shouldn't be public, it should be set on creation of the player and be readonly from then on
+    public string id;
+
     [SerializeField]
     private Transform model;
 
@@ -35,6 +38,10 @@ public class Player : MonoBehaviour
 		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
 	}
 
+    public string GetTargetId()
+    {
+        return id;
+	}
     public void SetMovement(PlayerMovement movement) {
         this.movement = movement;
 	}

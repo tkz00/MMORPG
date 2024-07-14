@@ -114,7 +114,7 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
         case "AbilityCast":
             server.handleAbilityCast(conn, message.Body.(types.AbilityCastDTO))
         default:
-            fmt.Println("Unknown message type:", message.ActionType)
+            fmt.Printf("Unknown message type: %s\n", message.ActionType)
         }
     }
 }
@@ -126,6 +126,6 @@ func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positio
 }
 
 func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO types.AbilityCastDTO) {
-	abilityDirection := *types.GetMapper().PositionDTOToEntity(abilityCastDTO.Direction)
-	server.gameState.CastAbility(client, abilityDirection, abilityCastDTO.Name)
+	fmt.Println(abilityCastDTO)
+	server.gameState.CastAbility(client, abilityCastDTO)
 }

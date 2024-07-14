@@ -51,15 +51,6 @@ func (p PositionDTO) GetType() string {
 	return "Position"
 }
 
-type AbilityCastDTO struct {
-	Name	  string
-	Direction PositionDTO
-}
-
-func (p AbilityCastDTO) GetType() string {
-	return "AbilityCast"
-}
-
 type ProjectileDTO struct {
 	Id			string 		`json:"id"`
 	Caster 		string 		`json:"caster"`
