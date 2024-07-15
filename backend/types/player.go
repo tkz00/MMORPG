@@ -12,12 +12,21 @@ const BASE_MAX_HEALTH = 100
 const PLAYER_SPEED float64 = 10
 const PLAYER_BOUNDS_RADIUS float64 = 0.5
 
+type Action int
+
+const (
+	Idle Action = iota
+	Attacking
+	CastingHeal
+)
+
 type Player struct {
-	id 		  string
-	stats	  PlayerStats
-	position  Position
-	to        Position
-	direction Position
+	id 		  		string
+	stats	  		PlayerStats
+	executingAction 	Action
+	position  		Position
+	to        		Position
+	direction 		Position
 }
 
 func CreatePlayer(x, z float64, id string) *Player {
@@ -34,6 +43,7 @@ func CreatePlayer(x, z float64, id string) *Player {
 			currentHealth: BASE_MAX_HEALTH,
 			maxHealth:     BASE_MAX_HEALTH,
 		},
+		executingAction: Idle,
 	}
 }
 
@@ -93,6 +103,7 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastD
         }
 	
 		gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, player.id)
+		player.executingAction = Attacking
 	case "heal":
 		targetId, err := extractTargetId(abilityInfo.AbilityParameters)
 		if err != nil {
@@ -101,6 +112,7 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastD
         }
 
 		gameState.players[targetId].DealDamage(-10)
+		player.executingAction = CastingHeal
 	default:
 	}
 }

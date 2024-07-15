@@ -71,16 +71,18 @@ public class GameManager : MonoBehaviour
 	{
 		foreach (PlayerDTO playerDTO in playerDTOS)
 		{
+			Player player;
 			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == playerDTO.id);
 			if (playerExists)
 			{
-				this.players[playerDTO.id].Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
+				player = players[playerDTO.id];
+				player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
 			}
 			else
 			{
 				Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 				GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(playerDTO.position.x, 0, playerDTO.position.z), Quaternion.identity);
-				Player player = newPlayerGO.GetComponent<Player>();
+				player = newPlayerGO.GetComponent<Player>();
 				player.id = playerDTO.id;
 				player.SetPlayerName(player.id);
 				player.SetHealthBarColor(playerColor);
@@ -91,9 +93,19 @@ public class GameManager : MonoBehaviour
 					this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
 				}
 			}
-			players[playerDTO.id].UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
-			players[playerDTO.id].SetScale(playerDTO.radius * 2);
-			players[playerDTO.id].SetHitbox(hitboxOn);
+			player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
+			player.SetScale(playerDTO.radius * 2);
+			player.SetHitbox(hitboxOn);
+
+			switch(playerDTO.executingAction)
+			{
+				case ExecutingAction.Attacking:
+					player.Movement.AttackAnimation();
+					break;
+				case ExecutingAction.CastingHeal:
+					player.Movement.HealAnimation();
+					break;
+			}
         }
 	}
 

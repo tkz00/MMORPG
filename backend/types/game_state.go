@@ -82,7 +82,7 @@ func (gs GameState) updateProjectiles(deltaTime float64) {
 
 func (gs GameState) checkCollision(projectile Projectile) bool {
 	playerGotHit := false
-	for _,player := range gs.players {
+	for _, player := range gs.players {
 		if player.id != projectile.caster && gs.AreColliding(*player, projectile) {
 			player.DealDamage(projectile.damage)
 			playerGotHit = true
@@ -112,3 +112,8 @@ func (gs GameState) AreColliding(player Player, projectile Projectile) bool {
 	return distance < (player.GetRadius() + projectile.GetRadius())
 }
 
+func (gs *GameState) ResetPlayersState() {
+	for _, player := range gs.players {
+		player.executingAction = Idle
+	}
+}

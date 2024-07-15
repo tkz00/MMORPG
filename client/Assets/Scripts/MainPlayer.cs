@@ -83,7 +83,6 @@ public class MainPlayer : MonoBehaviour
             };
             string message = JsonConvert.SerializeObject(response);
             WebSocketConnection.SendMessage(message);
-            PlayerMovement.Instance().AttackAnimation();
         }
     }
 

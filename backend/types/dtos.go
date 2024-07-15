@@ -24,6 +24,7 @@ type PlayerDTO struct {
 	CurrentHealth 	int			`json:"currentHealth"`
 	Radius 			float64 	`json:"radius"`	
 	Position 		PositionDTO `json:"position"`
+	ExecutingAction	Action		`json:"executingAction"`
 }
 
 func (p PlayerDTO) GetType() string {

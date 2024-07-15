@@ -46,9 +46,14 @@ public class PlayerMovement : MonoBehaviour
         playerAnimator.SetBool("IsMoving", false);
     }
 
+    // this shouldn't be handled in the movement script, there should be an animations controller or smth like that
     public void AttackAnimation()
     {
-        Debug.Log("attack animation", playerAnimator);
         playerAnimator.SetTrigger("Attack");
+    }
+
+    public void HealAnimation()
+    {
+        playerAnimator.SetTrigger("Heal");
     }
 }

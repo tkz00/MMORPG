@@ -71,6 +71,8 @@ func (server *NativeServer) readLoop() {
 	}
 }
 
+
+// the broadcast function should just broadcast, the updating of the state should be handled somewhere else
 func (server *NativeServer) broadcastGameState() {
 	ticker := time.NewTicker(TICKER_TIME)
 	defer ticker.Stop()
@@ -83,8 +85,11 @@ func (server *NativeServer) broadcastGameState() {
 		server.gameState.UpdateState(deltaTime.Seconds())
 
 		gameStateDTO := server.gameState.GetGameState()
-		webSocketResponse := types.CreateWebSocketResponse(gameStateDTO) 		
+		webSocketResponse := types.CreateWebSocketResponse(gameStateDTO)
 		server.broadcast <- webSocketResponse.Serialize()
+
+		// return player's state back to normal
+		server.gameState.ResetPlayersState()
 	}
 }
 
