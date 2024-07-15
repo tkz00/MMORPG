@@ -99,7 +99,6 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastD
             fmt.Println("Error:", err)
             return
         }
-        fmt.Println(targetId)
 
 		gameState.players[targetId].DealDamage(-10)
 	default:

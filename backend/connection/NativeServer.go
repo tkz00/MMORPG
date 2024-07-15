@@ -126,6 +126,5 @@ func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positio
 }
 
 func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO types.AbilityCastDTO) {
-	fmt.Println(abilityCastDTO)
 	server.gameState.CastAbility(client, abilityCastDTO)
 }
