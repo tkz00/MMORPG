@@ -94,9 +94,7 @@ public class GameManager : MonoBehaviour
 				}
 			}
 			player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
-			player.SetScale(playerDTO.radius * 2);
-			player.SetHitbox(hitboxOn);
-
+			
 			switch(playerDTO.executingAction)
 			{
 				case ExecutingAction.Attacking:
@@ -106,6 +104,9 @@ public class GameManager : MonoBehaviour
 					player.Movement.HealAnimation();
 					break;
 			}
+
+			player.SetScale(playerDTO.radius * 2);
+			player.SetHitbox(hitboxOn);
         }
 	}
 
