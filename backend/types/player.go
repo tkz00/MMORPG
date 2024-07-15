@@ -83,7 +83,16 @@ func (p *Player) UpdatePosition(deltaTime float64) {
 }
 
 func (p *Player) DealDamage(damagePoints int) {
-	p.stats.currentHealth -= damagePoints
+	newHealth := p.stats.currentHealth - damagePoints
+	if newHealth > 0 {
+		if p.stats.maxHealth > newHealth {
+			p.stats.currentHealth -= damagePoints
+		} else {
+			p.stats.currentHealth = p.stats.maxHealth
+		}
+	} else {
+		p.stats.currentHealth = 0
+	}
 }
 
 func (p Player) GetRadius() float64 {
