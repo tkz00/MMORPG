@@ -16,8 +16,6 @@ public class GameManager : MonoBehaviour
 
 	[SerializeField]
 	CinemachineVirtualCamera cinemachineVirtualCamera;
-	// [SerializeField]
-	// PlayerPanelsManager PlayerPanelsManager;
 
 	bool hitboxOn = false;
 
@@ -37,11 +35,6 @@ public class GameManager : MonoBehaviour
 		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => OnGameStateUpdate(gameState)), "GameState");
 
 		await WebSocketConnection.Connect();
-	}
-
-	void Update()
-	{
-		// PlayerPanelsManager.UpdatePanels(players);
 	}
 
 	void OnDestroy()
