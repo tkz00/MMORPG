@@ -51,6 +51,7 @@ func (m Mapper) PlayerToDTO(player Player) *PlayerDTO {
 		Radius: player.GetRadius(),
 		MaxHealth: player.stats.maxHealth,
 		CurrentHealth: player.stats.currentHealth,
+		ExecutingAction: player.executingAction,
 	}
 }
 
