@@ -21,6 +21,9 @@ public class GameManager : MonoBehaviour
 
 	private string mainPlayerID;
 
+	[SerializeField]
+	public AbilitiesPanel abilitiesPanel;
+
 	Dictionary<string, Player> players = new Dictionary<string, Player>();
 	Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
 
@@ -82,7 +85,8 @@ public class GameManager : MonoBehaviour
             	players[playerDTO.id] = player;
 				if (this.mainPlayerID == player.id)
 				{
-					newPlayerGO.AddComponent<MainPlayer>();
+					MainPlayer mainPlayer = newPlayerGO.AddComponent<MainPlayer>();
+					mainPlayer.abilitiesPanel = abilitiesPanel;
 					this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
 				}
 			}

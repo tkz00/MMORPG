@@ -15,6 +15,8 @@ public class MainPlayer : MonoBehaviour
     private LayerMask groundLayer;
     private LayerMask playersLayer;
 
+    public AbilitiesPanel abilitiesPanel;
+
     void Awake() {
         mainCamera = Camera.main;
     }
@@ -83,6 +85,8 @@ public class MainPlayer : MonoBehaviour
             };
             string message = JsonConvert.SerializeObject(response);
             WebSocketConnection.SendMessage(message);
+
+            abilitiesPanel.CastAbility("projectile");
         }
     }
 
@@ -106,6 +110,8 @@ public class MainPlayer : MonoBehaviour
             };
             string message = JsonConvert.SerializeObject(response);
             WebSocketConnection.SendMessage(message);
+
+            abilitiesPanel.CastAbility("heal");
         }
     }
 }
