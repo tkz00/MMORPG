@@ -53,6 +53,18 @@ func CreateProjectile(id string, position Position, targetDirection Position, ca
 	}
 }
 
+func (p Projectile) GetId() string {
+	return p.id
+}
+
+func (p Projectile) GetCaster() string {
+	return p.caster
+}
+
+func (p Projectile) GetDamage() int {
+	return p.damage
+}
+
 func (p *Projectile) UpdatePosition(deltaTime float64) bool {
 	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
 	distanceToTarget := utils.GetDistance(diffX, diffZ)
@@ -73,8 +85,8 @@ func (p Projectile) GetRadius() float64 {
 	return PROJECTILE_BOUNDS_RADIUS
 }
 
-func (s ProjectileState) String() string {
-    switch s {
+func (p Projectile) GetState() string {
+	switch p.state {
     case Active:
         return "Active"
     case Hit:

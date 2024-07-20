@@ -23,7 +23,7 @@ const (
 type Player struct {
 	id 		  		string
 	stats	  		PlayerStats
-	executingAction 	Action
+	executingAction Action
 	position  		Position
 	to        		Position
 	direction 		Position
@@ -47,6 +47,9 @@ func CreatePlayer(x, z float64, id string) *Player {
 	}
 }
 
+func (p Player) GetId() string {
+	return p.id
+}
 
 func (p *Player) SetPosition(position Position) {
 	p.position = position
@@ -54,6 +57,14 @@ func (p *Player) SetPosition(position Position) {
 
 func (p Player) GetPosition() Position {
 	return p.position
+}
+
+func (p Player) GetStats() PlayerStats {
+	return p.stats
+}
+
+func (p Player) GetExecutingAction() Action {
+	return p.executingAction
 }
 
 func (p *Player) MoveTowards(to Position) {
@@ -99,13 +110,13 @@ func (p Player) GetRadius() float64 {
 	return PLAYER_BOUNDS_RADIUS
 }
 
-func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastDTO) {
-	switch abilityInfo.Name {
+func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo) {
+	switch abilityInfo.GetName() {
 	case "projectile":
 		// is this ID necessary?
 		projectileId := uuid.New().String()
 
-		targetPosition, err := extractTargetPosition(abilityInfo.AbilityParameters)
+		targetPosition, err := abilityInfo.GetTargetPosition()
         if err != nil {
             fmt.Println("Error:", err)
             return
@@ -114,7 +125,7 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastD
 		gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, player.id)
 		player.executingAction = Attacking
 	case "heal":
-		targetId, err := extractTargetId(abilityInfo.AbilityParameters)
+		targetId, err := abilityInfo.GetTargetId()
 		if err != nil {
             fmt.Println("Error:", err)
             return
@@ -124,4 +135,10 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityCastD
 		player.executingAction = CastingHeal
 	default:
 	}
+}
+
+type AbilityInfo interface {
+	GetName() string
+	GetTargetPosition() (Position, error)
+	GetTargetId() (string, error)
 }

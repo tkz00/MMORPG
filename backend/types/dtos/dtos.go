@@ -1,7 +1,8 @@
-package types
+package dtos
 
 import (
 	"fmt"
+	"unnamed-mmo/backend/types"
 	"unnamed-mmo/backend/utils"
 )
 
@@ -19,12 +20,13 @@ func (g GameStateDTO) GetType() string {
 }
 
 type PlayerDTO struct {
-	Id       		string      `json:"id"`
-	MaxHealth 		int			`json:"maxHealth"`	
-	CurrentHealth 	int			`json:"currentHealth"`
-	Radius 			float64 	`json:"radius"`	
-	Position 		PositionDTO `json:"position"`
-	ExecutingAction	Action		`json:"executingAction"`
+	Id       		string      	`json:"id"`
+	MaxHealth 		int				`json:"maxHealth"`
+	CurrentHealth 	int				`json:"currentHealth"`
+	Radius 			float64 		`json:"radius"`	
+	Position 		PositionDTO 	`json:"position"`
+	ExecutingAction	types.Action	`json:"executingAction"`
+	Abilities		[]AbilityDTO	`json:"abilities"`
 }
 
 func (p PlayerDTO) GetType() string {

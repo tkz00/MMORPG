@@ -5,10 +5,8 @@ type Position struct {
 	z float64
 }
 
-func CreatePosition(data []byte) Position {
-	positionDTO := CreatePositionDTO(data)
-
-	return *GetMapper().PositionDTOToEntity(*positionDTO)
+func NewPosition(x float64, z float64) *Position {
+	return &Position{x: x, z: z}
 }
 
 func (p Position) GetPosition() (float64, float64) {

@@ -21,14 +21,15 @@ func StartGameState() GameState {
 	}
 }
 
-func (gs *GameState) AddPlayer(conn *websocket.Conn) PlayerDTO {
+// func (gs *GameState) AddPlayer(conn *websocket.Conn) PlayerDTO {
+func (gs *GameState) AddPlayer(conn *websocket.Conn) Player {
 	id := uuid.New()
 	playerId := id.String()
 	player := CreatePlayer(0, 0, playerId)
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
 
-	return *GetMapper().PlayerToDTO(*player)
+	return *player
 }
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {
@@ -39,6 +40,23 @@ func (gs *GameState) DeletePlayer(conn *websocket.Conn) {
 
 func (gs GameState) GetPlayerCount() int {
 	return len(gs.players)
+}
+
+func (gs GameState) GetPlayers() []Player {
+	// WTF is this shit scoob????
+	playersSlice := make([]Player, 0, len(gs.players))
+    for _, player := range gs.players {
+        playersSlice = append(playersSlice, *player)
+    }
+    return playersSlice
+}
+
+func (gs GameState) GetProjectiles() []Projectile {
+	projectilesSlice := make([]Projectile, 0, len(gs.projectiles))
+    for _, projectile := range gs.projectiles {
+        projectilesSlice = append(projectilesSlice, *projectile)
+    }
+    return projectilesSlice
 }
 
 func (gs GameState) MovePlayer(conn *websocket.Conn, position Position) {
@@ -79,7 +97,6 @@ func (gs GameState) updateProjectiles(deltaTime float64) {
 	}
 }
 
-
 func (gs GameState) checkCollision(projectile Projectile) bool {
 	playerGotHit := false
 	for _, player := range gs.players {
@@ -92,14 +109,10 @@ func (gs GameState) checkCollision(projectile Projectile) bool {
 	return playerGotHit
 }
 
-func (gs *GameState) CastAbility(conn *websocket.Conn, abilityInfo AbilityCastDTO) {
+func (gs *GameState) CastAbility(conn *websocket.Conn, abilityInfo AbilityInfo) {
 	casterId := gs.playerIds[conn]
 	caster := gs.players[casterId]
 	caster.CastAbility(gs, abilityInfo)
-}
-
-func (gs GameState) GetGameState() GameStateDTO {
-	return *GetMapper().GameStateToDTO(gs)
 }
 
 func (gs GameState) AreColliding(player Player, projectile Projectile) bool {

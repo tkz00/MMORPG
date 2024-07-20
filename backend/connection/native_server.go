@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"unnamed-mmo/backend/types"
+	"unnamed-mmo/backend/types/dtos"
 
 	"golang.org/x/net/websocket"
 )
@@ -45,9 +46,9 @@ func (server *NativeServer) readLoop() {
 	for {
 		select {
 		case client := <-server.addClient:
-			playerDTO := server.gameState.AddPlayer(client)
+			player := server.gameState.AddPlayer(client)
 			server.clients[client] = true
-			response := CreateWebSocketResponse(playerDTO)
+			response := CreateWebSocketResponse(*dtos.GetMapper().PlayerToDTO(player))
 			message := response.Serialize()
 	        err := websocket.Message.Send(client, message)
 	        if err != nil {
@@ -84,7 +85,7 @@ func (server *NativeServer) broadcastGameState() {
 		previousUpdateTime = currentUpdateTime
 		server.gameState.UpdateState(deltaTime.Seconds())
 
-		gameStateDTO := server.gameState.GetGameState()
+		gameStateDTO := *dtos.GetMapper().GameStateToDTO(server.gameState)
 		webSocketResponse := CreateWebSocketResponse(gameStateDTO)
 		server.broadcast <- webSocketResponse.Serialize()
 
@@ -115,21 +116,21 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 
         switch message.ActionType {
         case "Position":
-            server.handlePlayerMovement(conn, message.Body.(types.PositionDTO))
+            server.handlePlayerMovement(conn, message.Body.(dtos.PositionDTO))
         case "AbilityCast":
-            server.handleAbilityCast(conn, message.Body.(types.AbilityCastDTO))
+            server.handleAbilityCast(conn, message.Body.(dtos.AbilityCastDTO))
         default:
             fmt.Printf("Unknown message type: %s\n", message.ActionType)
         }
     }
 }
 
-func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionDTO types.PositionDTO) {
-	position := *types.GetMapper().PositionDTOToEntity(positionDTO)
+func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionDTO dtos.PositionDTO) {
+	position := *dtos.GetMapper().PositionDTOToEntity(positionDTO)
 
 	server.gameState.MovePlayer(client, position)
 }
 
-func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO types.AbilityCastDTO) {
+func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO dtos.AbilityCastDTO) {
 	server.gameState.CastAbility(client, abilityCastDTO)
 }
