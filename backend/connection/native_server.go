@@ -47,7 +47,7 @@ func (server *NativeServer) readLoop() {
 		case client := <-server.addClient:
 			playerDTO := server.gameState.AddPlayer(client)
 			server.clients[client] = true
-			response := types.CreateWebSocketResponse(playerDTO)
+			response := CreateWebSocketResponse(playerDTO)
 			message := response.Serialize()
 	        err := websocket.Message.Send(client, message)
 	        if err != nil {
@@ -85,7 +85,7 @@ func (server *NativeServer) broadcastGameState() {
 		server.gameState.UpdateState(deltaTime.Seconds())
 
 		gameStateDTO := server.gameState.GetGameState()
-		webSocketResponse := types.CreateWebSocketResponse(gameStateDTO)
+		webSocketResponse := CreateWebSocketResponse(gameStateDTO)
 		server.broadcast <- webSocketResponse.Serialize()
 
 		// return player's state back to normal
@@ -107,7 +107,7 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
             break
         }
 
-        var message types.WebSocketMessage
+        var message WebSocketMessage
         if err := json.Unmarshal(data, &message); err != nil {
             fmt.Println("Error decoding message:", err)
             return

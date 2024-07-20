@@ -1,17 +1,18 @@
-package types
+package connection
 
 import (
 	"encoding/json"
 	"fmt"
+	"unnamed-mmo/backend/types"
 	"unnamed-mmo/backend/utils"
 )
 
 type WebSocketMessage struct {
-	Body DTO            `json:"body"`
+	Body types.DTO            `json:"body"`
 	ActionType string   `json:"actionType"`
 }
 
-func CreateWebSocketResponse(body DTO) WebSocketMessage {
+func CreateWebSocketResponse(body types.DTO) WebSocketMessage {
 	return WebSocketMessage{
 		Body: body,
 		ActionType: body.GetType(),
@@ -43,13 +44,13 @@ func (wr *WebSocketMessage) UnmarshalJSON(data []byte) error {
 
     switch tmp.ActionType {
     case "Position":
-        var pos PositionDTO
+        var pos types.PositionDTO
         if err := json.Unmarshal(tmp.Body, &pos); err != nil {
             return err
         }
         wr.Body = pos
     case "AbilityCast":
-        var ability AbilityCastDTO
+        var ability types.AbilityCastDTO
         if err := json.Unmarshal(tmp.Body, &ability); err != nil {
             return err
         }
