@@ -46,6 +46,7 @@ func (server *NativeServer) readLoop() {
 	for {
 		select {
 		case client := <-server.addClient:
+			// A message other than a player dto should be sent when a client joins the server
 			player := server.gameState.AddPlayer(client)
 			server.clients[client] = true
 			response := CreateWebSocketResponse(*dtos.GetMapper().PlayerToDTO(player))

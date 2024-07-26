@@ -28,12 +28,15 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) Player {
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
 
-	player.abilities = []Ability{
+	// Create a copy of the player to set abilities on
+	playerCopy := player
+	playerCopy.abilities = []Ability{
 		*NewAbility("0", "projectile", 100),
 		*NewAbility("1", "heal", 100),
 	}
-	return *player
+	return *playerCopy
 }
+
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {
 	playerId := gs.playerIds[conn]
