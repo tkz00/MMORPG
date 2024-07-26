@@ -74,6 +74,7 @@ func (server *NativeServer) readLoop() {
 
 
 // the broadcast function should just broadcast, the updating of the state should be handled somewhere else
+// actually, native server shouldn't know anything about gamestate, it should only receive messages that it should send to the clients, but how then would client that connect to the server be convereted to players?
 func (server *NativeServer) broadcastGameState() {
 	ticker := time.NewTicker(TICKER_TIME)
 	defer ticker.Stop()

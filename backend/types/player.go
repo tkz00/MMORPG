@@ -27,6 +27,9 @@ type Player struct {
 	position  		Position
 	to        		Position
 	direction 		Position
+
+	// should this be here?
+	abilities		[]Ability
 }
 
 func CreatePlayer(x, z float64, id string) *Player {
@@ -65,6 +68,10 @@ func (p Player) GetStats() PlayerStats {
 
 func (p Player) GetExecutingAction() Action {
 	return p.executingAction
+}
+
+func (p Player) GetAbilities() []Ability {
+	return p.abilities
 }
 
 func (p *Player) MoveTowards(to Position) {

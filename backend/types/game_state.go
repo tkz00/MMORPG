@@ -21,7 +21,6 @@ func StartGameState() GameState {
 	}
 }
 
-// func (gs *GameState) AddPlayer(conn *websocket.Conn) PlayerDTO {
 func (gs *GameState) AddPlayer(conn *websocket.Conn) Player {
 	id := uuid.New()
 	playerId := id.String()
@@ -29,6 +28,10 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) Player {
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
 
+	player.abilities = []Ability{
+		*NewAbility("0", "projectile", 100),
+		*NewAbility("1", "heal", 100),
+	}
 	return *player
 }
 

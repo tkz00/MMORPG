@@ -1,5 +1,7 @@
 package dtos
 
 type AbilityDTO struct {
-	Name string `json:"name"`
+	Id 		string	 	`json:"id"`
+	Name 	string	 	`json:"name"`
+	Range	float64		`json:"range"`
 }
