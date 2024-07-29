@@ -20,20 +20,27 @@ public class GameManager : MonoBehaviour
 	bool hitboxOn = false;
 
 	private string mainPlayerID;
+	private AbilityDTO[] mainPlayerAbilities; // Very bad
+    
+	[SerializeField]
+	public List<Ability> availableAbilities;
 
 	[SerializeField]
 	public AbilitiesPanel abilitiesPanel;
 
 	Dictionary<string, Player> players = new Dictionary<string, Player>();
 	Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
+	
 
-	async void Awake()
+    async void Awake()
 	{
-		WebSocketConnection.SetHandler<PlayerDTO>(new Action<PlayerDTO>((playerDTO) =>
+		WebSocketConnection.SetHandler<PlayerJoinedDTO>(new Action<PlayerJoinedDTO>((playerJoinedDTO) =>
 		{
-			this.mainPlayerID = playerDTO.id;
-			Debug.Log(this.mainPlayerID);
-		}), "Player");
+			this.mainPlayerID = playerJoinedDTO.id;
+			Debug.Log($"Player connected, id: {this.mainPlayerID}");
+			abilitiesPanel.Init(playerJoinedDTO.abilities);
+			mainPlayerAbilities = playerJoinedDTO.abilities;
+		}), "PlayerJoinedDTO");
 
 		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => OnGameStateUpdate(gameState)), "GameState");
 
@@ -76,19 +83,7 @@ public class GameManager : MonoBehaviour
 			}
 			else
 			{
-				Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
-				GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(playerDTO.position.x, 0, playerDTO.position.z), Quaternion.identity);
-				player = newPlayerGO.GetComponent<Player>();
-				player.id = playerDTO.id;
-				player.SetPlayerName(player.id);
-				player.SetHealthBarColor(playerColor);
-            	players[playerDTO.id] = player;
-				if (this.mainPlayerID == player.id)
-				{
-					MainPlayer mainPlayer = newPlayerGO.AddComponent<MainPlayer>();
-					mainPlayer.abilitiesPanel = abilitiesPanel;
-					this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
-				}
+				player = CreatePlayer(playerDTO);
 			}
 			player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
 			
@@ -105,6 +100,26 @@ public class GameManager : MonoBehaviour
 			player.SetScale(playerDTO.radius * 2);
 			player.SetHitbox(hitboxOn);
         }
+	}
+
+	private Player CreatePlayer(PlayerDTO playerDTO)
+	{
+		Player player;
+		Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+		GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(playerDTO.position.x, 0, playerDTO.position.z), Quaternion.identity);
+		player = newPlayerGO.GetComponent<Player>();
+		player.id = playerDTO.id;
+		player.SetPlayerName(player.id);
+		player.SetHealthBarColor(playerColor);
+		players[playerDTO.id] = player;
+		if (this.mainPlayerID == player.id)
+		{
+			MainPlayer mainPlayer = newPlayerGO.AddComponent<MainPlayer>();
+			mainPlayer.abilitiesPanel = abilitiesPanel;
+			mainPlayer.InitAbilities(mainPlayerAbilities, availableAbilities);
+			this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
+		}
+		return player;
 	}
 
 	void UpdateProjectilesPositions(List<ProjectileDTO> projectileDTOS)

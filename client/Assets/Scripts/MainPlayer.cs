@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -9,11 +11,12 @@ public class MainPlayer : MonoBehaviour
     private Camera mainCamera;
 
     public InputAction mouseClickAction = new InputAction(binding: "<Mouse>/rightButton");
-    public InputAction projectileAbilityAction = new InputAction(binding: "<Keyboard>/q");
-    public InputAction healAbilityAction = new InputAction(binding: "<Keyboard>/w");
+    public InputAction firstAbilityAction = new InputAction(binding: "<Keyboard>/q");
+    public InputAction secondAbilityAction = new InputAction(binding: "<Keyboard>/w");
+
+    private Ability[] abilities = new Ability[4];
 
     private LayerMask groundLayer;
-    private LayerMask playersLayer;
 
     public AbilitiesPanel abilitiesPanel;
 
@@ -24,29 +27,38 @@ public class MainPlayer : MonoBehaviour
     void Start() {
         // The type of shit Unity makes you do:
         groundLayer = (1 << LayerMask.NameToLayer("Ground"));
-        playersLayer = (1 << LayerMask.NameToLayer("Players"));
     }
 
     private void OnEnable() {
         mouseClickAction.Enable();
         mouseClickAction.performed += SendMovementMessage;
 
-        projectileAbilityAction.Enable();
-        projectileAbilityAction.performed += CastProjectileAbility;
+        firstAbilityAction.Enable();
+        firstAbilityAction.performed += context => CastAbility(context, abilities[0]);
 
-        healAbilityAction.Enable();
-        healAbilityAction.performed += CastHealAbility;
+        secondAbilityAction.Enable();
+        secondAbilityAction.performed += context => CastAbility(context, abilities[1]);
     }
 
     private void OnDisable() {
         mouseClickAction.performed -= SendMovementMessage;
         mouseClickAction.Disable();
 
-        projectileAbilityAction.Disable();
-        projectileAbilityAction.performed -= CastProjectileAbility;
+        firstAbilityAction.Disable();
+        firstAbilityAction.performed -= context => CastAbility(context, abilities[0]);
 
-        healAbilityAction.Disable();
-        healAbilityAction.performed -= CastHealAbility;
+        secondAbilityAction.Disable();
+        secondAbilityAction.performed -= context => CastAbility(context, abilities[1]);
+    }
+
+    public void InitAbilities(AbilityDTO[] abilitiesDTOs, List<Ability> availableAbilities)
+    {
+        int index = 0;
+        foreach(AbilityDTO abilityDTO in abilitiesDTOs)
+        {
+            this.abilities[index] = availableAbilities.Find(ability => ability.id == abilityDTO.id);
+            index++;
+        }
     }
 
     private void SendMovementMessage(InputAction.CallbackContext context)
@@ -64,54 +76,29 @@ public class MainPlayer : MonoBehaviour
         }
     }
 
-    private void CastProjectileAbility(InputAction.CallbackContext context)
+    private void CastAbility(InputAction.CallbackContext context, Ability ability)
     {
-        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && hit.collider) {
+        if(ability != null)
+        {
+            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ability.GetLayerMask()) && hit.collider)
+            {
+                Dictionary<AbilityParameters, object> abilityParameters = ability.GetAbilityParameters(hit);
 
-            float x = hit.point.x, z = hit.point.z;
-            PositionDTO inputPosition = new PositionDTO{x = x, z = z};
-            Dictionary<AbilityParameters, object> abilityParameters =
-                new Dictionary<AbilityParameters, object>{
-                    {AbilityParameters.TargetPosition, inputPosition}
+                WebSocketMessage response = new WebSocketMessage
+                {
+                    Body = new AbilityCastDTO
+                    {
+                        abilityParameters = abilityParameters,
+                        name = ability.name
+                    },
+                    ActionType = "AbilityCast"
                 };
+                string message = JsonConvert.SerializeObject(response);
+                WebSocketConnection.SendMessage(message);
 
-            WebSocketMessage response = new WebSocketMessage {
-                Body = new AbilityCastDTO {
-                    abilityParameters = abilityParameters,
-                    name = "projectile"
-                },
-                ActionType = "AbilityCast"
-            };
-            string message = JsonConvert.SerializeObject(response);
-            WebSocketConnection.SendMessage(message);
-
-            abilitiesPanel.CastAbility("projectile");
-        }
-    }
-
-    private void CastHealAbility(InputAction.CallbackContext context)
-    {
-        Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, playersLayer) && hit.collider) {
-            
-            string targetId = hit.collider.GetComponent<ITargeteable>().GetTargetId();
-            Dictionary<AbilityParameters, object> abilityParameters =
-                new Dictionary<AbilityParameters, object>{
-                    {AbilityParameters.TargetId, targetId}
-                };
-
-            WebSocketMessage response = new WebSocketMessage {
-                Body = new AbilityCastDTO {
-                    abilityParameters = abilityParameters,
-                    name = "heal"
-                },
-                ActionType = "AbilityCast"
-            };
-            string message = JsonConvert.SerializeObject(response);
-            WebSocketConnection.SendMessage(message);
-
-            abilitiesPanel.CastAbility("heal");
+                abilitiesPanel.CastAbility(ability.name);
+            }
         }
     }
 }

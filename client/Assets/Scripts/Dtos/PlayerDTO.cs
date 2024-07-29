@@ -7,7 +7,6 @@ public class PlayerDTO : DTO{
 	public int maxHealth;
 	public int currentHealth;
 	public ExecutingAction executingAction;
-   public AbilityDTO[] abilities;
 }
 
 public enum ExecutingAction
@@ -18,11 +17,4 @@ public enum ExecutingAction
    Attacking,
    [EnumMember(Value = "castingHeal")]
    CastingHeal
-}
-
-public class AbilityDTO
-{
-   public string id;
-   public new string name;
-   public float range;
 }

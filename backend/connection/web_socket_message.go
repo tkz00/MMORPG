@@ -8,8 +8,8 @@ import (
 )
 
 type WebSocketMessage struct {
-	Body dtos.DTO            `json:"body"`
-	ActionType string   `json:"actionType"`
+	Body        dtos.DTO    `json:"body"`
+	ActionType  string      `json:"actionType"`
 }
 
 func CreateWebSocketResponse(body dtos.DTO) WebSocketMessage {

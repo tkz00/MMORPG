@@ -19,10 +19,11 @@ public class AbilitiesPanel : MonoBehaviour
 
     const float CAST_ABILITY_ICON_ANIMATION_DURATION = 0.1f;
 
-    void Start()
+    public void Init(AbilityDTO[] abilitiesDTOs)
     {
-        foreach(Ability ability in abilities)
+        foreach(AbilityDTO abilityDTO in abilitiesDTOs)
         {
+            Ability ability = abilities.Find(ability => ability.id == abilityDTO.id);
             GameObject abilityIcon = Instantiate(abilityIconPrefab, abilityIconsContainer);
             abilityIcon.name = ability.name;
             abilityIcon.GetComponent<Image>().sprite = ability.icon;

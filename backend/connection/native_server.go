@@ -49,7 +49,7 @@ func (server *NativeServer) readLoop() {
 			// A message other than a player dto should be sent when a client joins the server
 			player := server.gameState.AddPlayer(client)
 			server.clients[client] = true
-			response := CreateWebSocketResponse(*dtos.GetMapper().PlayerToDTO(player))
+			response := CreateWebSocketResponse(*dtos.GetMapper().PlayerToJoinedDTO(player))
 			message := response.Serialize()
 	        err := websocket.Message.Send(client, message)
 	        if err != nil {
@@ -72,7 +72,6 @@ func (server *NativeServer) readLoop() {
 		}
 	}
 }
-
 
 // the broadcast function should just broadcast, the updating of the state should be handled somewhere else
 // actually, native server shouldn't know anything about gamestate, it should only receive messages that it should send to the clients, but how then would client that connect to the server be convereted to players?
