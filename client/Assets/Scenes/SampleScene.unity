@@ -561,8 +561,8 @@ MonoBehaviour:
   abilityIconPrefab: {fileID: 228988813937077183, guid: f2968f87668504e91945759609166a4c, type: 3}
   abilityIconsContainer: {fileID: 368664258}
   abilities:
-  - {fileID: 11400000, guid: 70484fb3587b14d18a54217bca22d8a5, type: 2}
   - {fileID: 11400000, guid: 64422d998c9dc4265937786b120f2204, type: 2}
+  - {fileID: 11400000, guid: 70484fb3587b14d18a54217bca22d8a5, type: 2}
 --- !u!1 &638812565
 GameObject:
   m_ObjectHideFlags: 3

@@ -34,13 +34,13 @@ public class GameManager : MonoBehaviour
 
     async void Awake()
 	{
-		WebSocketConnection.SetHandler<PlayerJoinedDTO>(new Action<PlayerJoinedDTO>((playerJoinedDTO) =>
+		WebSocketConnection.SetHandler<PlayerDTO>(new Action<PlayerDTO>((playerDTO) =>
 		{
-			this.mainPlayerID = playerJoinedDTO.id;
+			this.mainPlayerID = playerDTO.id;
 			Debug.Log($"Player connected, id: {this.mainPlayerID}");
-			abilitiesPanel.Init(playerJoinedDTO.abilities);
-			mainPlayerAbilities = playerJoinedDTO.abilities;
-		}), "PlayerJoinedDTO");
+			abilitiesPanel.Init(playerDTO.abilities);
+			mainPlayerAbilities = playerDTO.abilities;
+		}), "Player");
 
 		WebSocketConnection.SetHandler<GameStateDTO>(new Action<GameStateDTO>((gameState) => OnGameStateUpdate(gameState)), "GameState");
 

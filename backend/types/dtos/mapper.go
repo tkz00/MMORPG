@@ -33,6 +33,10 @@ func (m Mapper) PositionToDTO(position types.Position) *PositionDTO {
 
 func (m Mapper) PlayerToDTO(player types.Player) *PlayerDTO {
 	playerStats := player.GetStats()
+	playerAbilities := make([]AbilityDTO, 0)
+	for _, ability := range player.GetAbilities() {
+		playerAbilities = append(playerAbilities, AbilityToDTO(ability))
+	}
 
 	return &PlayerDTO {
 		Id: player.GetId(),
@@ -41,6 +45,7 @@ func (m Mapper) PlayerToDTO(player types.Player) *PlayerDTO {
 		MaxHealth: playerStats.GetMaxHealth(),
 		CurrentHealth: playerStats.GetCurrentHealth(),
 		ExecutingAction: player.GetExecutingAction(),
+		Abilities: playerAbilities,
 	}
 }
 
