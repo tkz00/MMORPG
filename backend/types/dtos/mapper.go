@@ -35,7 +35,7 @@ func (m Mapper) PlayerToDTO(player types.Player) *PlayerDTO {
 	playerStats := player.GetStats()
 	playerAbilities := make([]AbilityDTO, 0)
 	for _, ability := range player.GetAbilities() {
-		playerAbilities = append(playerAbilities, AbilityToDTO(ability))
+		playerAbilities = append(playerAbilities, AbilityToDTO(*ability))
 	}
 
 	return &PlayerDTO {
@@ -80,12 +80,9 @@ func (m Mapper) GameStateToDTO(gameState types.GameState) *GameStateDTO {
 
 func AbilityToDTO(ability types.Ability) AbilityDTO{
 	return AbilityDTO{
-		Id: ability.GetId(),
-		Name: ability.GetName(),
-		Range: ability.GetRange(),
+		Id: ability.Id(),
+		Name: ability.Name(),
+		Range: ability.Range(),
+		Cooldown: ability.Cooldown(),
 	}
 }
-
-// func (m Mapper) AbilityCastToParameters(abilityCast AbilityCastDTO) types.AbilityInfo {
-// 	return 
-// }

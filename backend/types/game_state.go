@@ -24,11 +24,11 @@ func StartGameState() GameState {
 func (gs *GameState) AddPlayer(conn *websocket.Conn) Player {
 	id := uuid.New()
 	playerId := id.String()
-	player := CreatePlayer(0, 0, playerId)
-	player.abilities = []Ability{
-		*NewAbility("1", "heal", 100),
-		*NewAbility("0", "projectile", 100),
+	abilities := map[string]*Ability{
+		"1": NewAbility("1", "heal", 100, 3000),
+		"0": NewAbility("0", "projectile", 100, 2000),
 	}
+	player := CreatePlayer(playerId, 0, 0, abilities)
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
 

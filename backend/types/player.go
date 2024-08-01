@@ -3,6 +3,7 @@ package types
 import (
 	"fmt"
 	"math"
+	"time"
 	"unnamed-mmo/backend/utils"
 
 	"github.com/google/uuid"
@@ -29,14 +30,20 @@ type Player struct {
 	direction 		Position
 
 	// should this be here?
-	abilities		[]Ability
+	abilities		map[string]*Ability
+	lastUsed   		map[string]time.Time
 }
 
-func CreatePlayer(x, z float64, id string) *Player {
+func CreatePlayer(id string, x, z float64, abilities map[string]*Ability) *Player {
 	initPosition := Position{
 		x: x,
 		z: z,
 	}
+
+	lastUsed := make(map[string]time.Time, len(abilities))
+	for _, ability := range abilities {
+        lastUsed[ability.name] = time.Time{}
+    }
 
 	return &Player{
 		id: id,
@@ -47,6 +54,8 @@ func CreatePlayer(x, z float64, id string) *Player {
 			maxHealth:     BASE_MAX_HEALTH,
 		},
 		executingAction: Idle,
+		abilities: abilities,
+		lastUsed: lastUsed,
 	}
 }
 
@@ -70,7 +79,7 @@ func (p Player) GetExecutingAction() Action {
 	return p.executingAction
 }
 
-func (p Player) GetAbilities() []Ability {
+func (p Player) GetAbilities() map[string]*Ability {
 	return p.abilities
 }
 
@@ -118,30 +127,53 @@ func (p Player) GetRadius() float64 {
 }
 
 func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo) {
-	switch abilityInfo.GetName() {
-	case "projectile":
-		// is this ID necessary?
-		projectileId := uuid.New().String()
+	if CheckCooldown(player, abilityInfo) {
+		switch abilityInfo.GetName() {
+			case "projectile":
+				// is this ID necessary?
+				projectileId := uuid.New().String()
 
-		targetPosition, err := abilityInfo.GetTargetPosition()
-        if err != nil {
-            fmt.Println("Error:", err)
-            return
-        }
-	
-		gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, player.id)
-		player.executingAction = Attacking
-	case "heal":
-		targetId, err := abilityInfo.GetTargetId()
-		if err != nil {
-            fmt.Println("Error:", err)
-            return
-        }
+				targetPosition, err := abilityInfo.GetTargetPosition()
+				if err != nil {
+					fmt.Println("Error:", err)
+					return
+				}
+			
+				gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, player.id)
+				player.executingAction = Attacking
+			case "heal":
+				targetId, err := abilityInfo.GetTargetId()
+				if err != nil {
+					fmt.Println("Error:", err)
+					return
+				}
 
-		gameState.players[targetId].DealDamage(-10)
-		player.executingAction = CastingHeal
-	default:
+				gameState.players[targetId].DealDamage(-10)
+				player.executingAction = CastingHeal
+			default:
+		}
 	}
+}
+
+func CheckCooldown(player *Player, abilityInfo AbilityInfo) bool {
+	abilityName := abilityInfo.GetName()
+	
+	var ability *Ability
+	for _, ab := range player.abilities {
+		if ab.Name() == abilityName {
+			ability = ab
+			break
+		}
+	}
+	
+	now := time.Now()
+	if ability.cooldown <= now.Sub(player.lastUsed[abilityName]).Milliseconds() {
+		player.lastUsed[abilityName] = now
+		return true
+	} else {
+		return false
+	}
+
 }
 
 type AbilityInfo interface {
