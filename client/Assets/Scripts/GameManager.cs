@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
 	bool hitboxOn = false;
 
 	private string mainPlayerID;
-	private AbilityDTO[] mainPlayerAbilities; // Very bad
+	private AbilityDTO[] mainPlayerAbilities; // Naughty naughty (in Borat's voice)
     
 	[SerializeField]
 	public List<Ability> availableAbilities;
@@ -68,6 +68,8 @@ public class GameManager : MonoBehaviour
 		DestroyProjectiles(projectilesToDestroy.ToArray());
 		UpdatePlayersPositions(gameState.players);
 		UpdateProjectilesPositions(gameState.projectiles);
+
+		abilitiesPanel.UpdatePlayerPanel(gameState.players.Find(player => player.id == mainPlayerID));
 	}
 
 	void UpdatePlayersPositions(List<PlayerDTO> playerDTOS)

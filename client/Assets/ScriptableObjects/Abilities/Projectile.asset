@@ -9,9 +9,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 19c79f4db256b4aaa959cc457117fb6f, type: 3}
   m_Name: Projectile
-  m_EditorClassIdentifier: Assembly-CSharp::DirectionalAbility
+  m_EditorClassIdentifier: 
   id: 0
   name: projectile
   icon: {fileID: 21300000, guid: 9f69b220176e6964fbd87f5f158d45e3, type: 3}

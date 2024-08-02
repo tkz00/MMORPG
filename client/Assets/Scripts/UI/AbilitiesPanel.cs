@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +13,7 @@ public class AbilitiesPanel : MonoBehaviour
     [SerializeField]
     Transform abilityIconsContainer;
 
-    Dictionary<string, GameObject> abilityIcons = new Dictionary<string, GameObject>();
+    Dictionary<string, AbilityIcon> abilityIcons = new Dictionary<string, AbilityIcon>();
 
     [SerializeField]
     List<Ability> abilities;
@@ -24,9 +25,8 @@ public class AbilitiesPanel : MonoBehaviour
         foreach(AbilityDTO abilityDTO in abilitiesDTOs)
         {
             Ability ability = abilities.Find(ability => ability.id == abilityDTO.id);
-            GameObject abilityIcon = Instantiate(abilityIconPrefab, abilityIconsContainer);
-            abilityIcon.name = ability.name;
-            abilityIcon.GetComponent<Image>().sprite = ability.icon;
+            AbilityIcon abilityIcon = Instantiate(abilityIconPrefab, abilityIconsContainer).GetComponent<AbilityIcon>();
+            abilityIcon.SetAbility(ability);
             abilityIcons.Add(ability.name, abilityIcon);
         }
 
@@ -35,7 +35,7 @@ public class AbilitiesPanel : MonoBehaviour
 
     public void CastAbility(string abilityName)
     {
-        StartCoroutine(AnimateAbility(abilityIcons[abilityName].GetComponent<Image>()));
+        // StartCoroutine(AnimateAbility(abilityIcons[abilityName].GetComponent<Image>()));
     }
 
     private IEnumerator AnimateAbility(Image abilityImage)
@@ -68,5 +68,18 @@ public class AbilitiesPanel : MonoBehaviour
 
         originalColor.a = 1;
         abilityImage.color = originalColor;
+    }
+
+    public void UpdatePlayerPanel(PlayerDTO playerDTO)
+    {
+        foreach(AbilityDTO abilityDTO in playerDTO.abilities)
+        {
+            // Debug.Log(abilityDTO.name + " - " + abilityDTO.remainingCooldown.ToString());
+
+            if(abilityIcons[abilityDTO.name] != null)
+            {
+                abilityIcons[abilityDTO.name].UpdateCooldown(abilityDTO.remainingCooldown);
+            }
+        }
     }
 }

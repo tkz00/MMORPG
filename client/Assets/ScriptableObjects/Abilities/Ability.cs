@@ -17,31 +17,3 @@ public enum AbilityParameters
     TargetPosition,
     TargetId
 }
-
-[CreateAssetMenu(menuName = "Abilities/DirectionalAbility")]
-public class DirectionalAbility : Ability
-{
-    public override Dictionary<AbilityParameters, object> GetAbilityParameters(RaycastHit hit)
-    {
-        float x = hit.point.x, z = hit.point.z;
-        PositionDTO inputPosition = new PositionDTO { x = x, z = z };
-        return new Dictionary<AbilityParameters, object>
-        {
-            { AbilityParameters.TargetPosition, inputPosition }
-        };
-    }
-}
-
-[CreateAssetMenu(menuName = "Abilities/TargetedAbility")]
-public class TargetedAbility : Ability
-{
-    public override Dictionary<AbilityParameters, object> GetAbilityParameters(RaycastHit hit)
-    {
-        string targetId = hit.collider.GetComponent<ITargeteable>().GetTargetId();
-        return new Dictionary<AbilityParameters, object>
-        {
-            { AbilityParameters.TargetId, targetId }
-        };
-    }
-}
-

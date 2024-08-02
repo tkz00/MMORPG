@@ -35,7 +35,9 @@ func (m Mapper) PlayerToDTO(player types.Player) *PlayerDTO {
 	playerStats := player.GetStats()
 	playerAbilities := make([]AbilityDTO, 0)
 	for _, ability := range player.GetAbilities() {
-		playerAbilities = append(playerAbilities, AbilityToDTO(*ability))
+		abilityDTO := AbilityToDTO(*ability)
+		abilityDTO.RemainingCooldown = float64(player.RemainingCooldown(ability)) / 1000
+		playerAbilities = append(playerAbilities, abilityDTO)
 	}
 
 	return &PlayerDTO {

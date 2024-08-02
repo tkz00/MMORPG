@@ -26,4 +26,5 @@ public class AbilityDTO
    public string id;
    public string name;
    public float range;
+   public float remainingCooldown;
 }

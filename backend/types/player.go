@@ -127,7 +127,7 @@ func (p Player) GetRadius() float64 {
 }
 
 func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo) {
-	if CheckCooldown(player, abilityInfo) {
+	if player.CheckCooldown(abilityInfo) {
 		switch abilityInfo.GetName() {
 			case "projectile":
 				// is this ID necessary?
@@ -155,10 +155,11 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 	}
 }
 
-func CheckCooldown(player *Player, abilityInfo AbilityInfo) bool {
+func (player *Player)CheckCooldown(abilityInfo AbilityInfo) bool {
 	abilityName := abilityInfo.GetName()
 	
 	var ability *Ability
+	// this search should be done by id, the client should send the id of the ability, not the name
 	for _, ab := range player.abilities {
 		if ab.Name() == abilityName {
 			ability = ab
@@ -167,13 +168,21 @@ func CheckCooldown(player *Player, abilityInfo AbilityInfo) bool {
 	}
 	
 	now := time.Now()
-	if ability.cooldown <= now.Sub(player.lastUsed[abilityName]).Milliseconds() {
+	if player.RemainingCooldown(ability) <= 0 {
 		player.lastUsed[abilityName] = now
 		return true
 	} else {
 		return false
 	}
+}
 
+func (player Player)RemainingCooldown(ability *Ability) int64 {
+	now := time.Now()
+	remainingCooldown := player.abilities[ability.id].cooldown - now.Sub(player.lastUsed[ability.name]).Milliseconds()
+	if remainingCooldown > 0 {
+		return remainingCooldown
+	}
+	return 0
 }
 
 type AbilityInfo interface {
