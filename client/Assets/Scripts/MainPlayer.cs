@@ -80,24 +80,28 @@ public class MainPlayer : MonoBehaviour
     {
         if(ability != null)
         {
-            Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ability.GetLayerMask()) && hit.collider)
+            // abilities panel is doing the work of what should be an abilities manager, it should be refactored
+            if(abilitiesPanel.CanCast(ability.name))
             {
-                Dictionary<AbilityParameters, object> abilityParameters = ability.GetAbilityParameters(hit);
-
-                WebSocketMessage response = new WebSocketMessage
+                Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
+                if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ability.GetLayerMask()) && hit.collider)
                 {
-                    Body = new AbilityCastDTO
-                    {
-                        abilityParameters = abilityParameters,
-                        name = ability.name
-                    },
-                    ActionType = "AbilityCast"
-                };
-                string message = JsonConvert.SerializeObject(response);
-                WebSocketConnection.SendMessage(message);
+                    Dictionary<AbilityParameters, object> abilityParameters = ability.GetAbilityParameters(hit);
 
-                abilitiesPanel.CastAbility(ability.name);
+                    WebSocketMessage response = new WebSocketMessage
+                    {
+                        Body = new AbilityCastDTO
+                        {
+                            abilityParameters = abilityParameters,
+                            name = ability.name
+                        },
+                        ActionType = "AbilityCast"
+                    };
+                    string message = JsonConvert.SerializeObject(response);
+                    WebSocketConnection.SendMessage(message);
+
+                    abilitiesPanel.CastAbility(ability.name);
+                }
             }
         }
     }

@@ -33,8 +33,23 @@ public class AbilitiesPanel : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate(abilityIconsContainer.GetComponent<RectTransform>());
     }
 
+    public bool CanCast(string abilityName)
+    {
+        AbilityIcon abilityIcon = abilityIcons[abilityName];
+        if(abilityIcons[abilityName].AbilityCooldown == 0)
+        {
+            return true;
+        }
+        else
+        {
+            abilityIcon.FailedCast();
+            return false;
+        }
+    }
+
     public void CastAbility(string abilityName)
     {
+        // Will this ever be needed? Will leave like this for now
         // StartCoroutine(AnimateAbility(abilityIcons[abilityName].GetComponent<Image>()));
     }
 
@@ -74,8 +89,6 @@ public class AbilitiesPanel : MonoBehaviour
     {
         foreach(AbilityDTO abilityDTO in playerDTO.abilities)
         {
-            // Debug.Log(abilityDTO.name + " - " + abilityDTO.remainingCooldown.ToString());
-
             if(abilityIcons[abilityDTO.name] != null)
             {
                 abilityIcons[abilityDTO.name].UpdateCooldown(abilityDTO.remainingCooldown);
