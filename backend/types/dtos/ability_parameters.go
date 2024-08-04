@@ -14,7 +14,7 @@ const (
 )
 
 type AbilityCastDTO struct {
-	Name             	string                           	`json:"name"`
+	Id             		string                           	`json:"id"`
 	AbilityParameters 	map[AbilityParameters]interface{} 	`json:"abilityParameters"`
 }
 
@@ -84,6 +84,6 @@ func (abilityCast AbilityCastDTO) GetTargetId() (string, error) {
     return targetId, nil
 }
 
-func (abilityCast AbilityCastDTO) GetName() string {
-	return abilityCast.Name
+func (abilityCast AbilityCastDTO) GetId() string {
+	return abilityCast.Id
 }

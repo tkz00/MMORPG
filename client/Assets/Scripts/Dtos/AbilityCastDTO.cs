@@ -3,6 +3,6 @@ using System.Collections.Generic;
 
 public class AbilityCastDTO : DTO
 {
-    public string name;
+    public string id;
     public Dictionary<AbilityParameters, object> abilityParameters;
 }

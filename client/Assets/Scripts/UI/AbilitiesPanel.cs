@@ -27,16 +27,16 @@ public class AbilitiesPanel : MonoBehaviour
             Ability ability = abilities.Find(ability => ability.id == abilityDTO.id);
             AbilityIcon abilityIcon = Instantiate(abilityIconPrefab, abilityIconsContainer).GetComponent<AbilityIcon>();
             abilityIcon.SetAbility(ability);
-            abilityIcons.Add(ability.name, abilityIcon);
+            abilityIcons.Add(ability.id, abilityIcon);
         }
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(abilityIconsContainer.GetComponent<RectTransform>());
     }
 
-    public bool CanCast(string abilityName)
+    public bool CanCast(string abilityId)
     {
-        AbilityIcon abilityIcon = abilityIcons[abilityName];
-        if(abilityIcons[abilityName].AbilityCooldown == 0)
+        AbilityIcon abilityIcon = abilityIcons[abilityId];
+        if(abilityIcons[abilityId].AbilityCooldown == 0)
         {
             return true;
         }
@@ -47,7 +47,7 @@ public class AbilitiesPanel : MonoBehaviour
         }
     }
 
-    public void CastAbility(string abilityName)
+    public void CastAbility(string abilityId)
     {
         // Will this ever be needed? Will leave like this for now
         // StartCoroutine(AnimateAbility(abilityIcons[abilityName].GetComponent<Image>()));
@@ -89,9 +89,9 @@ public class AbilitiesPanel : MonoBehaviour
     {
         foreach(AbilityDTO abilityDTO in playerDTO.abilities)
         {
-            if(abilityIcons[abilityDTO.name] != null)
+            if(abilityIcons[abilityDTO.id] != null)
             {
-                abilityIcons[abilityDTO.name].UpdateCooldown(abilityDTO.remainingCooldown);
+                abilityIcons[abilityDTO.id].UpdateCooldown(abilityDTO.remainingCooldown);
             }
         }
     }

@@ -42,7 +42,7 @@ func CreatePlayer(id string, x, z float64, abilities map[string]*Ability) *Playe
 
 	lastUsed := make(map[string]time.Time, len(abilities))
 	for _, ability := range abilities {
-        lastUsed[ability.name] = time.Time{}
+        lastUsed[ability.id] = time.Time{}
     }
 
 	return &Player{
@@ -128,7 +128,8 @@ func (p Player) GetRadius() float64 {
 
 func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo) {
 	if player.CheckCooldown(abilityInfo) {
-		switch abilityInfo.GetName() {
+		ability := player.abilities[abilityInfo.GetId()]
+		switch ability.name {
 			case "projectile":
 				// is this ID necessary?
 				projectileId := uuid.New().String()
@@ -156,20 +157,11 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 }
 
 func (player *Player)CheckCooldown(abilityInfo AbilityInfo) bool {
-	abilityName := abilityInfo.GetName()
-	
-	var ability *Ability
-	// this search should be done by id, the client should send the id of the ability, not the name
-	for _, ab := range player.abilities {
-		if ab.Name() == abilityName {
-			ability = ab
-			break
-		}
-	}
+	ability := player.abilities[abilityInfo.GetId()]
 	
 	now := time.Now()
 	if player.RemainingCooldown(ability) <= 0 {
-		player.lastUsed[abilityName] = now
+		player.lastUsed[ability.id] = now
 		return true
 	} else {
 		return false
@@ -178,7 +170,7 @@ func (player *Player)CheckCooldown(abilityInfo AbilityInfo) bool {
 
 func (player Player)RemainingCooldown(ability *Ability) int64 {
 	now := time.Now()
-	remainingCooldown := player.abilities[ability.id].cooldown - now.Sub(player.lastUsed[ability.name]).Milliseconds()
+	remainingCooldown := player.abilities[ability.id].cooldown - now.Sub(player.lastUsed[ability.id]).Milliseconds()
 	if remainingCooldown > 0 {
 		return remainingCooldown
 	}
@@ -186,7 +178,7 @@ func (player Player)RemainingCooldown(ability *Ability) int64 {
 }
 
 type AbilityInfo interface {
-	GetName() string
+	GetId() string
 	GetTargetPosition() (Position, error)
 	GetTargetId() (string, error)
 }

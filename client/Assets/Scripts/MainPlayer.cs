@@ -81,7 +81,7 @@ public class MainPlayer : MonoBehaviour
         if(ability != null)
         {
             // abilities panel is doing the work of what should be an abilities manager, it should be refactored
-            if(abilitiesPanel.CanCast(ability.name))
+            if(abilitiesPanel.CanCast(ability.id))
             {
                 Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ability.GetLayerMask()) && hit.collider)
@@ -93,14 +93,14 @@ public class MainPlayer : MonoBehaviour
                         Body = new AbilityCastDTO
                         {
                             abilityParameters = abilityParameters,
-                            name = ability.name
+                            id = ability.id
                         },
                         ActionType = "AbilityCast"
                     };
                     string message = JsonConvert.SerializeObject(response);
                     WebSocketConnection.SendMessage(message);
 
-                    abilitiesPanel.CastAbility(ability.name);
+                    abilitiesPanel.CastAbility(ability.id);
                 }
             }
         }
