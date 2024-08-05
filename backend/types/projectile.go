@@ -65,8 +65,7 @@ func (p Projectile) GetDamage() int {
 }
 
 func (p *Projectile) UpdatePosition(deltaTime float64) bool {
-	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
-	distanceToTarget := utils.GetDistance(diffX, diffZ)
+	distanceToTarget := p.position.Distance(p.to)
 	if distanceToTarget < (PROJECTILE_SPEED * deltaTime) {
 		p.position.Teleport(p.to)
 		return true

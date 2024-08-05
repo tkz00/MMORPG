@@ -1,5 +1,7 @@
 package types
 
+import "unnamed-mmo/backend/utils"
+
 type Position struct {
 	x float64
 	z float64
@@ -29,4 +31,9 @@ func (p Position) Equals(other Position) bool {
 
 func (p Position) Multiply(multiplier float64) Position {
 	return Position{p.x * multiplier, p.z * multiplier}
+}
+
+func (positionA Position) Distance(positionB Position) float64 {
+	diffX, diffZ := utils.GetDiff(positionA.x, positionA.z, positionB.x, positionB.z)
+	return utils.GetDistance(diffX, diffZ)
 }

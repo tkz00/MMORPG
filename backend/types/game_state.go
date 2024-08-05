@@ -1,8 +1,6 @@
 package types
 
 import (
-	"unnamed-mmo/backend/utils"
-
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 )
@@ -25,8 +23,8 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) Player {
 	id := uuid.New()
 	playerId := id.String()
 	abilities := map[string]*Ability{
-		"1": NewAbility("1", "heal", 100, 3000),
-		"0": NewAbility("0", "projectile", 100, 2000),
+		"1": NewAbility("1", "heal", 10, 3000),
+		"0": NewAbility("0", "projectile", 5, 2000),
 	}
 	player := CreatePlayer(playerId, 0, 0, abilities)
 	gs.playerIds[conn] = playerId
@@ -121,10 +119,7 @@ func (gs *GameState) CastAbility(conn *websocket.Conn, abilityInfo AbilityInfo) 
 func (gs GameState) AreColliding(player Player, projectile Projectile) bool {
 	playerPosition := player.GetPosition()
 	projectilePosition := projectile.GetPosition()
-
-	diffX, diffZ := utils.GetDiff(playerPosition.x, playerPosition.z, projectilePosition.x, projectilePosition.z)
-	distance := utils.GetDistance(diffX, diffZ)
-
+	distance := playerPosition.Distance(projectilePosition)
 	return distance < (player.GetRadius() + projectile.GetRadius())
 }
 

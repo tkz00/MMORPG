@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"math"
 	"time"
 	"unnamed-mmo/backend/utils"
 
@@ -87,11 +86,11 @@ func (p *Player) MoveTowards(to Position) {
 	p.to = to
 
 	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
-	distanceMagnitude := math.Hypot(diffX, diffZ)
+	distance := p.position.Distance(p.to)
 
 	p.direction = Position{
-		x: diffX * PLAYER_SPEED / distanceMagnitude,
-		z: diffZ * PLAYER_SPEED / distanceMagnitude,
+		x: diffX * PLAYER_SPEED / distance,
+		z: diffZ * PLAYER_SPEED / distance,
 	}
 }
 
@@ -100,8 +99,7 @@ func (p Player) IsMoving() bool {
 }
 
 func (p *Player) UpdatePosition(deltaTime float64) {
-	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
-	distanceToTarget := utils.GetDistance(diffX, diffZ)
+	distanceToTarget := p.position.Distance(p.to)
 	if distanceToTarget < (PLAYER_SPEED * deltaTime){
 		p.position.Teleport(p.to)
 	} else {
@@ -144,33 +142,55 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 			
 				gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, ability.rangeValue, player.id)
 				player.executingAction = Attacking
+				// this code is duplicated and should be unified some way
+				now := time.Now()
+				player.lastUsed[ability.id] = now
 			case "heal":
 				targetId, err := abilityInfo.GetTargetId()
 				if err != nil {
 					fmt.Println("Error:", err)
 					return
 				}
+				target := gameState.players[targetId]
+				if player.position.Distance(target.position) > ability.rangeValue {
+					diffX, diffZ := utils.GetDiff(player.position.x, player.position.z, target.position.x, target.position.z)
+					totalDistance := player.position.Distance(target.position)
+					normalizedMovementVector := Position{
+						x: diffX / totalDistance,
+						z: diffZ / totalDistance,
+					}
+					movementVector := Position{
+						x: normalizedMovementVector.x * (totalDistance - ability.rangeValue),
+						z: normalizedMovementVector.z * (totalDistance - ability.rangeValue),
+					}
+					targetPosition := Position{
+						x: player.position.x + movementVector.x,
+						z: player.position.z + movementVector.z,
+					}
+					player.MoveTowards(targetPosition)
+				} else {
+					gameState.players[targetId].DealDamage(-10)
+					player.executingAction = CastingHeal
+					// this code is duplicated and should be unified some way
+					now := time.Now()
+					player.lastUsed[ability.id] = now
+				}
 
-				gameState.players[targetId].DealDamage(-10)
-				player.executingAction = CastingHeal
 			default:
 		}
 	}
 }
 
-func (player *Player)CheckCooldown(abilityInfo AbilityInfo) bool {
+func (player *Player) CheckCooldown(abilityInfo AbilityInfo) bool {
 	ability := player.abilities[abilityInfo.GetId()]
-	
-	now := time.Now()
 	if player.RemainingCooldown(ability) <= 0 {
-		player.lastUsed[ability.id] = now
 		return true
 	} else {
 		return false
 	}
 }
 
-func (player Player)RemainingCooldown(ability *Ability) int64 {
+func (player Player) RemainingCooldown(ability *Ability) int64 {
 	now := time.Now()
 	remainingCooldown := player.abilities[ability.id].cooldown - now.Sub(player.lastUsed[ability.id]).Milliseconds()
 	if remainingCooldown > 0 {
