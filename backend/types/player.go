@@ -129,6 +129,8 @@ func (p Player) GetRadius() float64 {
 func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo) {
 	if player.CheckCooldown(abilityInfo) {
 		ability := player.abilities[abilityInfo.GetId()]
+
+		// following behaviour should be inside ability, not player
 		switch ability.name {
 			case "projectile":
 				// is this ID necessary?
@@ -140,7 +142,7 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 					return
 				}
 			
-				gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, player.id)
+				gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, ability.rangeValue, player.id)
 				player.executingAction = Attacking
 			case "heal":
 				targetId, err := abilityInfo.GetTargetId()

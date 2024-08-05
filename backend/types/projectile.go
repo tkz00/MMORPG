@@ -5,7 +5,6 @@ import (
 	"unnamed-mmo/backend/utils"
 )
 
-const RANGE float64 = 12
 const PROJECTILE_SPEED float64 = 15
 const PROJECTILE_BOUNDS_RADIUS float64 = 0.25
 
@@ -26,15 +25,15 @@ type Projectile struct {
 	state 		ProjectileState
 }
 
-func CreateProjectile(id string, position Position, targetDirection Position, caster string) *Projectile {
+func CreateProjectile(id string, position Position, targetDirection Position, rangeValue float64, caster string) *Projectile {
 	diffX, diffZ := utils.GetDiff(position.x, position.z, targetDirection.x, targetDirection.z)
 	distanceMagnitude := math.Hypot(diffX, diffZ)
 	xNormalized := diffX / distanceMagnitude
 	zNormalized := diffZ / distanceMagnitude
 
 	to := Position{
-		x: xNormalized * RANGE + position.x,
-		z: zNormalized * RANGE + position.z,
+		x: xNormalized * rangeValue + position.x,
+		z: zNormalized * rangeValue + position.z,
 	}
 
 	direction := Position{
