@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
-public class PlayerMovement : MonoBehaviour
+public class Movement : MonoBehaviour
 {
     [SerializeField]
     Animator playerAnimator;
@@ -13,9 +13,9 @@ public class PlayerMovement : MonoBehaviour
     private float playerSpeed = 10f;
     private CharacterController characterController;
 
-    private static PlayerMovement instance;
+    private static Movement instance;
 
-    public static PlayerMovement Instance (){
+    public static Movement Instance (){
         return instance;
     }
 

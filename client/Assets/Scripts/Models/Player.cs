@@ -16,9 +16,9 @@ public class Player : MonoBehaviour, ITargeteable
     private Transform hitbox;
 
     [SerializeField]
-    private PlayerMovement movement;
+    private Movement movement;
 
-    public PlayerMovement Movement {
+    public Movement Movement {
         get { return movement; }
     }
 
@@ -56,7 +56,7 @@ public class Player : MonoBehaviour, ITargeteable
         return id;
 	}
 
-    public void SetMovement(PlayerMovement movement) {
+    public void SetMovement(Movement movement) {
         this.movement = movement;
 	}
 
