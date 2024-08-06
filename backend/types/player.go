@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"time"
 	"unnamed-mmo/backend/utils"
-
-	"github.com/google/uuid"
 )
 
 const BASE_MAX_HEALTH = 100
 const PLAYER_SPEED float64 = 10
 const PLAYER_BOUNDS_RADIUS float64 = 0.5
 
+// need to rename this
 type Action int
 
 const (
@@ -27,6 +26,7 @@ type Player struct {
 	position  		Position
 	to        		Position
 	direction 		Position
+	actionsQueue	[]CharacterAction
 
 	// should this be here?
 	abilities		map[string]*Ability
@@ -53,6 +53,7 @@ func CreatePlayer(id string, x, z float64, abilities map[string]*Ability) *Playe
 			maxHealth:     BASE_MAX_HEALTH,
 		},
 		executingAction: Idle,
+		actionsQueue: []CharacterAction{},
 		abilities: abilities,
 		lastUsed: lastUsed,
 	}
@@ -81,6 +82,28 @@ func (p Player) GetExecutingAction() Action {
 func (p Player) GetAbilities() map[string]*Ability {
 	return p.abilities
 }
+
+func (p *Player) EnqueueAction(action CharacterAction) {
+    p.actionsQueue = append(p.actionsQueue, action)
+}
+
+func (p *Player) ExecuteNextAction(gameState *GameState) {
+    if len(p.actionsQueue) == 0 {
+        return
+    }
+
+    currentAction := p.actionsQueue[0]
+    err := currentAction.Execute(p, gameState)
+    if err != nil {
+        fmt.Println("Error executing action:", err)
+        return
+    }
+
+    if currentAction.IsComplete() {
+        p.actionsQueue = p.actionsQueue[1:]
+    }
+}
+
 
 func (p *Player) MoveTowards(to Position) {
 	p.to = to
@@ -131,20 +154,18 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 		// following behaviour should be inside ability, not player
 		switch ability.name {
 			case "projectile":
-				// is this ID necessary?
-				projectileId := uuid.New().String()
-
 				targetPosition, err := abilityInfo.GetTargetPosition()
 				if err != nil {
 					fmt.Println("Error:", err)
 					return
 				}
-			
-				gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, targetPosition, ability.rangeValue, player.id)
-				player.executingAction = Attacking
-				// this code is duplicated and should be unified some way
-				now := time.Now()
-				player.lastUsed[ability.id] = now
+
+				player.actionsQueue = player.actionsQueue[:0]
+				projectileAction := &ProjectileAction{
+					targetPosition: targetPosition,
+					ability: *ability,
+				}
+				player.EnqueueAction(projectileAction)
 			case "heal":
 				targetId, err := abilityInfo.GetTargetId()
 				if err != nil {
@@ -152,33 +173,40 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 					return
 				}
 				target := gameState.players[targetId]
+				player.actionsQueue = player.actionsQueue[:0]
 				if player.position.Distance(target.position) > ability.rangeValue {
-					diffX, diffZ := utils.GetDiff(player.position.x, player.position.z, target.position.x, target.position.z)
-					totalDistance := player.position.Distance(target.position)
-					normalizedMovementVector := Position{
-						x: diffX / totalDistance,
-						z: diffZ / totalDistance,
+					targetPosition := player.closestPositionInRange(target, ability)
+					moveAction := &MoveAction{
+						targetPosition: targetPosition,
 					}
-					movementVector := Position{
-						x: normalizedMovementVector.x * (totalDistance - ability.rangeValue),
-						z: normalizedMovementVector.z * (totalDistance - ability.rangeValue),
-					}
-					targetPosition := Position{
-						x: player.position.x + movementVector.x,
-						z: player.position.z + movementVector.z,
-					}
-					player.MoveTowards(targetPosition)
-				} else {
-					gameState.players[targetId].DealDamage(-10)
-					player.executingAction = CastingHeal
-					// this code is duplicated and should be unified some way
-					now := time.Now()
-					player.lastUsed[ability.id] = now
+					player.EnqueueAction(moveAction)
 				}
-
+				healAction := &HealAction{
+					targetId: targetId,
+					ability: *ability,
+				}
+				player.EnqueueAction(healAction)
 			default:
 		}
 	}
+}
+
+func (player *Player) closestPositionInRange(target *Player, ability *Ability) Position {
+	diffX, diffZ := utils.GetDiff(player.position.x, player.position.z, target.position.x, target.position.z)
+	totalDistance := player.position.Distance(target.position)
+	normalizedMovementVector := Position{
+		x: diffX / totalDistance,
+		z: diffZ / totalDistance,
+	}
+	movementVector := Position{
+		x: normalizedMovementVector.x * (totalDistance - ability.rangeValue),
+		z: normalizedMovementVector.z * (totalDistance - ability.rangeValue),
+	}
+	targetPosition := Position{
+		x: player.position.x + movementVector.x,
+		z: player.position.z + movementVector.z,
+	}
+	return targetPosition
 }
 
 func (player *Player) CheckCooldown(abilityInfo AbilityInfo) bool {

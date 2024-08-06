@@ -62,7 +62,10 @@ func (gs GameState) GetProjectiles() []Projectile {
 
 func (gs GameState) MovePlayer(conn *websocket.Conn, position Position) {
 	playerId := gs.playerIds[conn]
-	gs.players[playerId].MoveTowards(position)
+	moveAction := &MoveAction{
+		targetPosition: position,
+	}
+	gs.players[playerId].EnqueueAction(moveAction)
 }
 
 func (gs GameState) UpdateState(deltaTime float64) {
@@ -70,8 +73,9 @@ func (gs GameState) UpdateState(deltaTime float64) {
 	gs.updateProjectiles(deltaTime)
 }
 
-func (gs GameState) updatePlayers(deltaTime float64) {
+func (gs *GameState) updatePlayers(deltaTime float64) {
 	for _, player := range gs.players {
+		player.ExecuteNextAction(gs)
 		if player.IsMoving() {
 			player.UpdatePosition(deltaTime)
 		}
