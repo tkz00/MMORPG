@@ -1,4 +1,4 @@
-package types
+package game
 
 type PlayerStats struct {
 	maxHealth     int

@@ -1,8 +1,8 @@
-package types
+package game
 
 import (
 	"math"
-	"unnamed-mmo/backend/utils"
+	"unnamed-mmo/backend/pkg/utils"
 )
 
 const PROJECTILE_SPEED float64 = 15

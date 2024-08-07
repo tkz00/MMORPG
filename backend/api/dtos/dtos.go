@@ -2,8 +2,8 @@ package dtos
 
 import (
 	"fmt"
-	"unnamed-mmo/backend/types"
-	"unnamed-mmo/backend/utils"
+	"unnamed-mmo/backend/pkg/game"
+	"unnamed-mmo/backend/pkg/utils"
 )
 
 type DTO interface {
@@ -25,7 +25,7 @@ type PlayerDTO struct {
 	CurrentHealth 	int				`json:"currentHealth"`
 	Radius 			float64 		`json:"radius"`	
 	Position 		PositionDTO 	`json:"position"`
-	ExecutingAction	types.Action	`json:"executingAction"`
+	ExecutingAction	game.Action		`json:"executingAction"`
 	Abilities		[]AbilityDTO	`json:"abilities"`
 	
 }

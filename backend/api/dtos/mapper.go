@@ -3,7 +3,7 @@ package dtos
 import (
 	"sync"
 
-	"unnamed-mmo/backend/types"
+	"unnamed-mmo/backend/pkg/game"
 )
 
 type Mapper struct {}
@@ -19,11 +19,11 @@ func GetMapper() *Mapper {
 	return mapperInstance
 }
 
-func (m Mapper) PositionDTOToEntity(positionDTO PositionDTO) *types.Position {
-	return types.NewPosition(positionDTO.X, positionDTO.Z)
+func (m Mapper) PositionDTOToEntity(positionDTO PositionDTO) *game.Position {
+	return game.NewPosition(positionDTO.X, positionDTO.Z)
 }
 
-func (m Mapper) PositionToDTO(position types.Position) *PositionDTO {
+func (m Mapper) PositionToDTO(position game.Position) *PositionDTO {
 	x, z := position.GetPosition()
 	return &PositionDTO {
 		X: x,
@@ -31,7 +31,7 @@ func (m Mapper) PositionToDTO(position types.Position) *PositionDTO {
 	}
 }
 
-func (m Mapper) PlayerToDTO(player types.Player) *PlayerDTO {
+func (m Mapper) PlayerToDTO(player game.Player) *PlayerDTO {
 	playerStats := player.GetStats()
 	playerAbilities := make([]AbilityDTO, 0)
 	for _, ability := range player.GetAbilities() {
@@ -51,7 +51,7 @@ func (m Mapper) PlayerToDTO(player types.Player) *PlayerDTO {
 	}
 }
 
-func (m Mapper) ProjectileToDTO(projectile types.Projectile) *ProjectileDTO {
+func (m Mapper) ProjectileToDTO(projectile game.Projectile) *ProjectileDTO {
 	return &ProjectileDTO {
 		Id: projectile.GetId(),
 		Caster: projectile.GetCaster(),
@@ -62,7 +62,7 @@ func (m Mapper) ProjectileToDTO(projectile types.Projectile) *ProjectileDTO {
 	}
 }
 
-func (m Mapper) GameStateToDTO(gameState types.GameState) *GameStateDTO {
+func (m Mapper) GameStateToDTO(gameState game.GameState) *GameStateDTO {
 	playerDTOS := make([]PlayerDTO, 0)
 	projectileDTOS := make([]ProjectileDTO, 0)
 
@@ -80,7 +80,7 @@ func (m Mapper) GameStateToDTO(gameState types.GameState) *GameStateDTO {
 	}
 }
 
-func AbilityToDTO(ability types.Ability) AbilityDTO{
+func AbilityToDTO(ability game.Ability) AbilityDTO{
 	return AbilityDTO{
 		Id: ability.Id(),
 		Name: ability.Name(),

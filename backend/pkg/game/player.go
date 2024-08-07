@@ -1,9 +1,9 @@
-package types
+package game
 
 import (
 	"fmt"
 	"time"
-	"unnamed-mmo/backend/utils"
+	"unnamed-mmo/backend/pkg/utils"
 )
 
 const BASE_MAX_HEALTH = 100

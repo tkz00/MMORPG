@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"unnamed-mmo/backend/types"
-	"unnamed-mmo/backend/types/dtos"
+	"unnamed-mmo/backend/api/dtos"
+	"unnamed-mmo/backend/pkg/game"
 
 	"golang.org/x/net/websocket"
 )
@@ -20,7 +20,7 @@ type NativeServer struct {
 	addClient    chan *websocket.Conn
 	removeClient chan *websocket.Conn
 	broadcast    chan []byte
-	gameState    types.GameState
+	gameState    game.GameState
 }
 
 func (ws *NativeServer) newServer() Server {
@@ -29,7 +29,7 @@ func (ws *NativeServer) newServer() Server {
 		addClient:    make(chan *websocket.Conn),
 		removeClient: make(chan *websocket.Conn),
 		broadcast:    make(chan []byte),
-		gameState:    types.StartGameState(),
+		gameState:    game.StartGameState(),
 	}
 }
 

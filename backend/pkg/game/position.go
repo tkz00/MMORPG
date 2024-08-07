@@ -1,6 +1,6 @@
-package types
+package game
 
-import "unnamed-mmo/backend/utils"
+import "unnamed-mmo/backend/pkg/utils"
 
 type Position struct {
 	x float64

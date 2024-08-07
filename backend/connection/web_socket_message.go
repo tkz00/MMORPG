@@ -3,8 +3,8 @@ package connection
 import (
 	"encoding/json"
 	"fmt"
-	"unnamed-mmo/backend/types/dtos"
-	"unnamed-mmo/backend/utils"
+	"unnamed-mmo/backend/api/dtos"
+	"unnamed-mmo/backend/pkg/utils"
 )
 
 type WebSocketMessage struct {
