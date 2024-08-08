@@ -3,19 +3,27 @@ package game
 import (
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
+
+	"unnamed-mmo/backend/pkg/game/spawner"
+	"unnamed-mmo/backend/pkg/utils"
 )
 
 type GameState struct {
-	playerIds map[*websocket.Conn]string
-	players   map[string]*Player
+	playerIds 	map[*websocket.Conn]string
+	players   	map[string]*Player
 	projectiles map[string]*Projectile
+	spawners 	map[string]*spawner.Spawner
 }
 
 func StartGameState() GameState {
+	spawners := map[string]*spawner.Spawner{
+		"skeleton_spawner_0": &spawner.Spawner{},
+	}
 	return GameState{
 		playerIds: make(map[*websocket.Conn]string),
 		players:   make(map[string]*Player),
 		projectiles: make(map[string]*Projectile),
+		spawners: spawners,
 	}
 }
 
@@ -60,7 +68,7 @@ func (gs GameState) GetProjectiles() []Projectile {
     return projectilesSlice
 }
 
-func (gs GameState) MovePlayer(conn *websocket.Conn, position Position) {
+func (gs GameState) MovePlayer(conn *websocket.Conn, position utils.Vector2) {
 	playerId := gs.playerIds[conn]
 	moveAction := &MoveAction{
 		targetPosition: position,
@@ -106,7 +114,7 @@ func (gs GameState) checkCollision(projectile Projectile) bool {
 	playerGotHit := false
 	for _, player := range gs.players {
 		if player.id != projectile.caster && gs.AreColliding(*player, projectile) {
-			player.DealDamage(projectile.damage)
+			player.health.HealthVariation(projectile.damage)
 			playerGotHit = true
 		}
 	}

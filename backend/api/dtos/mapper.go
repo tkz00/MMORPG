@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"unnamed-mmo/backend/pkg/game"
+	"unnamed-mmo/backend/pkg/utils"
 )
 
 type Mapper struct {}
@@ -19,11 +20,11 @@ func GetMapper() *Mapper {
 	return mapperInstance
 }
 
-func (m Mapper) PositionDTOToEntity(positionDTO PositionDTO) *game.Position {
-	return game.NewPosition(positionDTO.X, positionDTO.Z)
+func (m Mapper) PositionDTOToEntity(positionDTO PositionDTO) *utils.Vector2 {
+	return utils.NewVector2(positionDTO.X, positionDTO.Z)
 }
 
-func (m Mapper) PositionToDTO(position game.Position) *PositionDTO {
+func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
 	x, z := position.GetPosition()
 	return &PositionDTO {
 		X: x,
@@ -32,7 +33,7 @@ func (m Mapper) PositionToDTO(position game.Position) *PositionDTO {
 }
 
 func (m Mapper) PlayerToDTO(player game.Player) *PlayerDTO {
-	playerStats := player.GetStats()
+	playerHealth := player.GetHealth()
 	playerAbilities := make([]AbilityDTO, 0)
 	for _, ability := range player.GetAbilities() {
 		abilityDTO := AbilityToDTO(*ability)
@@ -44,8 +45,8 @@ func (m Mapper) PlayerToDTO(player game.Player) *PlayerDTO {
 		Id: player.GetId(),
 		Position: *m.PositionToDTO(player.GetPosition()),
 		Radius: player.GetRadius(),
-		MaxHealth: playerStats.GetMaxHealth(),
-		CurrentHealth: playerStats.GetCurrentHealth(),
+		MaxHealth: playerHealth.GetMaxHealth(),
+		CurrentHealth: playerHealth.GetCurrentHealth(),
 		ExecutingAction: player.GetExecutingAction(),
 		Abilities: playerAbilities,
 	}

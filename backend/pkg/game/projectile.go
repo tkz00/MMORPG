@@ -1,7 +1,6 @@
 package game
 
 import (
-	"math"
 	"unnamed-mmo/backend/pkg/utils"
 )
 
@@ -18,28 +17,17 @@ const (
 type Projectile struct {
 	id			string
 	caster		string
-	direction	Position
-	position 	Position
-	to 			Position
+	direction	utils.Vector2
+	position 	utils.Vector2
+	to 			utils.Vector2
 	damage		int
 	state 		ProjectileState
 }
 
-func CreateProjectile(id string, position Position, targetDirection Position, rangeValue float64, caster string) *Projectile {
-	diffX, diffZ := utils.GetDiff(position.x, position.z, targetDirection.x, targetDirection.z)
-	distanceMagnitude := math.Hypot(diffX, diffZ)
-	xNormalized := diffX / distanceMagnitude
-	zNormalized := diffZ / distanceMagnitude
-
-	to := Position{
-		x: xNormalized * rangeValue + position.x,
-		z: zNormalized * rangeValue + position.z,
-	}
-
-	direction := Position{
-		x: xNormalized * PROJECTILE_SPEED,
-		z: zNormalized * PROJECTILE_SPEED,
-	}
+func CreateProjectile(id string, position utils.Vector2, targetDirection utils.Vector2, rangeValue float64, caster string) *Projectile {
+	normalizedVector := utils.Normalize(position, targetDirection)
+	to := normalizedVector.Scale(rangeValue).Add(position)
+	direction := normalizedVector.Scale(PROJECTILE_SPEED)
 
 	return &Projectile{
 		id: id,
@@ -70,12 +58,12 @@ func (p *Projectile) UpdatePosition(deltaTime float64) bool {
 		p.position.Teleport(p.to)
 		return true
 	} else {
-		p.position.Move(p.direction.Multiply(deltaTime))
+		p.position = p.position.Add(p.direction.Scale(deltaTime))
 		return false
 	}
 }
 
-func (p Projectile) GetPosition() Position {
+func (p Projectile) GetPosition() utils.Vector2 {
 	return p.position
 }
 

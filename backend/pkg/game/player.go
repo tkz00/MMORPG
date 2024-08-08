@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"time"
+	"unnamed-mmo/backend/pkg/game/stats"
 	"unnamed-mmo/backend/pkg/utils"
 )
 
@@ -21,11 +22,11 @@ const (
 
 type Player struct {
 	id 		  		string
-	stats	  		PlayerStats
+	health	  		stats.Health
 	executingAction Action
-	position  		Position
-	to        		Position
-	direction 		Position
+	position  		utils.Vector2
+	to        		utils.Vector2
+	direction 		utils.Vector2
 	actionsQueue	[]CharacterAction
 
 	// should this be here?
@@ -34,10 +35,7 @@ type Player struct {
 }
 
 func CreatePlayer(id string, x, z float64, abilities map[string]*Ability) *Player {
-	initPosition := Position{
-		x: x,
-		z: z,
-	}
+	initialPosition := *utils.NewVector2(x, z)
 
 	lastUsed := make(map[string]time.Time, len(abilities))
 	for _, ability := range abilities {
@@ -46,12 +44,9 @@ func CreatePlayer(id string, x, z float64, abilities map[string]*Ability) *Playe
 
 	return &Player{
 		id: id,
-		position: initPosition,
-		to:       initPosition,
-		stats: PlayerStats{
-			currentHealth: BASE_MAX_HEALTH,
-			maxHealth:     BASE_MAX_HEALTH,
-		},
+		position: initialPosition,
+		to:       initialPosition,
+		health: stats.NewHealth(BASE_MAX_HEALTH),
 		executingAction: Idle,
 		actionsQueue: []CharacterAction{},
 		abilities: abilities,
@@ -63,16 +58,16 @@ func (p Player) GetId() string {
 	return p.id
 }
 
-func (p *Player) SetPosition(position Position) {
+func (p *Player) SetPosition(position utils.Vector2) {
 	p.position = position
 }
 
-func (p Player) GetPosition() Position {
+func (p Player) GetPosition() utils.Vector2 {
 	return p.position
 }
 
-func (p Player) GetStats() PlayerStats {
-	return p.stats
+func (p Player) GetHealth() stats.Health {
+	return p.health
 }
 
 func (p Player) GetExecutingAction() Action {
@@ -105,20 +100,13 @@ func (p *Player) ExecuteNextAction(gameState *GameState) {
 }
 
 
-func (p *Player) MoveTowards(to Position) {
+func (p *Player) MoveTowards(to utils.Vector2) {
 	p.to = to
-
-	diffX, diffZ := utils.GetDiff(p.position.x, p.position.z, p.to.x, p.to.z)
-	distance := p.position.Distance(p.to)
-
-	p.direction = Position{
-		x: diffX * PLAYER_SPEED / distance,
-		z: diffZ * PLAYER_SPEED / distance,
-	}
+	p.direction = utils.Normalize(p.position, p.to).Scale(PLAYER_SPEED)
 }
 
 func (p Player) IsMoving() bool {
-	return p.position.x != p.to.x || p.position.z != p.to.z
+	return !p.position.Equals(p.to)
 }
 
 func (p *Player) UpdatePosition(deltaTime float64) {
@@ -126,20 +114,7 @@ func (p *Player) UpdatePosition(deltaTime float64) {
 	if distanceToTarget < (PLAYER_SPEED * deltaTime){
 		p.position.Teleport(p.to)
 	} else {
-		p.position.Move(p.direction.Multiply(deltaTime))
-	}
-}
-
-func (p *Player) DealDamage(damagePoints int) {
-	newHealth := p.stats.currentHealth - damagePoints
-	if newHealth > 0 {
-		if p.stats.maxHealth > newHealth {
-			p.stats.currentHealth -= damagePoints
-		} else {
-			p.stats.currentHealth = p.stats.maxHealth
-		}
-	} else {
-		p.stats.currentHealth = 0
+		p.position = p.position.Add(p.direction.Scale(deltaTime))
 	}
 }
 
@@ -191,21 +166,11 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 	}
 }
 
-func (player *Player) closestPositionInRange(target *Player, ability *Ability) Position {
-	diffX, diffZ := utils.GetDiff(player.position.x, player.position.z, target.position.x, target.position.z)
+func (player *Player) closestPositionInRange(target *Player, ability *Ability) utils.Vector2 {
 	totalDistance := player.position.Distance(target.position)
-	normalizedMovementVector := Position{
-		x: diffX / totalDistance,
-		z: diffZ / totalDistance,
-	}
-	movementVector := Position{
-		x: normalizedMovementVector.x * (totalDistance - ability.rangeValue),
-		z: normalizedMovementVector.z * (totalDistance - ability.rangeValue),
-	}
-	targetPosition := Position{
-		x: player.position.x + movementVector.x,
-		z: player.position.z + movementVector.z,
-	}
+	normalizedMovementVector := utils.Normalize(player.position, target.position)
+	movementVector := normalizedMovementVector.Scale(totalDistance - ability.rangeValue)
+	targetPosition := player.position.Add(movementVector)
 	return targetPosition
 }
 
@@ -229,6 +194,6 @@ func (player Player) RemainingCooldown(ability *Ability) int64 {
 
 type AbilityInfo interface {
 	GetId() string
-	GetTargetPosition() (Position, error)
+	GetTargetPosition() (utils.Vector2, error)
 	GetTargetId() (string, error)
 }

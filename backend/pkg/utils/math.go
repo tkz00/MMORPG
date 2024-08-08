@@ -1,6 +1,8 @@
 package utils
 
-import "math"
+import (
+	"math"
+)
 
 func GetDiff(fromX, fromZ, toX, toZ float64) (float64, float64) {
 	return toX - fromX, toZ - fromZ

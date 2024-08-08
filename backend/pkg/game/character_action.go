@@ -2,6 +2,7 @@ package game
 
 import (
 	"time"
+	"unnamed-mmo/backend/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -12,7 +13,7 @@ type CharacterAction interface {
 }
 
 type MoveAction struct {
-    targetPosition Position
+    targetPosition utils.Vector2
     isComplete     bool
 }
 
@@ -36,7 +37,7 @@ type HealAction struct {
 
 func (a *HealAction) Execute(player *Player, gameState *GameState) error {
     target := gameState.players[a.targetId]
-	target.DealDamage(-10)
+	target.health.HealthVariation(-10)
 	player.executingAction = CastingHeal
 	// this code is duplicated and should be unified some way
 	now := time.Now()
@@ -50,7 +51,7 @@ func (a *HealAction) IsComplete() bool {
 }
 
 type ProjectileAction struct {
-    targetPosition 	Position
+    targetPosition 	utils.Vector2
 	ability 		Ability
     isComplete 		bool
 }

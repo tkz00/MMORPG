@@ -3,7 +3,7 @@ package dtos
 import (
 	"encoding/json"
 	"fmt"
-	"unnamed-mmo/backend/pkg/game"
+	"unnamed-mmo/backend/pkg/utils"
 )
 
 type AbilityParameters int
@@ -52,27 +52,27 @@ func (a *AbilityCastDTO) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-func (abilityCast AbilityCastDTO) GetTargetPosition() (game.Position, error) {
+func (abilityCast AbilityCastDTO) GetTargetPosition() (utils.Vector2, error) {
     targetPositionMap, ok := abilityCast.AbilityParameters[TargetPosition].(map[string]interface{})
     if !ok {
-        return game.Position{}, fmt.Errorf("unable to cast TargetPosition to map[string]interface{}")
+        return utils.Vector2{}, fmt.Errorf("unable to cast TargetPosition to map[string]interface{}")
     }
 
     xValue, xOk := targetPositionMap["x"]
     zValue, zOk := targetPositionMap["z"]
 
     if !xOk || !zOk {
-        return game.Position{}, fmt.Errorf("x or z value not found in the target position map")
+        return utils.Vector2{}, fmt.Errorf("x or z value not found in the target position map")
     }
 
     x, xConvOk := xValue.(float64)
     z, zConvOk := zValue.(float64)
 
     if !xConvOk || !zConvOk {
-        return game.Position{}, fmt.Errorf("x or z value could not be converted to float64")
+        return utils.Vector2{}, fmt.Errorf("x or z value could not be converted to float64")
     }
 
-    return *game.NewPosition(x, z), nil
+    return *utils.NewVector2(x, z), nil
 }
 
 func (abilityCast AbilityCastDTO) GetTargetId() (string, error) {
