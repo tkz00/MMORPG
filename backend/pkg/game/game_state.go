@@ -1,9 +1,12 @@
 package game
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
+	"unnamed-mmo/backend/pkg/game/npc"
 	"unnamed-mmo/backend/pkg/game/spawner"
 	"unnamed-mmo/backend/pkg/utils"
 )
@@ -13,17 +16,27 @@ type GameState struct {
 	players   	map[string]*Player
 	projectiles map[string]*Projectile
 	spawners 	map[string]*spawner.Spawner
+	npcs		map[string]npc.NPC
 }
 
 func StartGameState() GameState {
+	skeletonNPCTemplate := npc.NewNPCTemplate("0", "skeleton", 25)
+
 	spawners := map[string]*spawner.Spawner{
-		"skeleton_spawner_0": &spawner.Spawner{},
+		"skeleton_spawner_0": spawner.NewSpawner(
+			*utils.NewVector2(0, 15),
+			2.5,
+			4 * time.Second,
+			skeletonNPCTemplate,
+		),
 	}
+
 	return GameState{
 		playerIds: make(map[*websocket.Conn]string),
 		players:   make(map[string]*Player),
 		projectiles: make(map[string]*Projectile),
 		spawners: spawners,
+		npcs: make(map[string]npc.NPC),
 	}
 }
 
@@ -79,6 +92,7 @@ func (gs GameState) MovePlayer(conn *websocket.Conn, position utils.Vector2) {
 func (gs GameState) UpdateState(deltaTime float64) {
 	gs.updatePlayers(deltaTime)
 	gs.updateProjectiles(deltaTime)
+	gs.updateSpawners()
 }
 
 func (gs *GameState) updatePlayers(deltaTime float64) {
@@ -138,5 +152,14 @@ func (gs GameState) AreColliding(player Player, projectile Projectile) bool {
 func (gs *GameState) ResetPlayersState() {
 	for _, player := range gs.players {
 		player.executingAction = Idle
+	}
+}
+
+func (gs *GameState) updateSpawners() {
+	for _, spawner := range gs.spawners {
+		newNPCs := spawner.GetNewNPCs()
+		for _, newNPC := range newNPCs {
+			gs.npcs[uuid.NewString()] = newNPC
+		}
 	}
 }

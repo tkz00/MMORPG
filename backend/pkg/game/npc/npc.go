@@ -6,8 +6,7 @@ import (
 )
 
 type NPC struct {
-	id				string
-	stats	  		stats.Health
+	health	  		stats.Health
 	position  		utils.Vector2
 	to        		utils.Vector2
 	direction 		utils.Vector2
