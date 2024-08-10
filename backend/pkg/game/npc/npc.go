@@ -10,4 +10,16 @@ type NPC struct {
 	position  		utils.Vector2
 	to        		utils.Vector2
 	direction 		utils.Vector2
+	onDeath     	func(*NPC) // Callback to notify when the NPC dies
+}
+
+func (n *NPC) Die() {
+	if n.onDeath != nil {
+		n.onDeath(n)
+	}
+	// Trigger any other death logic here
+}
+
+func (n *NPC) RegisterOnDeathCallback(callback func(*NPC)) {
+	n.onDeath = callback
 }
