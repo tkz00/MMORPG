@@ -1,6 +1,9 @@
 package utils
 
-import "math"
+import (
+	"math"
+	"math/rand"
+)
 
 type Vector2 struct {
 	x float64
@@ -44,4 +47,12 @@ func Normalize(a, b Vector2) Vector2 {
 	diffX, diffZ := GetDiff(a.x, a.z, b.x, b.z)
 	distanceMagnitude := math.Hypot(diffX, diffZ)
 	return Vector2{diffX / distanceMagnitude, diffZ / distanceMagnitude}
+}
+
+func RandomCoordinatesInRadius(v Vector2, radius float64) Vector2 {
+	angle := rand.Float64() * 2 * math.Pi
+	r := math.Sqrt(rand.Float64()) * radius
+	x := v.x + r * math.Cos(angle)
+	z := v.z + r * math.Sin(angle)
+	return Vector2{x: x, z: z}
 }

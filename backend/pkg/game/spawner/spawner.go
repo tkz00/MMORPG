@@ -34,7 +34,8 @@ func (spawner *Spawner)GetNewNPCs() []npc.NPC {
 	
 	npcs := make([]npc.NPC, spawnIntervals)
 	for i := range npcs {
-		npcs[i] = spawner.npcTemplate.NewNPC(spawner.position)
+		npcPosition := utils.RandomCoordinatesInRadius(spawner.position, spawner.radius)
+		npcs[i] = spawner.npcTemplate.NewNPC(npcPosition)
 	}
 
 	return npcs
