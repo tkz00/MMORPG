@@ -45,15 +45,17 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) Player {
 	id := uuid.New()
 	playerId := id.String()
 	abilities := map[string]*Ability{
-		"1": NewAbility("1", "heal", 10, 3000,
+		"1": NewAbility("1", "heal", 7, 3000,
 		func(caster Player, params AbilityParameters) {
 			gs.players[params.(TargetIdAbilityParams).targetId].health.HealthVariation(-10)
+			caster.lastUsed["1"] = time.Now()
 		}),
 		"0": NewAbility("0", "projectile", 5, 2000,
 		func(caster Player, params AbilityParameters) {
 			fmt.Printf("Casted %s, params: %s\n", "projectile", params)
 			projectileId := uuid.NewString()
-			gs.projectiles[projectileId] = CreateProjectile(uuid.NewString(), gs.players[caster.id].position, params.(CoordinateAbilityParams).target, 5, caster.id)
+			gs.projectiles[projectileId] = CreateProjectile(uuid.NewString(), caster.position, params.(CoordinateAbilityParams).target, 5, caster.id)
+			caster.lastUsed["0"] = time.Now()
 		}),
 	}
 	player := CreatePlayer(playerId, 0, 0, abilities)
