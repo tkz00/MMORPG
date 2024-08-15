@@ -140,7 +140,7 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 				}
 
 				player.ClearActionsQueue()
-				coordinateAbilityParams := &CoordinateAbilityParams{
+				coordinateAbilityParams := CoordinateAbilityParams{
 					target: targetPosition,
 				}
 				castProjectileAction := &CastAbilityAction{
@@ -164,8 +164,8 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 					}
 					player.EnqueueAction(moveAction)
 				}
-				targetAbilityParams := &TargeteableAbilityParams{
-					target: *target,
+				targetAbilityParams := TargetIdAbilityParams{
+					targetId: targetId,
 				}
 				castHealAction := &CastAbilityAction{
 					ability: *ability,

@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"unnamed-mmo/backend/pkg/utils"
 )
 
@@ -34,7 +33,7 @@ type CastAbilityAction struct {
 }
 
 func (a *CastAbilityAction) Execute(player *Player, gameState *GameState) error {
-	fmt.Printf("Casted %s, params:%s\n", a.ability.name, a.params)
+	a.ability.Cast(*player, a.params)
 	a.isComplete = true
     return nil
 }
@@ -50,9 +49,9 @@ type CoordinateAbilityParams struct {
 	target utils.Vector2
 }
 
-type TargeteableAbilityParams struct {
+type TargetIdAbilityParams struct {
 	AbilityParameters
-	target Player
+	targetId string
 }
 
 // type HealAction struct {
