@@ -86,6 +86,7 @@ func (gs GameState) MovePlayer(conn *websocket.Conn, position utils.Vector2) {
 	moveAction := &MoveAction{
 		targetPosition: position,
 	}
+	gs.players[playerId].ClearActionsQueue()
 	gs.players[playerId].EnqueueAction(moveAction)
 }
 

@@ -82,6 +82,10 @@ func (p *Player) EnqueueAction(action CharacterAction) {
     p.actionsQueue = append(p.actionsQueue, action)
 }
 
+func (p *Player) ClearActionsQueue() {
+    p.actionsQueue = nil
+}
+
 func (p *Player) ExecuteNextAction(gameState *GameState) {
     if len(p.actionsQueue) == 0 {
         return
