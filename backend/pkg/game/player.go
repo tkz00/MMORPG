@@ -139,18 +139,22 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 					return
 				}
 
-				player.actionsQueue = player.actionsQueue[:0]
-				projectileAction := &ProjectileAction{
-					targetPosition: targetPosition,
-					ability: *ability,
+				player.ClearActionsQueue()
+				coordinateAbilityParams := &CoordinateAbilityParams{
+					target: targetPosition,
 				}
-				player.EnqueueAction(projectileAction)
+				castProjectileAction := &CastAbilityAction{
+					ability: *ability,
+					params: coordinateAbilityParams,
+				}
+				player.EnqueueAction(castProjectileAction)
 			case "heal":
 				targetId, err := abilityInfo.GetTargetId()
 				if err != nil {
 					fmt.Println("Error:", err)
 					return
 				}
+				player.ClearActionsQueue()
 				target := gameState.players[targetId]
 				player.actionsQueue = player.actionsQueue[:0]
 				if player.position.Distance(target.position) > ability.rangeValue {
@@ -160,11 +164,14 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 					}
 					player.EnqueueAction(moveAction)
 				}
-				healAction := &HealAction{
-					targetId: targetId,
-					ability: *ability,
+				targetAbilityParams := &TargeteableAbilityParams{
+					target: *target,
 				}
-				player.EnqueueAction(healAction)
+				castHealAction := &CastAbilityAction{
+					ability: *ability,
+					params: targetAbilityParams,
+				}
+				player.EnqueueAction(castHealAction)
 			default:
 		}
 	}

@@ -1,10 +1,8 @@
 package game
 
 import (
-	"time"
+	"fmt"
 	"unnamed-mmo/backend/pkg/utils"
-
-	"github.com/google/uuid"
 )
 
 type CharacterAction interface {
@@ -29,45 +27,73 @@ func (a *MoveAction) IsComplete() bool {
     return a.isComplete
 }
 
-type HealAction struct {
-    targetId   	string
+type CastAbilityAction struct {
 	ability 	Ability
-    isComplete 	bool
+	params 		AbilityParameters
+	isComplete 	bool
 }
 
-func (a *HealAction) Execute(player *Player, gameState *GameState) error {
-    target := gameState.players[a.targetId]
-	target.health.HealthVariation(-10)
-	player.executingAction = CastingHeal
-	// this code is duplicated and should be unified some way
-	now := time.Now()
-	player.lastUsed[a.ability.id] = now
+func (a *CastAbilityAction) Execute(player *Player, gameState *GameState) error {
+	fmt.Printf("Casted %s, params:%s\n", a.ability.name, a.params)
 	a.isComplete = true
     return nil
 }
 
-func (a *HealAction) IsComplete() bool {
+func (a *CastAbilityAction) IsComplete() bool {
     return a.isComplete
 }
 
-type ProjectileAction struct {
-    targetPosition 	utils.Vector2
-	ability 		Ability
-    isComplete 		bool
+type AbilityParameters interface { }
+
+type CoordinateAbilityParams struct {
+	AbilityParameters
+	target utils.Vector2
 }
 
-func (a *ProjectileAction) Execute(player *Player, gameState *GameState) error {
-	// is this ID necessary?
-	projectileId := uuid.New().String()
-	gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, a.targetPosition, a.ability.rangeValue, player.id)
-	player.executingAction = Attacking
-	// this code is duplicated and should be unified some way
-	now := time.Now()
-	player.lastUsed[a.ability.id] = now
-	a.isComplete = true
-    return nil
+type TargeteableAbilityParams struct {
+	AbilityParameters
+	target Player
 }
 
-func (a *ProjectileAction) IsComplete() bool {
-    return a.isComplete
-}
+// type HealAction struct {
+//     targetId   	string
+// 	ability 	Ability
+//     isComplete 	bool
+// }
+
+// func (a *HealAction) Execute(player *Player, gameState *GameState) error {
+//     target := gameState.players[a.targetId]
+// 	target.health.HealthVariation(-10)
+// 	player.executingAction = CastingHeal
+// 	// this code is duplicated and should be unified some way
+// 	now := time.Now()
+// 	player.lastUsed[a.ability.id] = now
+// 	a.isComplete = true
+//     return nil
+// }
+
+// func (a *HealAction) IsComplete() bool {
+//     return a.isComplete
+// }
+
+// type ProjectileAction struct {
+//     targetPosition 	utils.Vector2
+// 	ability 		Ability
+//     isComplete 		bool
+// }
+
+// func (a *ProjectileAction) Execute(player *Player, gameState *GameState) error {
+// 	// is this ID necessary?
+// 	projectileId := uuid.New().String()
+// 	gameState.projectiles[projectileId] = CreateProjectile(projectileId, player.position, a.targetPosition, a.ability.rangeValue, player.id)
+// 	player.executingAction = Attacking
+// 	// this code is duplicated and should be unified some way
+// 	now := time.Now()
+// 	player.lastUsed[a.ability.id] = now
+// 	a.isComplete = true
+//     return nil
+// }
+
+// func (a *ProjectileAction) IsComplete() bool {
+//     return a.isComplete
+// }
