@@ -92,7 +92,7 @@ func (p *Player) ExecuteNextAction(gameState *GameState) {
     }
 
     currentAction := p.actionsQueue[0]
-    err := currentAction.Execute(p, gameState)
+    err := currentAction.Execute(p)
     if err != nil {
         fmt.Println("Error executing action:", err)
         return
@@ -126,7 +126,7 @@ func (p Player) GetRadius() float64 {
 	return PLAYER_BOUNDS_RADIUS
 }
 
-func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo) {
+func (player *Player) EnqueueAbilityCast(gameState *GameState, abilityInfo AbilityInfo) {
 	if player.CheckCooldown(abilityInfo) {
 		ability := player.abilities[abilityInfo.GetId()]
 
@@ -177,14 +177,6 @@ func (player *Player) CastAbility(gameState *GameState, abilityInfo AbilityInfo)
 	}
 }
 
-func (player *Player) closestPositionInRange(target *Player, ability *Ability) utils.Vector2 {
-	totalDistance := player.position.Distance(target.position)
-	normalizedMovementVector := utils.Normalize(player.position, target.position)
-	movementVector := normalizedMovementVector.Scale(totalDistance - ability.rangeValue)
-	targetPosition := player.position.Add(movementVector)
-	return targetPosition
-}
-
 func (player *Player) CheckCooldown(abilityInfo AbilityInfo) bool {
 	ability := player.abilities[abilityInfo.GetId()]
 	if player.RemainingCooldown(ability) <= 0 {
@@ -201,6 +193,19 @@ func (player Player) RemainingCooldown(ability *Ability) int64 {
 		return remainingCooldown
 	}
 	return 0
+}
+
+func (player *Player) closestPositionInRange(target *Player, ability *Ability) utils.Vector2 {
+	totalDistance := player.position.Distance(target.position)
+	normalizedMovementVector := utils.Normalize(player.position, target.position)
+	movementVector := normalizedMovementVector.Scale(totalDistance - ability.rangeValue)
+	targetPosition := player.position.Add(movementVector)
+	return targetPosition
+}
+
+func (player *Player) CastAbility(ability Ability, params AbilityParameters) {
+	player.lastUsed[ability.id] = time.Now()
+	ability.Cast(*player, params)
 }
 
 type AbilityInfo interface {
