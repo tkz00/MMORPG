@@ -1,4 +1,4 @@
-package npc
+package character
 
 import (
 	"unnamed-mmo/backend/pkg/game/stats"

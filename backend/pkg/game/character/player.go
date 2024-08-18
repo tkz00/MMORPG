@@ -1,4 +1,4 @@
-package game
+package character
 
 import (
 	"fmt"
@@ -22,7 +22,7 @@ const (
 
 type Player struct {
 	id 		  		string
-	health	  		stats.Health
+	stats.Health
 	executingAction Action
 	position  		utils.Vector2
 	to        		utils.Vector2
@@ -44,13 +44,13 @@ func CreatePlayer(id string, x, z float64, abilities map[string]*Ability) *Playe
 
 	return &Player{
 		id: id,
-		position: initialPosition,
-		to:       initialPosition,
-		health: stats.NewHealth(BASE_MAX_HEALTH),
-		executingAction: Idle,
-		actionsQueue: []CharacterAction{},
-		abilities: abilities,
-		lastUsed: lastUsed,
+		position: 			initialPosition,
+		to:       			initialPosition,
+		Health:				stats.NewHealth(BASE_MAX_HEALTH),
+		executingAction: 	Idle,
+		actionsQueue: 		[]CharacterAction{},
+		abilities: 			abilities,
+		lastUsed: 			lastUsed,
 	}
 }
 
@@ -66,8 +66,9 @@ func (p Player) GetPosition() utils.Vector2 {
 	return p.position
 }
 
+// this shouldn't be here
 func (p Player) GetHealth() stats.Health {
-	return p.health
+	return p.Health
 }
 
 func (p Player) GetExecutingAction() Action {
@@ -86,7 +87,7 @@ func (p *Player) ClearActionsQueue() {
     p.actionsQueue = nil
 }
 
-func (p *Player) ExecuteNextAction(gameState *GameState) {
+func (p *Player) ExecuteNextAction() {
     if len(p.actionsQueue) == 0 {
         return
     }
@@ -126,59 +127,65 @@ func (p Player) GetRadius() float64 {
 	return PLAYER_BOUNDS_RADIUS
 }
 
-func (player *Player) EnqueueAbilityCast(gameState *GameState, abilityInfo AbilityInfo) {
-	if player.CheckCooldown(abilityInfo) {
-		ability := player.abilities[abilityInfo.GetId()]
+// func (player *Player) EnqueueAbilityCast(castAbilityAction CastAbilityAction, abilityInfo AbilityInfo) {
+// 	if player.CheckCooldown(abilityInfo) {
+// 		ability := player.abilities[abilityInfo.GetId()]
 
-		// following behaviour should be inside ability, not player
-		switch ability.name {
-			case "projectile":
-				targetPosition, err := abilityInfo.GetTargetPosition()
-				if err != nil {
-					fmt.Println("Error:", err)
-					return
-				}
+// 		// following behaviour should be inside ability, not player
+// 		switch ability.name {
+// 			case "projectile":
+// 				targetPosition, err := abilityInfo.GetTargetPosition()
+// 				if err != nil {
+// 					fmt.Println("Error:", err)
+// 					return
+// 				}
 
-				player.ClearActionsQueue()
-				coordinateAbilityParams := CoordinateAbilityParams{
-					target: targetPosition,
-				}
-				castProjectileAction := &CastAbilityAction{
-					ability: *ability,
-					params: coordinateAbilityParams,
-				}
-				player.EnqueueAction(castProjectileAction)
-			case "heal":
-				targetId, err := abilityInfo.GetTargetId()
-				if err != nil {
-					fmt.Println("Error:", err)
-					return
-				}
-				player.ClearActionsQueue()
-				target := gameState.players[targetId]
-				player.actionsQueue = player.actionsQueue[:0]
-				if player.position.Distance(target.position) > ability.rangeValue {
-					targetPosition := player.closestPositionInRange(target, ability)
-					moveAction := &MoveAction{
-						targetPosition: targetPosition,
-					}
-					player.EnqueueAction(moveAction)
-				}
-				targetAbilityParams := TargetIdAbilityParams{
-					targetId: targetId,
-				}
-				castHealAction := &CastAbilityAction{
-					ability: *ability,
-					params: targetAbilityParams,
-				}
-				player.EnqueueAction(castHealAction)
-			default:
-		}
+// 				player.ClearActionsQueue()
+// 				coordinateAbilityParams := CoordinateAbilityParams{
+// 					Target: targetPosition,
+// 				}
+// 				castProjectileAction := &CastAbilityAction{
+// 					ability: *ability,
+// 					params: coordinateAbilityParams,
+// 				}
+// 				player.EnqueueAction(castProjectileAction)
+// 			case "heal":
+// 				targetId, err := abilityInfo.GetTargetId()
+// 				if err != nil {
+// 					fmt.Println("Error:", err)
+// 					return
+// 				}
+// 				player.ClearActionsQueue()
+// 				target := gameState.players[targetId]
+// 				player.actionsQueue = player.actionsQueue[:0]
+// 				if player.position.Distance(target.position) > ability.rangeValue {
+// 					targetPosition := player.closestPositionInRange(target, ability)
+// 					moveAction := &MoveAction{
+// 						TargetPosition: targetPosition,
+// 					}
+// 					player.EnqueueAction(moveAction)
+// 				}
+// 				targetAbilityParams := TargetIdAbilityParams{
+// 					TargetId: targetId,
+// 				}
+// 				castHealAction := &CastAbilityAction{
+// 					ability: *ability,
+// 					params: targetAbilityParams,
+// 				}
+// 				player.EnqueueAction(castHealAction)
+// 			default:
+// 		}
+// 	}
+// }
+
+func (player *Player) EnqueueAbilityCast(castAbilityAction CastAbilityAction) {
+	if player.CheckCooldown(castAbilityAction.ability.id) {
+		player.EnqueueAction(&castAbilityAction)
 	}
 }
 
-func (player *Player) CheckCooldown(abilityInfo AbilityInfo) bool {
-	ability := player.abilities[abilityInfo.GetId()]
+func (player *Player) CheckCooldown(abilityId string) bool {
+	ability := player.abilities[abilityId]
 	if player.RemainingCooldown(ability) <= 0 {
 		return true
 	} else {

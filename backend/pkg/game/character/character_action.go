@@ -1,4 +1,4 @@
-package game
+package character
 
 import (
 	"unnamed-mmo/backend/pkg/utils"
@@ -10,14 +10,14 @@ type CharacterAction interface {
 }
 
 type MoveAction struct {
-    targetPosition utils.Vector2
+    TargetPosition utils.Vector2
     isComplete     bool
 }
 
 func (a *MoveAction) Execute(player *Player) error {
     if !a.isComplete {
-        player.MoveTowards(a.targetPosition)
-        a.isComplete = player.position == a.targetPosition // Adjust this check based on your movement logic
+        player.MoveTowards(a.TargetPosition)
+        a.isComplete = player.position == a.TargetPosition // Adjust this check based on your movement logic
     }
     return nil
 }
@@ -46,10 +46,10 @@ type AbilityParameters interface { }
 
 type CoordinateAbilityParams struct {
 	AbilityParameters
-	target utils.Vector2
+	Target utils.Vector2
 }
 
 type TargetIdAbilityParams struct {
 	AbilityParameters
-	targetId string
+	TargetId string
 }

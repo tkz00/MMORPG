@@ -2,7 +2,7 @@ package dtos
 
 import (
 	"fmt"
-	"unnamed-mmo/backend/pkg/game"
+	"unnamed-mmo/backend/pkg/game/character"
 	"unnamed-mmo/backend/pkg/utils"
 )
 
@@ -11,7 +11,7 @@ type DTO interface {
 }
 
 type GameStateDTO struct {
-	Players 	[]PlayerDTO `json:"players"`
+	Players 	[]PlayerDTO 	`json:"players"`
 	Projectiles []ProjectileDTO `json:"projectiles"`
 }
 
@@ -20,13 +20,13 @@ func (g GameStateDTO) GetType() string {
 }
 
 type PlayerDTO struct {
-	Id       		string      	`json:"id"`
-	MaxHealth 		int				`json:"maxHealth"`
-	CurrentHealth 	int				`json:"currentHealth"`
-	Radius 			float64 		`json:"radius"`	
-	Position 		PositionDTO 	`json:"position"`
-	ExecutingAction	game.Action		`json:"executingAction"`
-	Abilities		[]AbilityDTO	`json:"abilities"`
+	Id       		string      		`json:"id"`
+	MaxHealth 		int					`json:"maxHealth"`
+	CurrentHealth 	int					`json:"currentHealth"`
+	Radius 			float64 			`json:"radius"`	
+	Position 		PositionDTO 		`json:"position"`
+	ExecutingAction	character.Action	`json:"executingAction"`
+	Abilities		[]AbilityDTO		`json:"abilities"`
 	
 }
 

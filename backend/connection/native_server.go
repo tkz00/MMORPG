@@ -90,7 +90,7 @@ func (server *NativeServer) broadcastGameState() {
 		server.broadcast <- webSocketResponse.Serialize()
 
 		// return player's state back to normal
-		server.gameState.ResetPlayersState()
+		// server.gameState.ResetPlayersState()
 	}
 }
 

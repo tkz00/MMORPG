@@ -6,21 +6,21 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
-	"unnamed-mmo/backend/pkg/game/npc"
+	"unnamed-mmo/backend/pkg/game/character"
 	"unnamed-mmo/backend/pkg/game/spawner"
 	"unnamed-mmo/backend/pkg/utils"
 )
 
 type GameState struct {
 	playerIds 	map[*websocket.Conn]string
-	players   	map[string]*Player
+	players   	map[string]*character.Player
 	projectiles map[string]*Projectile
 	spawners 	map[string]*spawner.Spawner
-	npcs		map[string]npc.NPC
+	npcs		map[string]character.NPC
 }
 
 func StartGameState() GameState {
-	skeletonNPCTemplate := npc.NewNPCTemplate("0", "skeleton", 25)
+	skeletonNPCTemplate := character.NewNPCTemplate("0", "skeleton", 25)
 
 	spawners := map[string]*spawner.Spawner{
 		"skeleton_spawner_0": spawner.NewSpawner(
@@ -32,32 +32,31 @@ func StartGameState() GameState {
 	}
 
 	return GameState{
-		playerIds: make(map[*websocket.Conn]string),
-		players:   make(map[string]*Player),
-		projectiles: make(map[string]*Projectile),
-		spawners: spawners,
-		npcs: make(map[string]npc.NPC),
+		playerIds: 		make(map[*websocket.Conn]string),
+		players:   		make(map[string]*character.Player),
+		projectiles: 	make(map[string]*Projectile),
+		spawners: 		spawners,
+		npcs: 			make(map[string]character.NPC),
 	}
 }
 
-func (gs *GameState) AddPlayer(conn *websocket.Conn) Player {
+func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Player {
 	id := uuid.New()
 	playerId := id.String()
-	abilities := map[string]*Ability{
-		"1": NewAbility("1", "heal", 7, 3000,
-		func(caster Player, params AbilityParameters) {
-			gs.players[params.(TargetIdAbilityParams).targetId].health.HealthVariation(-10)
+	abilities := map[string]*character.Ability{
+		"1": character.NewAbility("1", "heal", 7, 3000, character.Target,
+		func(caster character.Player, params character.AbilityParameters) {
+			gs.players[params.(character.TargetIdAbilityParams).TargetId].HealthVariation(-10)
 		}),
-		"0": NewAbility("0", "projectile", 5, 2000,
-		func(caster Player, params AbilityParameters) {
+		"0": character.NewAbility("0", "projectile", 5, 2000, character.Coordinates,
+		func(caster character.Player, params character.AbilityParameters) {
 			projectileId := uuid.NewString()
-			gs.projectiles[projectileId] = CreateProjectile(uuid.NewString(), caster.position, params.(CoordinateAbilityParams).target, 5, caster.id)
+			gs.projectiles[projectileId] = CreateProjectile(uuid.NewString(), caster.GetPosition(), params.(character.CoordinateAbilityParams).Target, 5, caster.GetId())
 		}),
 	}
-	player := CreatePlayer(playerId, 0, 0, abilities)
+	player := character.CreatePlayer(playerId, 0, 0, abilities)
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
-
 	return *player
 }
 
@@ -71,9 +70,9 @@ func (gs GameState) GetPlayerCount() int {
 	return len(gs.players)
 }
 
-func (gs GameState) GetPlayers() []Player {
+func (gs GameState) GetPlayers() []character.Player {
 	// WTF is this shit scoob????
-	playersSlice := make([]Player, 0, len(gs.players))
+	playersSlice := make([]character.Player, 0, len(gs.players))
     for _, player := range gs.players {
         playersSlice = append(playersSlice, *player)
     }
@@ -90,8 +89,8 @@ func (gs GameState) GetProjectiles() []Projectile {
 
 func (gs GameState) MovePlayer(conn *websocket.Conn, position utils.Vector2) {
 	playerId := gs.playerIds[conn]
-	moveAction := &MoveAction{
-		targetPosition: position,
+	moveAction := &character.MoveAction{
+		TargetPosition: position,
 	}
 	gs.players[playerId].ClearActionsQueue()
 	gs.players[playerId].EnqueueAction(moveAction)
@@ -105,7 +104,7 @@ func (gs GameState) UpdateState(deltaTime float64) {
 
 func (gs *GameState) updatePlayers(deltaTime float64) {
 	for _, player := range gs.players {
-		player.ExecuteNextAction(gs)
+		player.ExecuteNextAction()
 		if player.IsMoving() {
 			player.UpdatePosition(deltaTime)
 		}
@@ -135,8 +134,8 @@ func (gs GameState) updateProjectiles(deltaTime float64) {
 func (gs GameState) checkCollision(projectile Projectile) bool {
 	playerGotHit := false
 	for _, player := range gs.players {
-		if player.id != projectile.caster && gs.AreColliding(*player, projectile) {
-			player.health.HealthVariation(projectile.damage)
+		if player.GetId() != projectile.caster && gs.AreColliding(*player, projectile) {
+			player.HealthVariation(projectile.damage)
 			playerGotHit = true
 		}
 	}
@@ -144,24 +143,26 @@ func (gs GameState) checkCollision(projectile Projectile) bool {
 	return playerGotHit
 }
 
-func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo AbilityInfo) {
+func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo character.AbilityInfo) {
 	casterId := gs.playerIds[conn]
 	caster := gs.players[casterId]
-	caster.EnqueueAbilityCast(gs, abilityInfo)
+	abilityAction := caster.GetAbilities()[abilityInfo.GetId()].CreateAction(abilityInfo)
+	caster.EnqueueAbilityCast(abilityAction)
 }
 
-func (gs GameState) AreColliding(player Player, projectile Projectile) bool {
+func (gs GameState) AreColliding(player character.Player, projectile Projectile) bool {
 	playerPosition := player.GetPosition()
 	projectilePosition := projectile.GetPosition()
 	distance := playerPosition.Distance(projectilePosition)
 	return distance < (player.GetRadius() + projectile.GetRadius())
 }
 
-func (gs *GameState) ResetPlayersState() {
-	for _, player := range gs.players {
-		player.executingAction = Idle
-	}
-}
+// How do I solve this?
+// func (gs *GameState) ResetPlayersState() {
+// 	for _, player := range gs.players {
+// 		player.executingAction = character.Idle
+// 	}
+// }
 
 func (gs *GameState) updateSpawners() {
 	for _, spawner := range gs.spawners {

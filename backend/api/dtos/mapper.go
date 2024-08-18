@@ -4,6 +4,7 @@ import (
 	"sync"
 
 	"unnamed-mmo/backend/pkg/game"
+	"unnamed-mmo/backend/pkg/game/character"
 	"unnamed-mmo/backend/pkg/utils"
 )
 
@@ -32,7 +33,7 @@ func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
 	}
 }
 
-func (m Mapper) PlayerToDTO(player game.Player) *PlayerDTO {
+func (m Mapper) PlayerToDTO(player character.Player) *PlayerDTO {
 	playerHealth := player.GetHealth()
 	playerAbilities := make([]AbilityDTO, 0)
 	for _, ability := range player.GetAbilities() {
@@ -81,7 +82,7 @@ func (m Mapper) GameStateToDTO(gameState game.GameState) *GameStateDTO {
 	}
 }
 
-func AbilityToDTO(ability game.Ability) AbilityDTO{
+func AbilityToDTO(ability character.Ability) AbilityDTO{
 	return AbilityDTO{
 		Id: ability.Id(),
 		Name: ability.Name(),
