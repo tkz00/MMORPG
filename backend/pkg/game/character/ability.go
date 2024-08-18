@@ -1,5 +1,7 @@
 package character
 
+import "unnamed-mmo/backend/pkg/utils"
+
 type Targeting int
 
 const (
@@ -52,13 +54,14 @@ func (ability Ability) Cast(caster Player, params AbilityParameters) {
 	ability.Mechanic(caster, params)
 }
 
-func (ability Ability) CreateAction(abilityInfo AbilityInfo) CastAbilityAction {
+func (ability Ability) CreateAction(abilityInfo AbilityInfo, targetPositionCallback func(targetId string) utils.Vector2) CastAbilityAction {
 	var abilityParams AbilityParameters
 	switch ability.targeting {
 	case Target:
 		targetId, _ := abilityInfo.GetTargetId()
 		abilityParams = TargetIdAbilityParams{
 			TargetId: targetId,
+			TargetPositionCallback: targetPositionCallback,
 		}
 	case Coordinates:
 		targetPosition, _ := abilityInfo.GetTargetPosition()

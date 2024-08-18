@@ -44,14 +44,15 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Player {
 	id := uuid.New()
 	playerId := id.String()
 	abilities := map[string]*character.Ability{
-		"1": character.NewAbility("1", "heal", 7, 3000, character.Target,
-		func(caster character.Player, params character.AbilityParameters) {
-			gs.players[params.(character.TargetIdAbilityParams).TargetId].HealthVariation(-10)
-		}),
 		"0": character.NewAbility("0", "projectile", 5, 2000, character.Coordinates,
 		func(caster character.Player, params character.AbilityParameters) {
 			projectileId := uuid.NewString()
 			gs.projectiles[projectileId] = CreateProjectile(uuid.NewString(), caster.GetPosition(), params.(character.CoordinateAbilityParams).Target, 5, caster.GetId())
+		}),
+		"1": character.NewAbility("1", "heal", 7, 3000, character.Target,
+		func(caster character.Player, params character.AbilityParameters) {
+			target := gs.players[params.(character.TargetIdAbilityParams).TargetId]
+			target.HealthVariation(-10)
 		}),
 	}
 	player := character.CreatePlayer(playerId, 0, 0, abilities)
@@ -146,7 +147,15 @@ func (gs GameState) checkCollision(projectile Projectile) bool {
 func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo character.AbilityInfo) {
 	casterId := gs.playerIds[conn]
 	caster := gs.players[casterId]
-	abilityAction := caster.GetAbilities()[abilityInfo.GetId()].CreateAction(abilityInfo)
+	ability := caster.GetAbilities()[abilityInfo.GetId()]
+	abilityAction := ability.CreateAction(abilityInfo, 
+	func(targetId string) utils.Vector2 {
+		if caster.GetPosition().Distance(gs.players[targetId].GetPosition()) > ability.Range() {
+			return caster.ClosestPositionInRange(gs.players[targetId].GetPosition(), ability.Range())
+		} else {
+			return caster.GetPosition()
+		}
+	})
 	caster.EnqueueAbilityCast(abilityAction)
 }
 

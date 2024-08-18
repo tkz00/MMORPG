@@ -87,6 +87,10 @@ func (p *Player) ClearActionsQueue() {
     p.actionsQueue = nil
 }
 
+func (p *Player) PrependAction(action CharacterAction) {
+    p.actionsQueue = append([]CharacterAction{action}, p.actionsQueue...)
+}
+
 func (p *Player) ExecuteNextAction() {
     if len(p.actionsQueue) == 0 {
         return
@@ -103,7 +107,6 @@ func (p *Player) ExecuteNextAction() {
         p.actionsQueue = p.actionsQueue[1:]
     }
 }
-
 
 func (p *Player) MoveTowards(to utils.Vector2) {
 	p.to = to
@@ -126,57 +129,6 @@ func (p *Player) UpdatePosition(deltaTime float64) {
 func (p Player) GetRadius() float64 {
 	return PLAYER_BOUNDS_RADIUS
 }
-
-// func (player *Player) EnqueueAbilityCast(castAbilityAction CastAbilityAction, abilityInfo AbilityInfo) {
-// 	if player.CheckCooldown(abilityInfo) {
-// 		ability := player.abilities[abilityInfo.GetId()]
-
-// 		// following behaviour should be inside ability, not player
-// 		switch ability.name {
-// 			case "projectile":
-// 				targetPosition, err := abilityInfo.GetTargetPosition()
-// 				if err != nil {
-// 					fmt.Println("Error:", err)
-// 					return
-// 				}
-
-// 				player.ClearActionsQueue()
-// 				coordinateAbilityParams := CoordinateAbilityParams{
-// 					Target: targetPosition,
-// 				}
-// 				castProjectileAction := &CastAbilityAction{
-// 					ability: *ability,
-// 					params: coordinateAbilityParams,
-// 				}
-// 				player.EnqueueAction(castProjectileAction)
-// 			case "heal":
-// 				targetId, err := abilityInfo.GetTargetId()
-// 				if err != nil {
-// 					fmt.Println("Error:", err)
-// 					return
-// 				}
-// 				player.ClearActionsQueue()
-// 				target := gameState.players[targetId]
-// 				player.actionsQueue = player.actionsQueue[:0]
-// 				if player.position.Distance(target.position) > ability.rangeValue {
-// 					targetPosition := player.closestPositionInRange(target, ability)
-// 					moveAction := &MoveAction{
-// 						TargetPosition: targetPosition,
-// 					}
-// 					player.EnqueueAction(moveAction)
-// 				}
-// 				targetAbilityParams := TargetIdAbilityParams{
-// 					TargetId: targetId,
-// 				}
-// 				castHealAction := &CastAbilityAction{
-// 					ability: *ability,
-// 					params: targetAbilityParams,
-// 				}
-// 				player.EnqueueAction(castHealAction)
-// 			default:
-// 		}
-// 	}
-// }
 
 func (player *Player) EnqueueAbilityCast(castAbilityAction CastAbilityAction) {
 	if player.CheckCooldown(castAbilityAction.ability.id) {
@@ -202,10 +154,10 @@ func (player Player) RemainingCooldown(ability *Ability) int64 {
 	return 0
 }
 
-func (player *Player) closestPositionInRange(target *Player, ability *Ability) utils.Vector2 {
-	totalDistance := player.position.Distance(target.position)
-	normalizedMovementVector := utils.Normalize(player.position, target.position)
-	movementVector := normalizedMovementVector.Scale(totalDistance - ability.rangeValue)
+func (player *Player) ClosestPositionInRange(target utils.Vector2, rangeValue float64) utils.Vector2 {
+	totalDistance := player.position.Distance(target)
+	normalizedMovementVector := utils.Normalize(player.position, target)
+	movementVector := normalizedMovementVector.Scale(totalDistance - rangeValue)
 	targetPosition := player.position.Add(movementVector)
 	return targetPosition
 }

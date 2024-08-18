@@ -32,8 +32,17 @@ type CastAbilityAction struct {
 	isComplete 	bool
 }
 
-func (a *CastAbilityAction) Execute(player *Player) error {
-	player.CastAbility(a.ability, a.params)
+func (a *CastAbilityAction) Execute(caster *Player) error {
+	if a.ability.targeting == Target {
+		targetPosition := a.params.GetTargetPosition()
+		if caster.GetPosition() != targetPosition {
+			moveTarget := targetPosition
+            caster.MoveTowards(moveTarget)
+			return nil
+        }
+    }
+
+	caster.CastAbility(a.ability, a.params)
 	a.isComplete = true
     return nil
 }
@@ -42,14 +51,23 @@ func (a *CastAbilityAction) IsComplete() bool {
     return a.isComplete
 }
 
-type AbilityParameters interface { }
+type AbilityParameters interface {
+	GetTargetPosition() utils.Vector2
+}
 
 type CoordinateAbilityParams struct {
-	AbilityParameters
 	Target utils.Vector2
 }
 
+func (p CoordinateAbilityParams) GetTargetPosition() utils.Vector2 {
+    return p.Target
+}
+
 type TargetIdAbilityParams struct {
-	AbilityParameters
 	TargetId string
+	TargetPositionCallback func(targetId string) utils.Vector2
+}
+
+func (p TargetIdAbilityParams) GetTargetPosition() utils.Vector2 {
+    return p.TargetPositionCallback(p.TargetId)
 }
