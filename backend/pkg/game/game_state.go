@@ -1,7 +1,6 @@
 package game
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -89,6 +88,14 @@ func (gs GameState) GetProjectiles() []Projectile {
     return projectilesSlice
 }
 
+func (gs GameState) GetNPCs() []character.Character {
+	npcsSlice := make([]character.Character, 0, len(gs.npcs))
+    for _, player := range gs.npcs {
+        npcsSlice = append(npcsSlice, *player)
+    }
+    return npcsSlice
+}
+
 func (gs GameState) MovePlayer(conn *websocket.Conn, position utils.Vector2) {
 	playerId := gs.playerIds[conn]
 	moveAction := &character.MoveAction{
@@ -102,9 +109,6 @@ func (gs GameState) UpdateState(deltaTime float64) {
 	gs.updatePlayers(deltaTime)
 	gs.updateProjectiles(deltaTime)
 	gs.updateSpawners()
-	for _, npc := range gs.npcs {
-		fmt.Println(*npc)
-	}
 }
 
 func (gs *GameState) updatePlayers(deltaTime float64) {

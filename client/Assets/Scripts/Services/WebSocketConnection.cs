@@ -22,7 +22,6 @@ public static class WebSocketConnection
             webSocket.Options.SetRequestHeader("Origin", "http://example.com");
             await webSocket.ConnectAsync(wsUri, CancellationToken.None);
 			ReadLoopAsync();
-            // Debug.Log("conexion satisfactoria");
         } catch(Exception ex) {
             Debug.Log(ex.Message);
         }

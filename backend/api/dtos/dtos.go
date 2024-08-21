@@ -11,15 +11,16 @@ type DTO interface {
 }
 
 type GameStateDTO struct {
-	Players 	[]PlayerDTO 	`json:"players"`
+	Players 	[]CharacterDTO 	`json:"players"`
 	Projectiles []ProjectileDTO `json:"projectiles"`
+	Npcs 		[]CharacterDTO 	`json:"npcs"`
 }
 
 func (g GameStateDTO) GetType() string {
 	return "GameState"
 }
 
-type PlayerDTO struct {
+type CharacterDTO struct {
 	Id       		string      		`json:"id"`
 	MaxHealth 		int					`json:"maxHealth"`
 	CurrentHealth 	int					`json:"currentHealth"`
@@ -30,7 +31,7 @@ type PlayerDTO struct {
 	
 }
 
-func (p PlayerDTO) GetType() string {
+func (p CharacterDTO) GetType() string {
 	return "Player"
 }
 

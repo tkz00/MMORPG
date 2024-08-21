@@ -28,7 +28,7 @@ public class WebSocketMessageConverter : JsonConverter
         switch (actionType)
         {
             case "Player":
-                return new WebSocketMessage { ActionType = actionType, Body = body.ToObject<PlayerDTO>() };
+                return new WebSocketMessage { ActionType = actionType, Body = body.ToObject<CharacterDTO>() };
             case "GameState":
                 return new WebSocketMessage { ActionType = actionType, Body = body.ToObject<GameStateDTO>() };
             default:

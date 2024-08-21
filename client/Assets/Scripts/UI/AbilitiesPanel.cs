@@ -85,7 +85,7 @@ public class AbilitiesPanel : MonoBehaviour
         abilityImage.color = originalColor;
     }
 
-    public void UpdatePlayerPanel(PlayerDTO playerDTO)
+    public void UpdatePlayerPanel(CharacterDTO playerDTO)
     {
         foreach(AbilityDTO abilityDTO in playerDTO.abilities)
         {

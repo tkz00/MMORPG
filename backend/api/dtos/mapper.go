@@ -33,7 +33,7 @@ func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
 	}
 }
 
-func (m Mapper) PlayerToDTO(player character.Character) *PlayerDTO {
+func (m Mapper) CharacterToDTO(player character.Character) *CharacterDTO {
 	playerHealth := player.GetHealth()
 	playerAbilities := make([]AbilityDTO, 0)
 	for _, ability := range player.GetAbilities() {
@@ -42,7 +42,7 @@ func (m Mapper) PlayerToDTO(player character.Character) *PlayerDTO {
 		playerAbilities = append(playerAbilities, abilityDTO)
 	}
 
-	return &PlayerDTO {
+	return &CharacterDTO {
 		Id: player.GetId(),
 		Position: *m.PositionToDTO(player.GetPosition()),
 		Radius: player.GetRadius(),
@@ -65,20 +65,26 @@ func (m Mapper) ProjectileToDTO(projectile game.Projectile) *ProjectileDTO {
 }
 
 func (m Mapper) GameStateToDTO(gameState game.GameState) *GameStateDTO {
-	playerDTOS := make([]PlayerDTO, 0)
+	playerDTOS := make([]CharacterDTO, 0)
 	projectileDTOS := make([]ProjectileDTO, 0)
+	npcsDTOS := make([]CharacterDTO, 0)
 
 	for _, player := range gameState.GetPlayers() {
-		playerDTOS = append(playerDTOS, *m.PlayerToDTO(player))
+		playerDTOS = append(playerDTOS, *m.CharacterToDTO(player))
 	}
 
 	for _, projectile := range gameState.GetProjectiles() {
 		projectileDTOS = append(projectileDTOS, *m.ProjectileToDTO(projectile))
 	}
+
+	for _, npcs := range gameState.GetNPCs() {
+		npcsDTOS = append(npcsDTOS, *m.CharacterToDTO(npcs))
+	}
 	
 	return &GameStateDTO {
 		Players: playerDTOS,
 		Projectiles: projectileDTOS,
+		Npcs: npcsDTOS,
 	}
 }
 

@@ -11,8 +11,12 @@ public class GameManager : MonoBehaviour
 {
 	[SerializeField]
 	GameObject playerPrefab;
+	
 	[SerializeField]
 	GameObject projectilePrefab;
+
+	[SerializeField]
+	GameObject npcPrefab;
 
 	[SerializeField]
 	CinemachineVirtualCamera cinemachineVirtualCamera;
@@ -28,13 +32,14 @@ public class GameManager : MonoBehaviour
 	[SerializeField]
 	public AbilitiesPanel abilitiesPanel;
 
-	Dictionary<string, Player> players = new Dictionary<string, Player>();
+	Dictionary<string, Character> players = new Dictionary<string, Character>();
 	Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
+	Dictionary<string, Character> npcs = new Dictionary<string, Character>();
 	
 
     async void Awake()
 	{
-		WebSocketConnection.SetHandler<PlayerDTO>(new Action<PlayerDTO>((playerDTO) =>
+		WebSocketConnection.SetHandler<CharacterDTO>(new Action<CharacterDTO>((playerDTO) =>
 		{
 			this.mainPlayerID = playerDTO.id;
 			Debug.Log($"Player connected, id: {this.mainPlayerID}");
@@ -59,24 +64,28 @@ public class GameManager : MonoBehaviour
 
 	void OnGameStateUpdate(GameStateDTO gameState)
 	{
-		string[] currentPlayerIds = this.players.Keys.ToArray();
-		string[] currentProjectileIds = this.projectiles.Keys.ToArray();
-		HashSet<string> playersToDestroy = new HashSet<string>(currentPlayerIds.Except(gameState.players.Select(player => player.id)));
-		HashSet<string> projectilesToDestroy = new HashSet<string>(currentProjectileIds.Except(gameState.projectiles.Select(projectile => projectile.id)));
-
-		DestroyPlayers(playersToDestroy.ToArray());
-		DestroyProjectiles(projectilesToDestroy.ToArray());
-		UpdatePlayersPositions(gameState.players);
-		UpdateProjectilesPositions(gameState.projectiles);
+		UpdatePlayers(gameState.players);
+		UpdateProjectiles(gameState.projectiles);
+		UpdateNPCs(gameState.npcs);
 
 		abilitiesPanel.UpdatePlayerPanel(gameState.players.Find(player => player.id == mainPlayerID));
 	}
 
-	void UpdatePlayersPositions(List<PlayerDTO> playerDTOS)
+	#region Players
+
+    private void UpdatePlayers(List<CharacterDTO> players)
+    {
+		string[] currentPlayerIds = this.players.Keys.ToArray();
+		HashSet<string> playersToDestroy = new HashSet<string>(currentPlayerIds.Except(players.Select(player => player.id)));
+		DestroyPlayers(playersToDestroy.ToArray());
+		UpdatePlayersPositions(players);
+    }
+
+    void UpdatePlayersPositions(List<CharacterDTO> playerDTOS)
 	{
-		foreach (PlayerDTO playerDTO in playerDTOS)
+		foreach (CharacterDTO playerDTO in playerDTOS)
 		{
-			Player player;
+			Character player;
 			bool playerExists = this.players.Any(playerMovement => playerMovement.Key == playerDTO.id);
 			if (playerExists)
 			{
@@ -104,14 +113,14 @@ public class GameManager : MonoBehaviour
         }
 	}
 
-	private Player CreatePlayer(PlayerDTO playerDTO)
+	private Character CreatePlayer(CharacterDTO playerDTO)
 	{
-		Player player;
+		Character player;
 		Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
 		GameObject newPlayerGO = Instantiate(this.playerPrefab, new Vector3(playerDTO.position.x, 0, playerDTO.position.z), Quaternion.identity);
-		player = newPlayerGO.GetComponent<Player>();
+		player = newPlayerGO.GetComponent<Character>();
 		player.id = playerDTO.id;
-		player.SetPlayerName(player.id);
+		player.SetNpcName(player.id);
 		player.SetHealthBarColor(playerColor);
 		players[playerDTO.id] = player;
 		if (this.mainPlayerID == player.id)
@@ -123,6 +132,26 @@ public class GameManager : MonoBehaviour
 		}
 		return player;
 	}
+
+	void DestroyPlayers(string[] playerIdsToDestroy)
+	{
+		foreach (string playerIdToDestroy in playerIdsToDestroy)
+		{
+			Destroy(this.players[playerIdToDestroy].gameObject);
+			this.players.Remove(playerIdToDestroy);
+		}
+	}
+	#endregion
+
+	#region Projectiles
+
+	private void UpdateProjectiles(List<ProjectileDTO> projectiles)
+    {
+        string[] currentProjectileIds = this.projectiles.Keys.ToArray();
+		HashSet<string> projectilesToDestroy = new HashSet<string>(currentProjectileIds.Except(projectiles.Select(projectile => projectile.id)));
+		DestroyProjectiles(projectilesToDestroy.ToArray());
+		UpdateProjectilesPositions(projectiles);
+    }
 
 	void UpdateProjectilesPositions(List<ProjectileDTO> projectileDTOS)
 	{
@@ -148,15 +177,6 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
-	void DestroyPlayers(string[] playerIdsToDestroy)
-	{
-		foreach (string playerIdToDestroy in playerIdsToDestroy)
-		{
-			Destroy(this.players[playerIdToDestroy].gameObject);
-			this.players.Remove(playerIdToDestroy);
-		}
-	}
-
 	void DestroyProjectiles(string[] projectilesToDestroy)
 	{
 		foreach (string projectileId in projectilesToDestroy)
@@ -166,11 +186,79 @@ public class GameManager : MonoBehaviour
 		}
 	}
 
+	#endregion
+
+	#region NPCs
+
+	private void UpdateNPCs(List<CharacterDTO> npcs)
+    {
+		string[] currentNPCsIds = this.npcs.Keys.ToArray();
+		HashSet<string> npcsToDestroy = new HashSet<string>(currentNPCsIds.Except(npcs.Select(npc => npc.id)));
+		DestroyNPCs(npcsToDestroy.ToArray());
+		UpdateNPCsPositions(npcs);
+    }
+
+	void UpdateNPCsPositions(List<CharacterDTO> npcDTOS)
+	{
+		foreach (CharacterDTO npcDTO in npcDTOS)
+		{
+			Character npc;
+			bool npcExists = this.npcs.Any(npcMovement => npcMovement.Key == npcDTO.id);
+			if (npcExists)
+			{
+				npc = npcs[npcDTO.id];
+				npc.Movement.Move(new Vector3(npcDTO.position.x, 0, npcDTO.position.z));
+			}
+			else
+			{
+				npc = CreateNPC(npcDTO);
+			}
+			npc.UpdateHealth(npcDTO.currentHealth, npcDTO.maxHealth);
+			
+			switch(npcDTO.executingAction)
+			{
+				case ExecutingAction.Attacking:
+					npc.Movement.AttackAnimation();
+					break;
+				case ExecutingAction.CastingHeal:
+					npc.Movement.HealAnimation();
+					break;
+			}
+
+			npc.SetScale(npcDTO.radius * 2);
+			npc.SetHitbox(hitboxOn);
+        }
+	}
+
+	private Character CreateNPC(CharacterDTO npcDTO)
+	{
+		Character npc;
+		Color npcColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
+		GameObject newNpcGO = Instantiate(this.npcPrefab, new Vector3(npcDTO.position.x, 0, npcDTO.position.z), Quaternion.identity);
+		npc = newNpcGO.GetComponent<Character>();
+		npc.id = npcDTO.id;
+		npc.SetNpcName(npc.id);
+		npc.SetHealthBarColor(npcColor);
+		npcs[npcDTO.id] = npc;
+		return npc;
+	}
+
+	void DestroyNPCs(string[] npcIdsToDestroy)
+	{
+		foreach (string npcIdToDestroy in npcIdsToDestroy)
+		{
+			Destroy(this.npcs[npcIdToDestroy].gameObject);
+			this.npcs.Remove(npcIdToDestroy);
+		}
+	}
+
+	#endregion
+
 	public void ToggleHitboxes()
 	{
 		hitboxOn = !hitboxOn;
 
-		foreach(Player player in this.players.Values)
+		foreach(Character player in this.players.Values)
 		{
 			player.SetHitbox(hitboxOn);
 		}

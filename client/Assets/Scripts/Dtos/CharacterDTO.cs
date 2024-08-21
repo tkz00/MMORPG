@@ -1,6 +1,6 @@
 using System.Runtime.Serialization;
 
-public class PlayerDTO : DTO
+public class CharacterDTO : DTO
 {
 	public string id;
 	public PositionDTO position;

@@ -48,7 +48,7 @@ func (server *NativeServer) readLoop() {
 		case client := <-server.addClient:
 			player := server.gameState.AddPlayer(client)
 			server.clients[client] = true
-			response := CreateWebSocketResponse(*dtos.GetMapper().PlayerToDTO(player))
+			response := CreateWebSocketResponse(*dtos.GetMapper().CharacterToDTO(player))
 			message := response.Serialize()
 	        err := websocket.Message.Send(client, message)
 	        if err != nil {

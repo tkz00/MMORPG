@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
-public class Player : MonoBehaviour, ITargeteable
+public class Character : MonoBehaviour, ITargeteable
 {
     // this field shouldn't be public, it should be set on creation of the player and be readonly from then on
     public string id;
@@ -28,7 +28,8 @@ public class Player : MonoBehaviour, ITargeteable
 	[SerializeField]
 	HealthBar healthBar;
 
-    [SerializeField] PlayerVFXsHandler playerVFXsHandler;
+    [SerializeField]
+    PlayerVFXsHandler playerVFXsHandler;
 
 	private PlayerStats stats = new PlayerStats();
 
@@ -36,7 +37,7 @@ public class Player : MonoBehaviour, ITargeteable
         get { return stats; }
     }
 
-	public void SetPlayerName(string playerName) {
+	public void SetNpcName(string playerName) {
 		playerNameUI.text = playerName;
 	}
 
