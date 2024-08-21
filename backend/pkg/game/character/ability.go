@@ -16,10 +16,10 @@ type Ability struct {
 	rangeValue	float64
 	cooldown	int64
 	targeting	Targeting
-	Mechanic  	func(caster Player, params AbilityParameters)
+	Mechanic  	func(caster Character, params AbilityParameters)
 }
 
-func NewAbility(id string, name string, rangeValue float64, cooldown int64, targeting Targeting, mechanic func(caster Player, params AbilityParameters)) *Ability {
+func NewAbility(id string, name string, rangeValue float64, cooldown int64, targeting Targeting, mechanic func(caster Character, params AbilityParameters)) *Ability {
 	return &Ability{
 		id: id,
 		name: name,
@@ -50,7 +50,7 @@ func (ability Ability) Targeting() Targeting {
 	return ability.targeting
 }
 
-func (ability Ability) Cast(caster Player, params AbilityParameters) {
+func (ability Ability) Cast(caster Character, params AbilityParameters) {
 	ability.Mechanic(caster, params)
 }
 

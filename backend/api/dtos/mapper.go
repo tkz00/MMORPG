@@ -33,7 +33,7 @@ func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
 	}
 }
 
-func (m Mapper) PlayerToDTO(player character.Player) *PlayerDTO {
+func (m Mapper) PlayerToDTO(player character.Character) *PlayerDTO {
 	playerHealth := player.GetHealth()
 	playerAbilities := make([]AbilityDTO, 0)
 	for _, ability := range player.GetAbilities() {
@@ -75,7 +75,7 @@ func (m Mapper) GameStateToDTO(gameState game.GameState) *GameStateDTO {
 	for _, projectile := range gameState.GetProjectiles() {
 		projectileDTOS = append(projectileDTOS, *m.ProjectileToDTO(projectile))
 	}
-
+	
 	return &GameStateDTO {
 		Players: playerDTOS,
 		Projectiles: projectileDTOS,

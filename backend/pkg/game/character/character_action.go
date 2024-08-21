@@ -5,7 +5,7 @@ import (
 )
 
 type CharacterAction interface {
-	Execute(player *Player) error
+	Execute(player *Character) error
     IsComplete() bool
 }
 
@@ -14,7 +14,7 @@ type MoveAction struct {
     isComplete     bool
 }
 
-func (a *MoveAction) Execute(player *Player) error {
+func (a *MoveAction) Execute(player *Character) error {
     if !a.isComplete {
         player.MoveTowards(a.TargetPosition)
         a.isComplete = player.position == a.TargetPosition // Adjust this check based on your movement logic
@@ -32,7 +32,7 @@ type CastAbilityAction struct {
 	isComplete 	bool
 }
 
-func (a *CastAbilityAction) Execute(caster *Player) error {
+func (a *CastAbilityAction) Execute(caster *Character) error {
 	if a.ability.targeting == Target {
 		targetPosition := a.params.GetTargetPosition()
 		if caster.GetPosition() != targetPosition {

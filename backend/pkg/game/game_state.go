@@ -1,6 +1,7 @@
 package game
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,10 +14,10 @@ import (
 
 type GameState struct {
 	playerIds 	map[*websocket.Conn]string
-	players   	map[string]*character.Player
+	players   	map[string]*character.Character
 	projectiles map[string]*Projectile
 	spawners 	map[string]*spawner.Spawner
-	npcs		map[string]character.NPC
+	npcs		map[string]*character.Character
 }
 
 func StartGameState() GameState {
@@ -33,29 +34,29 @@ func StartGameState() GameState {
 
 	return GameState{
 		playerIds: 		make(map[*websocket.Conn]string),
-		players:   		make(map[string]*character.Player),
+		players:   		make(map[string]*character.Character),
 		projectiles: 	make(map[string]*Projectile),
 		spawners: 		spawners,
-		npcs: 			make(map[string]character.NPC),
+		npcs: 			make(map[string]*character.Character),
 	}
 }
 
-func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Player {
+func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Character {
 	id := uuid.New()
 	playerId := id.String()
 	abilities := map[string]*character.Ability{
 		"0": character.NewAbility("0", "projectile", 5, 2000, character.Coordinates,
-		func(caster character.Player, params character.AbilityParameters) {
+		func(caster character.Character, params character.AbilityParameters) {
 			projectileId := uuid.NewString()
 			gs.projectiles[projectileId] = CreateProjectile(uuid.NewString(), caster.GetPosition(), params.(character.CoordinateAbilityParams).Target, 5, caster.GetId())
 		}),
 		"1": character.NewAbility("1", "heal", 7, 3000, character.Target,
-		func(caster character.Player, params character.AbilityParameters) {
+		func(caster character.Character, params character.AbilityParameters) {
 			target := gs.players[params.(character.TargetIdAbilityParams).TargetId]
 			target.HealthVariation(-10)
 		}),
 	}
-	player := character.CreatePlayer(playerId, 0, 0, abilities)
+	player := character.CreateCharacter(playerId, 0, 0, abilities)
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
 	return *player
@@ -71,9 +72,9 @@ func (gs GameState) GetPlayerCount() int {
 	return len(gs.players)
 }
 
-func (gs GameState) GetPlayers() []character.Player {
+func (gs GameState) GetPlayers() []character.Character {
 	// WTF is this shit scoob????
-	playersSlice := make([]character.Player, 0, len(gs.players))
+	playersSlice := make([]character.Character, 0, len(gs.players))
     for _, player := range gs.players {
         playersSlice = append(playersSlice, *player)
     }
@@ -101,6 +102,9 @@ func (gs GameState) UpdateState(deltaTime float64) {
 	gs.updatePlayers(deltaTime)
 	gs.updateProjectiles(deltaTime)
 	gs.updateSpawners()
+	for _, npc := range gs.npcs {
+		fmt.Println(*npc)
+	}
 }
 
 func (gs *GameState) updatePlayers(deltaTime float64) {
@@ -159,7 +163,7 @@ func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo charac
 	caster.EnqueueAbilityCast(abilityAction)
 }
 
-func (gs GameState) AreColliding(player character.Player, projectile Projectile) bool {
+func (gs GameState) AreColliding(player character.Character, projectile Projectile) bool {
 	playerPosition := player.GetPosition()
 	projectilePosition := projectile.GetPosition()
 	distance := playerPosition.Distance(projectilePosition)

@@ -20,7 +20,7 @@ const (
 	CastingHeal
 )
 
-type Player struct {
+type Character struct {
 	id 		  		string
 	stats.Health
 	executingAction Action
@@ -34,7 +34,7 @@ type Player struct {
 	lastUsed   		map[string]time.Time
 }
 
-func CreatePlayer(id string, x, z float64, abilities map[string]*Ability) *Player {
+func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Character {
 	initialPosition := *utils.NewVector2(x, z)
 
 	lastUsed := make(map[string]time.Time, len(abilities))
@@ -42,7 +42,7 @@ func CreatePlayer(id string, x, z float64, abilities map[string]*Ability) *Playe
         lastUsed[ability.id] = time.Time{}
     }
 
-	return &Player{
+	return &Character{
 		id: id,
 		position: 			initialPosition,
 		to:       			initialPosition,
@@ -54,44 +54,44 @@ func CreatePlayer(id string, x, z float64, abilities map[string]*Ability) *Playe
 	}
 }
 
-func (p Player) GetId() string {
+func (p Character) GetId() string {
 	return p.id
 }
 
-func (p *Player) SetPosition(position utils.Vector2) {
+func (p *Character) SetPosition(position utils.Vector2) {
 	p.position = position
 }
 
-func (p Player) GetPosition() utils.Vector2 {
+func (p Character) GetPosition() utils.Vector2 {
 	return p.position
 }
 
 // this shouldn't be here
-func (p Player) GetHealth() stats.Health {
+func (p Character) GetHealth() stats.Health {
 	return p.Health
 }
 
-func (p Player) GetExecutingAction() Action {
+func (p Character) GetExecutingAction() Action {
 	return p.executingAction
 }
 
-func (p Player) GetAbilities() map[string]*Ability {
+func (p Character) GetAbilities() map[string]*Ability {
 	return p.abilities
 }
 
-func (p *Player) EnqueueAction(action CharacterAction) {
+func (p *Character) EnqueueAction(action CharacterAction) {
     p.actionsQueue = append(p.actionsQueue, action)
 }
 
-func (p *Player) ClearActionsQueue() {
+func (p *Character) ClearActionsQueue() {
     p.actionsQueue = nil
 }
 
-func (p *Player) PrependAction(action CharacterAction) {
+func (p *Character) PrependAction(action CharacterAction) {
     p.actionsQueue = append([]CharacterAction{action}, p.actionsQueue...)
 }
 
-func (p *Player) ExecuteNextAction() {
+func (p *Character) ExecuteNextAction() {
     if len(p.actionsQueue) == 0 {
         return
     }
@@ -108,16 +108,16 @@ func (p *Player) ExecuteNextAction() {
     }
 }
 
-func (p *Player) MoveTowards(to utils.Vector2) {
+func (p *Character) MoveTowards(to utils.Vector2) {
 	p.to = to
 	p.direction = utils.Normalize(p.position, p.to).Scale(PLAYER_SPEED)
 }
 
-func (p Player) IsMoving() bool {
+func (p Character) IsMoving() bool {
 	return !p.position.Equals(p.to)
 }
 
-func (p *Player) UpdatePosition(deltaTime float64) {
+func (p *Character) UpdatePosition(deltaTime float64) {
 	distanceToTarget := p.position.Distance(p.to)
 	if distanceToTarget < (PLAYER_SPEED * deltaTime){
 		p.position.Teleport(p.to)
@@ -126,17 +126,17 @@ func (p *Player) UpdatePosition(deltaTime float64) {
 	}
 }
 
-func (p Player) GetRadius() float64 {
+func (p Character) GetRadius() float64 {
 	return PLAYER_BOUNDS_RADIUS
 }
 
-func (player *Player) EnqueueAbilityCast(castAbilityAction CastAbilityAction) {
+func (player *Character) EnqueueAbilityCast(castAbilityAction CastAbilityAction) {
 	if player.CheckCooldown(castAbilityAction.ability.id) {
 		player.EnqueueAction(&castAbilityAction)
 	}
 }
 
-func (player *Player) CheckCooldown(abilityId string) bool {
+func (player *Character) CheckCooldown(abilityId string) bool {
 	ability := player.abilities[abilityId]
 	if player.RemainingCooldown(ability) <= 0 {
 		return true
@@ -145,7 +145,7 @@ func (player *Player) CheckCooldown(abilityId string) bool {
 	}
 }
 
-func (player Player) RemainingCooldown(ability *Ability) int64 {
+func (player Character) RemainingCooldown(ability *Ability) int64 {
 	now := time.Now()
 	remainingCooldown := player.abilities[ability.id].cooldown - now.Sub(player.lastUsed[ability.id]).Milliseconds()
 	if remainingCooldown > 0 {
@@ -154,7 +154,7 @@ func (player Player) RemainingCooldown(ability *Ability) int64 {
 	return 0
 }
 
-func (player *Player) ClosestPositionInRange(target utils.Vector2, rangeValue float64) utils.Vector2 {
+func (player *Character) ClosestPositionInRange(target utils.Vector2, rangeValue float64) utils.Vector2 {
 	totalDistance := player.position.Distance(target)
 	normalizedMovementVector := utils.Normalize(player.position, target)
 	movementVector := normalizedMovementVector.Scale(totalDistance - rangeValue)
@@ -162,7 +162,7 @@ func (player *Player) ClosestPositionInRange(target utils.Vector2, rangeValue fl
 	return targetPosition
 }
 
-func (player *Player) CastAbility(ability Ability, params AbilityParameters) {
+func (player *Character) CastAbility(ability Ability, params AbilityParameters) {
 	player.lastUsed[ability.id] = time.Now()
 	ability.Cast(*player, params)
 }
