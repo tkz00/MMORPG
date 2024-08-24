@@ -65,7 +65,7 @@ func (ability Ability) Cast(caster Character, params AbilityParameters) {
 	ability.Mechanic(caster, params)
 }
 
-func (ability Ability) CreateAction(abilityInfo AbilityInfo, targetPositionCallback func(targetId string) utils.Vector2) CastAbilityAction {
+func (ability Ability) CreateAction(abilityInfo AbilityInfo, targetPositionCallback func(targetId string) (utils.Vector2, error)) CastAbilityAction {
 	var abilityParams AbilityParameters
 	switch ability.targeting {
 	case Target:

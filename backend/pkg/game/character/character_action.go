@@ -6,68 +6,71 @@ import (
 
 type CharacterAction interface {
 	Execute(player *Character) error
-    IsComplete() bool
+	IsComplete() bool
 }
 
 type MoveAction struct {
-    TargetPosition utils.Vector2
-    isComplete     bool
+	TargetPosition utils.Vector2
+	isComplete     bool
 }
 
 func (a *MoveAction) Execute(character *Character) error {
-    if !a.isComplete {
-        character.MoveTowards(a.TargetPosition)
-        a.isComplete = character.position == a.TargetPosition // Adjust this check based on your movement logic
-    }
-    return nil
+	if !a.isComplete {
+		character.MoveTowards(a.TargetPosition)
+		a.isComplete = character.position == a.TargetPosition // Adjust this check based on your movement logic
+	}
+	return nil
 }
 
 func (a *MoveAction) IsComplete() bool {
-    return a.isComplete
+	return a.isComplete
 }
 
 type CastAbilityAction struct {
-	ability 	Ability
-	params 		AbilityParameters
-	isComplete 	bool
+	ability    Ability
+	params     AbilityParameters
+	isComplete bool
 }
 
 func (a *CastAbilityAction) Execute(caster *Character) error {
 	if a.ability.targeting == Target {
-		targetPosition := a.params.GetTargetPosition()
+		targetPosition, err := a.params.GetTargetPosition()
+		if err != nil {
+			return err
+		}
 		if caster.GetPosition() != targetPosition {
 			moveTarget := targetPosition
-            caster.MoveTowards(moveTarget)
+			caster.MoveTowards(moveTarget)
 			return nil
-        }
-    }
+		}
+	}
 
 	caster.CastAbility(a.ability, a.params)
 	a.isComplete = true
-    return nil
+	return nil
 }
 
 func (a *CastAbilityAction) IsComplete() bool {
-    return a.isComplete
+	return a.isComplete
 }
 
 type AbilityParameters interface {
-	GetTargetPosition() utils.Vector2
+	GetTargetPosition() (utils.Vector2, error)
 }
 
 type CoordinateAbilityParams struct {
 	Target utils.Vector2
 }
 
-func (p CoordinateAbilityParams) GetTargetPosition() utils.Vector2 {
-    return p.Target
+func (p CoordinateAbilityParams) GetTargetPosition() (utils.Vector2, error) {
+	return p.Target, nil
 }
 
 type TargetIdAbilityParams struct {
-	TargetId string
-	TargetPositionCallback func(targetId string) utils.Vector2
+	TargetId               string
+	TargetPositionCallback func(targetId string) (utils.Vector2, error)
 }
 
-func (p TargetIdAbilityParams) GetTargetPosition() utils.Vector2 {
-    return p.TargetPositionCallback(p.TargetId)
+func (p TargetIdAbilityParams) GetTargetPosition() (utils.Vector2, error) {
+	return p.TargetPositionCallback(p.TargetId)
 }

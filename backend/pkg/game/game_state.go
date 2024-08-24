@@ -1,6 +1,8 @@
 package game
 
 import (
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -51,7 +53,14 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Character {
 			}),
 		"1": character.NewAbility("1", "heal", 7, 3000, character.Target, character.CastingHeal,
 			func(caster character.Character, params character.AbilityParameters) {
-				target := gs.players[params.(character.TargetIdAbilityParams).TargetId]
+				targetId := params.(character.TargetIdAbilityParams).TargetId
+
+				target, err := gs.getCharacterById(targetId)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+
 				target.HealthVariation(-10)
 			}),
 	}
@@ -142,15 +151,22 @@ func (gs GameState) updateProjectiles(deltaTime float64) {
 }
 
 func (gs GameState) checkCollision(projectile Projectile) bool {
-	playerGotHit := false
+	projectileHit := false
 	for _, player := range gs.players {
 		if player.GetId() != projectile.caster && gs.AreColliding(*player, projectile) {
 			player.HealthVariation(projectile.damage)
-			playerGotHit = true
+			projectileHit = true
 		}
 	}
 
-	return playerGotHit
+	for _, npc := range gs.npcs {
+		if npc.GetId() != projectile.caster && gs.AreColliding(*npc.Character, projectile) {
+			npc.HealthVariation(projectile.damage)
+			projectileHit = true
+		}
+	}
+
+	return projectileHit
 }
 
 func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo character.AbilityInfo) {
@@ -158,11 +174,18 @@ func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo charac
 	caster := gs.players[casterId]
 	ability := caster.GetAbilities()[abilityInfo.GetId()]
 	abilityAction := ability.CreateAction(abilityInfo,
-		func(targetId string) utils.Vector2 {
-			if caster.GetPosition().Distance(gs.players[targetId].GetPosition()) > ability.Range() {
-				return caster.ClosestPositionInRange(gs.players[targetId].GetPosition(), ability.Range())
+		func(targetId string) (utils.Vector2, error) {
+
+			target, err := gs.getCharacterById(targetId)
+			if err != nil {
+				fmt.Println(err)
+				return utils.Vector2{}, err
+			}
+
+			if caster.GetPosition().Distance(target.GetPosition()) > ability.Range() {
+				return caster.ClosestPositionInRange(target.GetPosition(), ability.Range()), nil
 			} else {
-				return caster.GetPosition()
+				return caster.GetPosition(), nil
 			}
 		})
 	caster.EnqueueAbilityCast(abilityAction)
@@ -186,7 +209,7 @@ func (gs *GameState) updateSpawners() {
 	for _, spawner := range gs.spawners {
 		newNPCs := spawner.GetNewNPCs()
 		for _, newNPC := range newNPCs {
-			gs.npcs[uuid.NewString()] = newNPC
+			gs.npcs[newNPC.GetId()] = newNPC
 		}
 	}
 }
@@ -194,9 +217,18 @@ func (gs *GameState) updateSpawners() {
 func (gs *GameState) updateNpcs(deltaTime float64) {
 	for _, npc := range gs.npcs {
 		npc.Update(deltaTime)
-		// npc.ExecuteNextAction()
-		// if npc.IsMoving() {
-		// 	npc.UpdatePosition(deltaTime)
-		// }
 	}
+}
+
+func (gs GameState) getCharacterById(targetId string) (*character.Character, error) {
+	target, exists := gs.players[targetId]
+	if !exists {
+		targetNpc, npcExists := gs.npcs[targetId]
+		if !npcExists {
+			fmt.Println("ERROR: no target found with id")
+			return nil, errors.New("character not found")
+		}
+		target = targetNpc.Character
+	}
+	return target, nil
 }
