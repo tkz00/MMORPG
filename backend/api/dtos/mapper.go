@@ -8,13 +8,13 @@ import (
 	"unnamed-mmo/backend/pkg/utils"
 )
 
-type Mapper struct {}
+type Mapper struct{}
 
 var mapperInstance *Mapper
 var doItOnce sync.Once
 
 func GetMapper() *Mapper {
-	doItOnce.Do(func () {
+	doItOnce.Do(func() {
 		mapperInstance = &Mapper{}
 	})
 
@@ -27,7 +27,7 @@ func (m Mapper) PositionDTOToEntity(positionDTO PositionDTO) *utils.Vector2 {
 
 func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
 	x, z := position.GetPosition()
-	return &PositionDTO {
+	return &PositionDTO{
 		X: x,
 		Z: z,
 	}
@@ -42,25 +42,25 @@ func (m Mapper) CharacterToDTO(player character.Character) *CharacterDTO {
 		playerAbilities = append(playerAbilities, abilityDTO)
 	}
 
-	return &CharacterDTO {
-		Id: player.GetId(),
-		Position: *m.PositionToDTO(player.GetPosition()),
-		Radius: player.GetRadius(),
-		MaxHealth: playerHealth.GetMaxHealth(),
-		CurrentHealth: playerHealth.GetCurrentHealth(),
+	return &CharacterDTO{
+		Id:              player.GetId(),
+		Position:        *m.PositionToDTO(player.GetPosition()),
+		Radius:          player.GetRadius(),
+		MaxHealth:       playerHealth.GetMaxHealth(),
+		CurrentHealth:   playerHealth.GetCurrentHealth(),
 		ExecutingAction: player.GetExecutingAction(),
-		Abilities: playerAbilities,
+		Abilities:       playerAbilities,
 	}
 }
 
 func (m Mapper) ProjectileToDTO(projectile game.Projectile) *ProjectileDTO {
-	return &ProjectileDTO {
-		Id: projectile.GetId(),
-		Caster: projectile.GetCaster(),
+	return &ProjectileDTO{
+		Id:       projectile.GetId(),
+		Caster:   projectile.GetCaster(),
 		Position: *m.PositionToDTO(projectile.GetPosition()),
-		Radius: projectile.GetRadius(),
-		Damage: projectile.GetDamage(),
-		State: projectile.GetState(),
+		Radius:   projectile.GetRadius(),
+		Damage:   projectile.GetDamage(),
+		State:    projectile.GetState(),
 	}
 }
 
@@ -80,19 +80,19 @@ func (m Mapper) GameStateToDTO(gameState game.GameState) *GameStateDTO {
 	for _, npcs := range gameState.GetNPCs() {
 		npcsDTOS = append(npcsDTOS, *m.CharacterToDTO(*npcs.Character))
 	}
-	
-	return &GameStateDTO {
-		Players: playerDTOS,
+
+	return &GameStateDTO{
+		Players:     playerDTOS,
 		Projectiles: projectileDTOS,
-		Npcs: npcsDTOS,
+		Npcs:        npcsDTOS,
 	}
 }
 
-func AbilityToDTO(ability character.Ability) AbilityDTO{
+func AbilityToDTO(ability character.Ability) AbilityDTO {
 	return AbilityDTO{
-		Id: ability.Id(),
-		Name: ability.Name(),
-		Range: ability.Range(),
+		Id:       ability.Id(),
+		Name:     ability.Name(),
+		Range:    ability.Range(),
 		Cooldown: ability.Cooldown(),
 	}
 }

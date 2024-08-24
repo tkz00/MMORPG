@@ -1,6 +1,8 @@
 package character
 
-import "unnamed-mmo/backend/pkg/utils"
+import (
+	"unnamed-mmo/backend/pkg/utils"
+)
 
 type Targeting int
 
@@ -11,22 +13,31 @@ const (
 )
 
 type Ability struct {
-	id			string
-	name		string
-	rangeValue	float64
-	cooldown	int64
-	targeting	Targeting
-	Mechanic  	func(caster Character, params AbilityParameters)
+	id             string
+	name           string
+	rangeValue     float64
+	cooldown       int64
+	targeting      Targeting
+	characterState Action
+	Mechanic       func(caster Character, params AbilityParameters)
 }
 
-func NewAbility(id string, name string, rangeValue float64, cooldown int64, targeting Targeting, mechanic func(caster Character, params AbilityParameters)) *Ability {
+func NewAbility(
+	id string,
+	name string,
+	rangeValue float64,
+	cooldown int64,
+	targeting Targeting,
+	characterState Action,
+	mechanic func(caster Character, params AbilityParameters)) *Ability {
 	return &Ability{
-		id: id,
-		name: name,
-		rangeValue: rangeValue,
-		cooldown: cooldown,
-		targeting: targeting,
-		Mechanic: mechanic,
+		id:             id,
+		name:           name,
+		rangeValue:     rangeValue,
+		cooldown:       cooldown,
+		targeting:      targeting,
+		characterState: characterState,
+		Mechanic:       mechanic,
 	}
 }
 
@@ -60,7 +71,7 @@ func (ability Ability) CreateAction(abilityInfo AbilityInfo, targetPositionCallb
 	case Target:
 		targetId, _ := abilityInfo.GetTargetId()
 		abilityParams = TargetIdAbilityParams{
-			TargetId: targetId,
+			TargetId:               targetId,
 			TargetPositionCallback: targetPositionCallback,
 		}
 	case Coordinates:
@@ -71,6 +82,6 @@ func (ability Ability) CreateAction(abilityInfo AbilityInfo, targetPositionCallb
 	}
 	return CastAbilityAction{
 		ability: ability,
-		params: abilityParams,
+		params:  abilityParams,
 	}
 }

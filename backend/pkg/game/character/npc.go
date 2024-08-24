@@ -16,7 +16,7 @@ func (npc *Npc) Update(deltaTime float64) {
 	if hasNoActionsInQueue {
 		timeSinceLastDecision := time.Since(npc.lastActionDecided).Milliseconds()
 		if timeSinceLastDecision > 5000 {
-			targetPosition := utils.RandomCoordinatesInRadius(npc.spawnerPosition, 2.5)
+			targetPosition := utils.RandomCoordinatesInRadius(npc.spawnerPosition, 25)
 			moveAction := &MoveAction{
 				TargetPosition: targetPosition,
 			}

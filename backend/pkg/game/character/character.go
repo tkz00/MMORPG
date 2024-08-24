@@ -16,22 +16,23 @@ type Action int
 
 const (
 	Idle Action = iota
+	Moving
 	Attacking
 	CastingHeal
 )
 
 type Character struct {
-	id 		  		string
+	id string
 	stats.Health
-	executingAction Action
-	position  		utils.Vector2
-	to        		utils.Vector2
-	direction 		utils.Vector2
-	actionsQueue	[]CharacterAction
+	ExecutingAction Action
+	position        utils.Vector2
+	to              utils.Vector2
+	direction       utils.Vector2
+	actionsQueue    []CharacterAction
 
 	// should this be here?
-	abilities		map[string]*Ability
-	lastUsed   		map[string]time.Time
+	abilities map[string]*Ability
+	lastUsed  map[string]time.Time
 }
 
 func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Character {
@@ -39,18 +40,18 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 
 	lastUsed := make(map[string]time.Time, len(abilities))
 	for _, ability := range abilities {
-        lastUsed[ability.id] = time.Time{}
-    }
+		lastUsed[ability.id] = time.Time{}
+	}
 
 	return &Character{
-		id: id,
-		position: 			initialPosition,
-		to:       			initialPosition,
-		Health:				stats.NewHealth(BASE_MAX_HEALTH),
-		executingAction: 	Idle,
-		actionsQueue: 		[]CharacterAction{},
-		abilities: 			abilities,
-		lastUsed: 			lastUsed,
+		id:              id,
+		position:        initialPosition,
+		to:              initialPosition,
+		Health:          stats.NewHealth(BASE_MAX_HEALTH),
+		ExecutingAction: Idle,
+		actionsQueue:    []CharacterAction{},
+		abilities:       abilities,
+		lastUsed:        lastUsed,
 	}
 }
 
@@ -72,7 +73,7 @@ func (p Character) GetHealth() stats.Health {
 }
 
 func (p Character) GetExecutingAction() Action {
-	return p.executingAction
+	return p.ExecutingAction
 }
 
 func (p Character) GetAbilities() map[string]*Ability {
@@ -80,42 +81,44 @@ func (p Character) GetAbilities() map[string]*Ability {
 }
 
 func (p *Character) EnqueueAction(action CharacterAction) {
-    p.actionsQueue = append(p.actionsQueue, action)
+	p.actionsQueue = append(p.actionsQueue, action)
 }
 
 func (p *Character) ClearActionsQueue() {
-    p.actionsQueue = nil
+	p.actionsQueue = nil
 }
 
 func (p *Character) PrependAction(action CharacterAction) {
-    p.actionsQueue = append([]CharacterAction{action}, p.actionsQueue...)
+	p.actionsQueue = append([]CharacterAction{action}, p.actionsQueue...)
 }
 
-func (p *Character) ExecuteNextAction() {
-    if len(p.actionsQueue) == 0 {
-        return
-    }
+func (c *Character) ExecuteNextAction() {
+	if len(c.actionsQueue) == 0 {
+		c.ExecutingAction = Idle
+		return
+	}
 
 	// this logic should be different, bc now every action is executed on each update, this has no effect on the
 	// behavior of the system (at least for now) but it could be confusing. Maybe a way to fix is to have the
 	// queue and a single executingAction field of type character action, when the last executingAction is
 	// completed (IsComplete()), the next action in the queue is moved to this single field and it's Execute
 	// function called, probably can be done with just the queue and changing some of the logic
-    currentAction := p.actionsQueue[0]
-    err := currentAction.Execute(p)
-    if err != nil {
-        fmt.Println("Error executing action:", err)
-        return
-    }
+	currentAction := c.actionsQueue[0]
+	err := currentAction.Execute(c)
+	if err != nil {
+		fmt.Println("Error executing action:", err)
+		return
+	}
 
-    if currentAction.IsComplete() {
-        p.actionsQueue = p.actionsQueue[1:]
-    }
+	if currentAction.IsComplete() {
+		c.actionsQueue = c.actionsQueue[1:]
+	}
 }
 
 func (p *Character) MoveTowards(to utils.Vector2) {
 	p.to = to
 	p.direction = utils.Normalize(p.position, p.to).Scale(PLAYER_SPEED)
+	p.ExecutingAction = Moving
 }
 
 func (p Character) IsMoving() bool {
@@ -124,7 +127,7 @@ func (p Character) IsMoving() bool {
 
 func (p *Character) UpdatePosition(deltaTime float64) {
 	distanceToTarget := p.position.Distance(p.to)
-	if distanceToTarget < (PLAYER_SPEED * deltaTime){
+	if distanceToTarget < (PLAYER_SPEED * deltaTime) {
 		p.position.Teleport(p.to)
 	} else {
 		p.position = p.position.Add(p.direction.Scale(deltaTime))
@@ -169,6 +172,7 @@ func (player *Character) ClosestPositionInRange(target utils.Vector2, rangeValue
 
 func (player *Character) CastAbility(ability Ability, params AbilityParameters) {
 	player.lastUsed[ability.id] = time.Now()
+	player.ExecutingAction = ability.characterState
 	ability.Cast(*player, params)
 }
 
