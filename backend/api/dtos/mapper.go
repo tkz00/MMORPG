@@ -78,7 +78,7 @@ func (m Mapper) GameStateToDTO(gameState game.GameState) *GameStateDTO {
 	}
 
 	for _, npcs := range gameState.GetNPCs() {
-		npcsDTOS = append(npcsDTOS, *m.CharacterToDTO(npcs))
+		npcsDTOS = append(npcsDTOS, *m.CharacterToDTO(*npcs.Character))
 	}
 	
 	return &GameStateDTO {

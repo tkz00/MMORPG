@@ -96,6 +96,11 @@ func (p *Character) ExecuteNextAction() {
         return
     }
 
+	// this logic should be different, bc now every action is executed on each update, this has no effect on the
+	// behavior of the system (at least for now) but it could be confusing. Maybe a way to fix is to have the
+	// queue and a single executingAction field of type character action, when the last executingAction is
+	// completed (IsComplete()), the next action in the queue is moved to this single field and it's Execute
+	// function called, probably can be done with just the queue and changing some of the logic
     currentAction := p.actionsQueue[0]
     err := currentAction.Execute(p)
     if err != nil {

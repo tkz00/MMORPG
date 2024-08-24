@@ -16,7 +16,7 @@ type GameState struct {
 	players   	map[string]*character.Character
 	projectiles map[string]*Projectile
 	spawners 	map[string]*spawner.Spawner
-	npcs		map[string]*character.Character
+	npcs		map[string]*character.Npc
 }
 
 func StartGameState() GameState {
@@ -36,7 +36,7 @@ func StartGameState() GameState {
 		players:   		make(map[string]*character.Character),
 		projectiles: 	make(map[string]*Projectile),
 		spawners: 		spawners,
-		npcs: 			make(map[string]*character.Character),
+		npcs: 			make(map[string]*character.Npc),
 	}
 }
 
@@ -88,8 +88,8 @@ func (gs GameState) GetProjectiles() []Projectile {
     return projectilesSlice
 }
 
-func (gs GameState) GetNPCs() []character.Character {
-	npcsSlice := make([]character.Character, 0, len(gs.npcs))
+func (gs GameState) GetNPCs() []character.Npc {
+	npcsSlice := make([]character.Npc, 0, len(gs.npcs))
     for _, player := range gs.npcs {
         npcsSlice = append(npcsSlice, *player)
     }
@@ -109,6 +109,7 @@ func (gs GameState) UpdateState(deltaTime float64) {
 	gs.updatePlayers(deltaTime)
 	gs.updateProjectiles(deltaTime)
 	gs.updateSpawners()
+	gs.updateNpcs(deltaTime)
 }
 
 func (gs *GameState) updatePlayers(deltaTime float64) {
@@ -187,5 +188,15 @@ func (gs *GameState) updateSpawners() {
 		for _, newNPC := range newNPCs {
 			gs.npcs[uuid.NewString()] = newNPC
 		}
+	}
+}
+
+func (gs *GameState) updateNpcs(deltaTime float64) {
+	for _, npc := range gs.npcs {
+		npc.Update(deltaTime)
+		// npc.ExecuteNextAction()
+		// if npc.IsMoving() {
+		// 	npc.UpdatePosition(deltaTime)
+		// }
 	}
 }

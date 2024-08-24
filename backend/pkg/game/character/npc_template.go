@@ -1,6 +1,7 @@
 package character
 
 import (
+	"time"
 	"unnamed-mmo/backend/pkg/utils"
 )
 
@@ -18,7 +19,11 @@ func NewNPCTemplate(id string, name string, startingHealth int) NPCTemplate{
 	}
 }
 
-func (npcTemplate NPCTemplate) NewNPC(id string, position utils.Vector2) *Character {
+func (npcTemplate NPCTemplate) NewNPC(id string, position utils.Vector2, spawnerPosition utils.Vector2) *Npc {
 	x, z := position.GetPosition()
-	return CreateCharacter(id, x, z, map[string]*Ability{})
+	return &Npc{
+		Character: CreateCharacter(id, x, z, map[string]*Ability{}),
+		lastActionDecided: time.Now(),
+		spawnerPosition: spawnerPosition,
+	}
 }

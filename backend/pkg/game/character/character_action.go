@@ -14,10 +14,10 @@ type MoveAction struct {
     isComplete     bool
 }
 
-func (a *MoveAction) Execute(player *Character) error {
+func (a *MoveAction) Execute(character *Character) error {
     if !a.isComplete {
-        player.MoveTowards(a.TargetPosition)
-        a.isComplete = player.position == a.TargetPosition // Adjust this check based on your movement logic
+        character.MoveTowards(a.TargetPosition)
+        a.isComplete = character.position == a.TargetPosition // Adjust this check based on your movement logic
     }
     return nil
 }
