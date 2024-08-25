@@ -31,7 +31,7 @@ func StartGameState() GameState {
 	}
 
 	skeletonEnemiesAbilities := map[string]*character.Ability{
-		"0": character.NewAbility("0", "health burn", 7, 1500, character.Target, character.Attacking,
+		"0": character.NewAbility("0", "sword slash", 2, 1500, character.Target, character.Attacking,
 			func(caster character.Character, params character.AbilityParameters) {
 				targetId := params.(character.TargetIdAbilityParams).TargetId
 

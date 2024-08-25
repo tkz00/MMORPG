@@ -55,34 +55,44 @@ func (npc *Npc) TakePacificAction() {
 func (npc *Npc) TakeAggressiveAction() {
 	ability := npc.abilities["0"]
 
-	targetPositionCallback := func(targetId string) (utils.Vector2, error) {
+	if npc.CheckCooldown(ability.id) {
+		var abilityParams AbilityParameters
+		switch ability.targeting {
+		case Target:
+			targetPositionCallback := func(targetId string) (utils.Vector2, error) {
+				if npc.GetPosition().Distance(npc.target.GetPosition()) > ability.Range() {
+					return npc.ClosestPositionInRange(npc.target.GetPosition(), ability.Range()), nil
+				} else {
+					return npc.GetPosition(), nil
+				}
+			}
+			targetId := npc.target.id
+			abilityParams = TargetIdAbilityParams{
+				TargetId:               targetId,
+				TargetPositionCallback: targetPositionCallback,
+			}
+		case Coordinates:
+			targetPosition := npc.target.position
+			abilityParams = CoordinateAbilityParams{
+				Target: targetPosition,
+			}
+		}
+		npc.EnqueueAbilityCast(
+			CastAbilityAction{
+				ability: *ability,
+				params:  abilityParams,
+			},
+		)
+	} else {
+		// If the ability is in cooldown, keep mooving into range, don't wait for the cooldown to end to get into range.
 		if npc.GetPosition().Distance(npc.target.GetPosition()) > ability.Range() {
-			return npc.ClosestPositionInRange(npc.target.GetPosition(), ability.Range()), nil
-		} else {
-			return npc.GetPosition(), nil
+			targetPosition := npc.ClosestPositionInRange(npc.target.GetPosition(), ability.Range())
+			moveAction := &MoveAction{
+				TargetPosition: targetPosition,
+			}
+			npc.EnqueueAction(moveAction)
 		}
 	}
-
-	var abilityParams AbilityParameters
-	switch ability.targeting {
-	case Target:
-		targetId := npc.target.id
-		abilityParams = TargetIdAbilityParams{
-			TargetId:               targetId,
-			TargetPositionCallback: targetPositionCallback,
-		}
-	case Coordinates:
-		targetPosition := npc.target.position
-		abilityParams = CoordinateAbilityParams{
-			Target: targetPosition,
-		}
-	}
-	npc.EnqueueAbilityCast(
-		CastAbilityAction{
-			ability: *ability,
-			params:  abilityParams,
-		},
-	)
 }
 
 func (npc *Npc) BecomeAggressive(target *Character) {
