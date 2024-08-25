@@ -55,8 +55,9 @@ func (npc *Npc) TakePacificAction() {
 func (npc *Npc) TakeAggressiveAction() {
 	ability := npc.abilities["0"]
 
-	if npc.GetPosition().Distance(npc.target.GetPosition()) > ability.Range() {
-		targetPosition := npc.ClosestPositionInRange(npc.target.GetPosition(), ability.Range())
+	// has a distance tolerance of 0.1, this is a patch, it won't be definitive solution
+	if (npc.GetPosition().Distance(npc.target.GetPosition()) - 0.1) > ability.Range() {
+		targetPosition := npc.ClosestPositionInRange(npc.target.GetPosition(), (ability.Range() - 0.1))
 		moveAction := &MoveAction{
 			TargetPosition: targetPosition,
 		}
