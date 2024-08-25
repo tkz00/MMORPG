@@ -138,9 +138,9 @@ func (p Character) GetRadius() float64 {
 	return CHARACTER_BOUNDS_RADIUS
 }
 
-func (player *Character) EnqueueAbilityCast(castAbilityAction CastAbilityAction) {
-	if player.CheckCooldown(castAbilityAction.ability.id) {
-		player.EnqueueAction(&castAbilityAction)
+func (character *Character) EnqueueAbilityCast(castAbilityAction CastAbilityAction) {
+	if character.CheckCooldown(castAbilityAction.ability.id) {
+		character.EnqueueAction(&castAbilityAction)
 	}
 }
 

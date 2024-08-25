@@ -1,6 +1,7 @@
 package character
 
 import (
+	"fmt"
 	"time"
 	"unnamed-mmo/backend/pkg/utils"
 )
@@ -23,11 +24,17 @@ type Npc struct {
 func (npc *Npc) Update(deltaTime float64) {
 	hasNoActionsInQueue := len(npc.Character.actionsQueue) == 0
 	if hasNoActionsInQueue {
+		// fmt.Println(npc.state)
 		switch npc.state {
 		case Pacific:
 			npc.TakePacificAction()
 		case Aggressive:
-			npc.TakeAggressiveAction()
+			fmt.Println(npc.target.IsAlive())
+			if npc.target.IsAlive() {
+				npc.TakeAggressiveAction()
+			} else {
+				npc.BecomePacific()
+			}
 		}
 	}
 	npc.Character.ExecuteNextAction()
@@ -49,12 +56,6 @@ func (npc *Npc) TakePacificAction() {
 }
 
 func (npc *Npc) TakeAggressiveAction() {
-	// var ability Ability
-	// for _, value := range npc.abilities {
-	// 	ability = *value
-	// 	break
-	// }
-
 	ability := npc.abilities["0"]
 
 	targetPositionCallback := func(targetId string) (utils.Vector2, error) {
@@ -90,4 +91,9 @@ func (npc *Npc) TakeAggressiveAction() {
 func (npc *Npc) BecomeAggressive(target *Character) {
 	npc.target = target
 	npc.state = Aggressive
+}
+
+func (npc *Npc) BecomePacific() {
+	npc.target = nil
+	npc.state = Pacific
 }

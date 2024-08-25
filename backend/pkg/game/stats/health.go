@@ -29,3 +29,7 @@ func (h *Health) HealthVariation(variation int) {
 		h.currentHealth = 0
 	}
 }
+
+func (h Health) IsAlive() bool {
+	return h.currentHealth > 0
+}
