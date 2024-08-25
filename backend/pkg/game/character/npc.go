@@ -1,7 +1,6 @@
 package character
 
 import (
-	"fmt"
 	"time"
 	"unnamed-mmo/backend/pkg/utils"
 )
@@ -24,12 +23,10 @@ type Npc struct {
 func (npc *Npc) Update(deltaTime float64) {
 	hasNoActionsInQueue := len(npc.Character.actionsQueue) == 0
 	if hasNoActionsInQueue {
-		// fmt.Println(npc.state)
 		switch npc.state {
 		case Pacific:
 			npc.TakePacificAction()
 		case Aggressive:
-			fmt.Println(npc.target.IsAlive())
 			if npc.target.IsAlive() {
 				npc.TakeAggressiveAction()
 			} else {
