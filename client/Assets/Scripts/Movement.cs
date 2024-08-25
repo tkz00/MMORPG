@@ -13,17 +13,9 @@ public class Movement : MonoBehaviour
     private float playerSpeed = 10f;
     private CharacterController characterController;
 
-    private static Movement instance;
-
-    public static Movement Instance()
-    {
-        return instance;
-    }
-
     void Awake()
     {
         characterController = GetComponent<CharacterController>();
-        instance = this;
     }
 
     public void Move(Vector3 target)
