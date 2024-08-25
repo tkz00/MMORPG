@@ -14,8 +14,8 @@ const (
 )
 
 type AbilityCastDTO struct {
-	Id             		string                           	`json:"id"`
-	AbilityParameters 	map[AbilityParameters]interface{} 	`json:"abilityParameters"`
+	Id                string                            `json:"id"`
+	AbilityParameters map[AbilityParameters]interface{} `json:"abilityParameters"`
 }
 
 func (p AbilityCastDTO) GetType() string {
@@ -53,35 +53,35 @@ func (a *AbilityCastDTO) UnmarshalJSON(data []byte) error {
 }
 
 func (abilityCast AbilityCastDTO) GetTargetPosition() (utils.Vector2, error) {
-    targetPositionMap, ok := abilityCast.AbilityParameters[TargetPosition].(map[string]interface{})
-    if !ok {
-        return utils.Vector2{}, fmt.Errorf("unable to cast TargetPosition to map[string]interface{}")
-    }
+	targetPositionMap, ok := abilityCast.AbilityParameters[TargetPosition].(map[string]interface{})
+	if !ok {
+		return utils.Vector2{}, fmt.Errorf("unable to cast TargetPosition to map[string]interface{}")
+	}
 
-    xValue, xOk := targetPositionMap["x"]
-    zValue, zOk := targetPositionMap["z"]
+	xValue, xOk := targetPositionMap["x"]
+	zValue, zOk := targetPositionMap["z"]
 
-    if !xOk || !zOk {
-        return utils.Vector2{}, fmt.Errorf("x or z value not found in the target position map")
-    }
+	if !xOk || !zOk {
+		return utils.Vector2{}, fmt.Errorf("x or z value not found in the target position map")
+	}
 
-    x, xConvOk := xValue.(float64)
-    z, zConvOk := zValue.(float64)
+	x, xConvOk := xValue.(float64)
+	z, zConvOk := zValue.(float64)
 
-    if !xConvOk || !zConvOk {
-        return utils.Vector2{}, fmt.Errorf("x or z value could not be converted to float64")
-    }
+	if !xConvOk || !zConvOk {
+		return utils.Vector2{}, fmt.Errorf("x or z value could not be converted to float64")
+	}
 
-    return *utils.NewVector2(x, z), nil
+	return *utils.NewVector2(x, z), nil
 }
 
 func (abilityCast AbilityCastDTO) GetTargetId() (string, error) {
 	targetId, ok := abilityCast.AbilityParameters[TargetId].(string)
-    if !ok {
-        return "", fmt.Errorf("unable to cast TargetId to string")
-    }
+	if !ok {
+		return "", fmt.Errorf("unable to cast TargetId to string")
+	}
 
-    return targetId, nil
+	return targetId, nil
 }
 
 func (abilityCast AbilityCastDTO) GetId() string {

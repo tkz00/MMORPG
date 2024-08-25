@@ -18,10 +18,10 @@ func (health Health) GetCurrentHealth() int {
 }
 
 func (h *Health) HealthVariation(variation int) {
-	newHealth := h.GetCurrentHealth() - variation
+	newHealth := h.GetCurrentHealth() + variation
 	if newHealth > 0 {
 		if h.GetMaxHealth() > newHealth {
-			h.currentHealth -= variation
+			h.currentHealth += variation
 		} else {
 			h.currentHealth = h.maxHealth
 		}

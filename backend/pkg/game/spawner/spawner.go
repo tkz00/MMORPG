@@ -9,20 +9,20 @@ import (
 )
 
 type Spawner struct {
-	position	utils.Vector2
-	radius		float64
-	rate		time.Duration
-	npcTemplate	character.NPCTemplate
-	lastSpawned	time.Time
+	position    utils.Vector2
+	radius      float64
+	rate        time.Duration
+	npcTemplate character.NPCTemplate
+	lastSpawned time.Time
 	activeNPCs  []*character.Npc
 	maxNPCs     int
 }
 
 func NewSpawner(position utils.Vector2, radius float64, rate time.Duration, npcTemplate character.NPCTemplate) *Spawner {
 	return &Spawner{
-		position: position,
-		radius: radius,
-		rate: rate,
+		position:    position,
+		radius:      radius,
+		rate:        rate,
 		npcTemplate: npcTemplate,
 		lastSpawned: time.Now(),
 		activeNPCs:  []*character.Npc{},
@@ -30,21 +30,21 @@ func NewSpawner(position utils.Vector2, radius float64, rate time.Duration, npcT
 	}
 }
 
-func (spawner *Spawner)GetNewNPCs() []*character.Npc {
+func (spawner *Spawner) GetNewNPCs() []*character.Npc {
 	elapsedTime := time.Since(spawner.lastSpawned)
 	spawnIntervals := int(elapsedTime / spawner.rate)
 	if spawnIntervals <= 0 {
 		return nil
 	}
 	npcsToSpawn := spawnIntervals
-	if len(spawner.activeNPCs) + npcsToSpawn > spawner.maxNPCs {
+	if len(spawner.activeNPCs)+npcsToSpawn > spawner.maxNPCs {
 		npcsToSpawn = spawner.maxNPCs - len(spawner.activeNPCs)
 	}
 	if npcsToSpawn <= 0 {
 		return nil
 	}
 	spawner.lastSpawned = spawner.lastSpawned.Add(spawner.rate * time.Duration(spawnIntervals))
-	
+
 	npcs := make([]*character.Npc, npcsToSpawn)
 	for i := range npcs {
 		newNpcId := uuid.NewString()
@@ -68,4 +68,3 @@ func (spawner *Spawner) HandleNPCDeath(npc *character.Npc) {
 		}
 	}
 }
-

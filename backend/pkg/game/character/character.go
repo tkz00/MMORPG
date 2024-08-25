@@ -8,8 +8,8 @@ import (
 )
 
 const BASE_MAX_HEALTH = 100
-const PLAYER_SPEED float64 = 10
-const PLAYER_BOUNDS_RADIUS float64 = 0.5
+const CHARACTER_SPEED float64 = 10
+const CHARACTER_BOUNDS_RADIUS float64 = 0.5
 
 // need to rename this
 type Action int
@@ -117,7 +117,7 @@ func (c *Character) ExecuteNextAction() {
 
 func (p *Character) MoveTowards(to utils.Vector2) {
 	p.to = to
-	p.direction = utils.Normalize(p.position, p.to).Scale(PLAYER_SPEED)
+	p.direction = utils.Normalize(p.position, p.to).Scale(CHARACTER_SPEED)
 	p.ExecutingAction = Moving
 }
 
@@ -127,7 +127,7 @@ func (p Character) IsMoving() bool {
 
 func (p *Character) UpdatePosition(deltaTime float64) {
 	distanceToTarget := p.position.Distance(p.to)
-	if distanceToTarget < (PLAYER_SPEED * deltaTime) {
+	if distanceToTarget < (CHARACTER_SPEED * deltaTime) {
 		p.position.Teleport(p.to)
 	} else {
 		p.position = p.position.Add(p.direction.Scale(deltaTime))
@@ -135,7 +135,7 @@ func (p *Character) UpdatePosition(deltaTime float64) {
 }
 
 func (p Character) GetRadius() float64 {
-	return PLAYER_BOUNDS_RADIUS
+	return CHARACTER_BOUNDS_RADIUS
 }
 
 func (player *Character) EnqueueAbilityCast(castAbilityAction CastAbilityAction) {

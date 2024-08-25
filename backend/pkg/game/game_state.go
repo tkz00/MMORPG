@@ -22,24 +22,39 @@ type GameState struct {
 }
 
 func StartGameState() GameState {
-	skeletonNPCTemplate := character.NewNPCTemplate("0", "skeleton", 25)
-
-	spawners := map[string]*spawner.Spawner{
-		"skeleton_spawner_0": spawner.NewSpawner(
-			*utils.NewVector2(0, 15),
-			2.5,
-			4*time.Second,
-			skeletonNPCTemplate,
-		),
-	}
-
-	return GameState{
+	gs := GameState{
 		playerIds:   make(map[*websocket.Conn]string),
 		players:     make(map[string]*character.Character),
 		projectiles: make(map[string]*Projectile),
-		spawners:    spawners,
+		spawners:    make(map[string]*spawner.Spawner),
 		npcs:        make(map[string]*character.Npc),
 	}
+
+	skeletonEnemiesAbilities := map[string]*character.Ability{
+		"0": character.NewAbility("0", "health burn", 7, 1500, character.Target, character.Attacking,
+			func(caster character.Character, params character.AbilityParameters) {
+				targetId := params.(character.TargetIdAbilityParams).TargetId
+
+				target, err := gs.getCharacterById(targetId)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+
+				target.HealthVariation(-10)
+			}),
+	}
+
+	skeletonNPCTemplate := character.NewNPCTemplate("0", "skeleton", 25, skeletonEnemiesAbilities)
+
+	gs.spawners["skeleton_spawner_0"] = spawner.NewSpawner(
+		*utils.NewVector2(0, 15),
+		2.5,
+		4*time.Second,
+		skeletonNPCTemplate,
+	)
+
+	return gs
 }
 
 func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Character {
@@ -61,7 +76,7 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Character {
 					return
 				}
 
-				target.HealthVariation(-10)
+				target.HealthVariation(10)
 			}),
 	}
 	player := character.CreateCharacter(playerId, 0, 0, abilities)
@@ -154,14 +169,17 @@ func (gs GameState) checkCollision(projectile Projectile) bool {
 	projectileHit := false
 	for _, player := range gs.players {
 		if player.GetId() != projectile.caster && gs.AreColliding(*player, projectile) {
-			player.HealthVariation(projectile.damage)
+			player.HealthVariation(-projectile.damage)
 			projectileHit = true
 		}
 	}
 
 	for _, npc := range gs.npcs {
 		if npc.GetId() != projectile.caster && gs.AreColliding(*npc.Character, projectile) {
-			npc.HealthVariation(projectile.damage)
+			npc.HealthVariation(-projectile.damage)
+			if caster, err := gs.getCharacterById(projectile.caster); err == nil {
+				npc.BecomeAggressive(caster)
+			}
 			projectileHit = true
 		}
 	}
@@ -197,13 +215,6 @@ func (gs GameState) AreColliding(player character.Character, projectile Projecti
 	distance := playerPosition.Distance(projectilePosition)
 	return distance < (player.GetRadius() + projectile.GetRadius())
 }
-
-// How do I solve this?
-// func (gs *GameState) ResetPlayersState() {
-// 	for _, player := range gs.players {
-// 		player.executingAction = character.Idle
-// 	}
-// }
 
 func (gs *GameState) updateSpawners() {
 	for _, spawner := range gs.spawners {
