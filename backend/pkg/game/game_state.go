@@ -87,6 +87,7 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Character {
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {
 	playerId := gs.playerIds[conn]
+	gs.players[playerId].Remove()
 	delete(gs.players, playerId)
 	delete(gs.playerIds, conn)
 }
@@ -190,23 +191,26 @@ func (gs GameState) checkCollision(projectile Projectile) bool {
 func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo character.AbilityInfo) {
 	casterId := gs.playerIds[conn]
 	caster := gs.players[casterId]
-	ability := caster.GetAbilities()[abilityInfo.GetId()]
-	abilityAction := ability.CreateAction(abilityInfo,
-		func(targetId string) (utils.Vector2, error) {
+	abilityId := abilityInfo.GetId()
+	if caster.CheckCooldown(abilityId) {
+		ability := caster.GetAbilities()[abilityId]
+		abilityAction := ability.CreateAction(abilityInfo,
+			func(targetId string) (utils.Vector2, error) {
 
-			target, err := gs.getCharacterById(targetId)
-			if err != nil {
-				fmt.Println(err)
-				return utils.Vector2{}, err
-			}
+				target, err := gs.getCharacterById(targetId)
+				if err != nil {
+					fmt.Println(err)
+					return utils.Vector2{}, err
+				}
 
-			if caster.GetPosition().Distance(target.GetPosition()) > ability.Range() {
-				return caster.ClosestPositionInRange(target.GetPosition(), ability.Range()), nil
-			} else {
-				return caster.GetPosition(), nil
-			}
-		})
-	caster.EnqueueAbilityCast(abilityAction)
+				if caster.GetPosition().Distance(target.GetPosition()) > ability.Range() {
+					return caster.ClosestPositionInRange(target.GetPosition(), ability.Range()), nil
+				} else {
+					return caster.GetPosition(), nil
+				}
+			})
+		caster.EnqueueAbilityCast(abilityAction)
+	}
 }
 
 func (gs GameState) AreColliding(player character.Character, projectile Projectile) bool {

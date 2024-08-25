@@ -98,6 +98,9 @@ func (npc *Npc) TakeAggressiveAction() {
 func (npc *Npc) BecomeAggressive(target *Character) {
 	npc.target = target
 	npc.state = Aggressive
+	target.SubscribeToRemoval(func() {
+		npc.BecomePacific()
+	})
 }
 
 func (npc *Npc) BecomePacific() {

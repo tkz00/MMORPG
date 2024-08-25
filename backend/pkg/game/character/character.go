@@ -33,6 +33,8 @@ type Character struct {
 	// should this be here?
 	abilities map[string]*Ability
 	lastUsed  map[string]time.Time
+
+	onRemoved []func()
 }
 
 func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Character {
@@ -139,9 +141,7 @@ func (p Character) GetRadius() float64 {
 }
 
 func (character *Character) EnqueueAbilityCast(castAbilityAction CastAbilityAction) {
-	if character.CheckCooldown(castAbilityAction.ability.id) {
-		character.EnqueueAction(&castAbilityAction)
-	}
+	character.EnqueueAction(&castAbilityAction)
 }
 
 func (player *Character) CheckCooldown(abilityId string) bool {
@@ -176,6 +176,18 @@ func (player *Character) CastAbility(ability Ability, params AbilityParameters) 
 	ability.Cast(*player, params)
 }
 
+// removal => disconnection, for now
+func (c *Character) SubscribeToRemoval(callback func()) {
+	c.onRemoved = append(c.onRemoved, callback)
+}
+
+func (c *Character) Remove() {
+	for _, callback := range c.onRemoved {
+		callback()
+	}
+}
+
+// where should this be?
 type AbilityInfo interface {
 	GetId() string
 	GetTargetPosition() (utils.Vector2, error)
