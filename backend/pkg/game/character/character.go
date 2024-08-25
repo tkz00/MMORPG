@@ -144,12 +144,12 @@ func (character *Character) EnqueueAbilityCast(castAbilityAction CastAbilityActi
 	character.EnqueueAction(&castAbilityAction)
 }
 
-func (player *Character) CheckCooldown(abilityId string) bool {
+func (player *Character) IsInCooldown(abilityId string) bool {
 	ability := player.abilities[abilityId]
 	if player.RemainingCooldown(ability) <= 0 {
-		return true
-	} else {
 		return false
+	} else {
+		return true
 	}
 }
 

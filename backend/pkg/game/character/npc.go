@@ -55,7 +55,16 @@ func (npc *Npc) TakePacificAction() {
 func (npc *Npc) TakeAggressiveAction() {
 	ability := npc.abilities["0"]
 
-	if npc.CheckCooldown(ability.id) {
+	if npc.GetPosition().Distance(npc.target.GetPosition()) > ability.Range() {
+		targetPosition := npc.ClosestPositionInRange(npc.target.GetPosition(), ability.Range())
+		moveAction := &MoveAction{
+			TargetPosition: targetPosition,
+		}
+		npc.EnqueueAction(moveAction)
+		return
+	}
+
+	if !npc.IsInCooldown(ability.id) {
 		var abilityParams AbilityParameters
 		switch ability.targeting {
 		case Target:
@@ -83,15 +92,6 @@ func (npc *Npc) TakeAggressiveAction() {
 				params:  abilityParams,
 			},
 		)
-	} else {
-		// If the ability is in cooldown, keep mooving into range, don't wait for the cooldown to end to get into range.
-		if npc.GetPosition().Distance(npc.target.GetPosition()) > ability.Range() {
-			targetPosition := npc.ClosestPositionInRange(npc.target.GetPosition(), ability.Range())
-			moveAction := &MoveAction{
-				TargetPosition: targetPosition,
-			}
-			npc.EnqueueAction(moveAction)
-		}
 	}
 }
 

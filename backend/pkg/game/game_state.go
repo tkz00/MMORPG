@@ -41,7 +41,7 @@ func StartGameState() GameState {
 					return
 				}
 
-				target.HealthVariation(-10)
+				target.HealthVariation(-2)
 			}),
 	}
 
@@ -192,7 +192,7 @@ func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo charac
 	casterId := gs.playerIds[conn]
 	caster := gs.players[casterId]
 	abilityId := abilityInfo.GetId()
-	if caster.CheckCooldown(abilityId) {
+	if !caster.IsInCooldown(abilityId) {
 		ability := caster.GetAbilities()[abilityId]
 		abilityAction := ability.CreateAction(abilityInfo,
 			func(targetId string) (utils.Vector2, error) {
