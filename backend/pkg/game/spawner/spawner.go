@@ -26,7 +26,7 @@ func NewSpawner(position utils.Vector2, radius float64, rate time.Duration, npcT
 		npcTemplate: npcTemplate,
 		lastSpawned: time.Now(),
 		activeNPCs:  []*character.Npc{},
-		maxNPCs:     1,
+		maxNPCs:     3,
 	}
 }
 
@@ -50,7 +50,9 @@ func (spawner *Spawner) GetNewNPCs() []*character.Npc {
 		newNpcId := uuid.NewString()
 		npcPosition := utils.RandomCoordinatesInRadius(spawner.position, spawner.radius)
 		npcs[i] = spawner.npcTemplate.NewNPC(newNpcId, npcPosition, spawner.position)
-		// npcs[i].RegisterOnDeathCallback(spawner.HandleNPCDeath)
+		npcs[i].SubscribeToRemoval(func() {
+			spawner.HandleNPCDeath(npcs[i])
+		})
 	}
 
 	spawner.activeNPCs = append(spawner.activeNPCs, npcs...)

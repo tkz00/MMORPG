@@ -230,8 +230,19 @@ func (gs *GameState) updateSpawners() {
 }
 
 func (gs *GameState) updateNpcs(deltaTime float64) {
-	for _, npc := range gs.npcs {
-		npc.Update(deltaTime)
+	var deadNpcs []string
+
+	for id, npc := range gs.npcs {
+		if npc.IsAlive() {
+			npc.Update(deltaTime)
+		} else {
+			npc.Remove()
+			deadNpcs = append(deadNpcs, id)
+		}
+	}
+
+	for _, id := range deadNpcs {
+		delete(gs.npcs, id)
 	}
 }
 

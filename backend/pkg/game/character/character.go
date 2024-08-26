@@ -176,7 +176,7 @@ func (player *Character) CastAbility(ability Ability, params AbilityParameters) 
 	ability.Cast(*player, params)
 }
 
-// removal => disconnection, for now
+// removal => disconnection & death, for now, but for players nothing subscribes to removal.
 func (c *Character) SubscribeToRemoval(callback func()) {
 	c.onRemoved = append(c.onRemoved, callback)
 }
