@@ -18,6 +18,7 @@ type Npc struct {
 	spawnerPosition   utils.Vector2
 	state             NpcState
 	target            *Character
+	aggroRange        float64
 }
 
 func (npc *Npc) Update(deltaTime float64) {
@@ -27,7 +28,7 @@ func (npc *Npc) Update(deltaTime float64) {
 		case Pacific:
 			npc.TakePacificAction()
 		case Aggressive:
-			if npc.target.IsAlive() {
+			if npc.target.IsAlive() && npc.targetIsInRange(npc.target.position) {
 				npc.TakeAggressiveAction()
 			} else {
 				npc.BecomePacific()
@@ -105,4 +106,8 @@ func (npc *Npc) BecomeAggressive(target *Character) {
 func (npc *Npc) BecomePacific() {
 	npc.target = nil
 	npc.state = Pacific
+}
+
+func (npc *Npc) targetIsInRange(targetPosition utils.Vector2) bool {
+	return npc.spawnerPosition.Distance(targetPosition) < npc.aggroRange
 }

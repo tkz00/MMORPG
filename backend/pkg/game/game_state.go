@@ -45,7 +45,7 @@ func StartGameState() GameState {
 			}),
 	}
 
-	skeletonNPCTemplate := character.NewNPCTemplate("0", "skeleton", 25, skeletonEnemiesAbilities)
+	skeletonNPCTemplate := character.NewNPCTemplate("0", "skeleton", 25, 12, skeletonEnemiesAbilities)
 
 	gs.spawners["skeleton_spawner_0"] = spawner.NewSpawner(
 		*utils.NewVector2(0, 15),
