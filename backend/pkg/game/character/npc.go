@@ -60,7 +60,11 @@ func (npc *Npc) TakeAggressiveAction() {
 		var abilityParams AbilityParameters
 		switch ability.targeting {
 		case Target:
-			targetPositionCallback := func(targetId string) (utils.Vector2, error) {
+			targetingCoordinatesCallback := func(targetId string) (utils.Vector2, error) {
+				target := npc.target
+				return target.GetPosition(), nil
+			}
+			castingCoordinatesCallback := func(targetId string) (utils.Vector2, error) {
 				if npc.GetPosition().Distance(npc.target.GetPosition()) > ability.Range() {
 					return npc.ClosestPositionInRange(npc.target.GetPosition(), ability.Range()), nil
 				} else {
@@ -70,7 +74,8 @@ func (npc *Npc) TakeAggressiveAction() {
 			targetId := npc.target.id
 			abilityParams = TargetIdAbilityParams{
 				TargetId:                   targetId,
-				CastingCoordinatesCallback: targetPositionCallback,
+				TargetCoordinatesCallback:  targetingCoordinatesCallback,
+				CastingCoordinatesCallback: castingCoordinatesCallback,
 			}
 		case Coordinates:
 			targetPosition := npc.target.position
