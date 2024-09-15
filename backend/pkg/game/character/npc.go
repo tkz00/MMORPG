@@ -2,7 +2,7 @@ package character
 
 import (
 	"time"
-	"unnamed-mmo/backend/pkg/utils"
+	"tkz00/backend/pkg/utils"
 )
 
 type NpcState int

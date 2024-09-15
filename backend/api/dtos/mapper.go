@@ -3,9 +3,9 @@ package dtos
 import (
 	"sync"
 
-	"unnamed-mmo/backend/pkg/game"
-	"unnamed-mmo/backend/pkg/game/character"
-	"unnamed-mmo/backend/pkg/utils"
+	"tkz00/backend/pkg/game"
+	"tkz00/backend/pkg/game/character"
+	"tkz00/backend/pkg/utils"
 )
 
 type Mapper struct{}

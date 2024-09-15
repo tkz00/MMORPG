@@ -3,18 +3,18 @@ package connection
 import (
 	"encoding/json"
 	"fmt"
-	"unnamed-mmo/backend/api/dtos"
-	"unnamed-mmo/backend/pkg/utils"
+	"tkz00/backend/api/dtos"
+	"tkz00/backend/pkg/utils"
 )
 
 type WebSocketMessage struct {
-	Body        dtos.DTO    `json:"body"`
-	ActionType  string      `json:"actionType"`
+	Body       dtos.DTO `json:"body"`
+	ActionType string   `json:"actionType"`
 }
 
 func CreateWebSocketResponse(body dtos.DTO) WebSocketMessage {
 	return WebSocketMessage{
-		Body: body,
+		Body:       body,
 		ActionType: body.GetType(),
 	}
 }
@@ -31,33 +31,33 @@ func (wsr WebSocketMessage) Serialize() []byte {
 }
 
 func (wr *WebSocketMessage) UnmarshalJSON(data []byte) error {
-    var tmp struct {
-        Body json.RawMessage    `json:"body"`
-        ActionType string       `json:"actionType"`
-    }
+	var tmp struct {
+		Body       json.RawMessage `json:"body"`
+		ActionType string          `json:"actionType"`
+	}
 
-    if err := json.Unmarshal(data, &tmp); err != nil {
-        return err
-    }
+	if err := json.Unmarshal(data, &tmp); err != nil {
+		return err
+	}
 
-    wr.ActionType = tmp.ActionType
+	wr.ActionType = tmp.ActionType
 
-    switch tmp.ActionType {
-    case "Position":
-        var pos dtos.PositionDTO
-        if err := json.Unmarshal(tmp.Body, &pos); err != nil {
-            return err
-        }
-        wr.Body = pos
-    case "AbilityCast":
-        var ability dtos.AbilityCastDTO
-        if err := json.Unmarshal(tmp.Body, &ability); err != nil {
-            return err
-        }
-        wr.Body = ability
-    default:
-        return fmt.Errorf("unknown message type: %s", tmp.ActionType)
-    }
+	switch tmp.ActionType {
+	case "Position":
+		var pos dtos.PositionDTO
+		if err := json.Unmarshal(tmp.Body, &pos); err != nil {
+			return err
+		}
+		wr.Body = pos
+	case "AbilityCast":
+		var ability dtos.AbilityCastDTO
+		if err := json.Unmarshal(tmp.Body, &ability); err != nil {
+			return err
+		}
+		wr.Body = ability
+	default:
+		return fmt.Errorf("unknown message type: %s", tmp.ActionType)
+	}
 
-    return nil
+	return nil
 }

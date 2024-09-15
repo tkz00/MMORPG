@@ -1,7 +1,7 @@
 package game
 
 import (
-	"unnamed-mmo/backend/pkg/utils"
+	"tkz00/backend/pkg/utils"
 )
 
 const PROJECTILE_SPEED float64 = 15
@@ -15,13 +15,13 @@ const (
 )
 
 type Projectile struct {
-	id			string
-	caster		string
-	direction	utils.Vector2
-	position 	utils.Vector2
-	to 			utils.Vector2
-	damage		int
-	state 		ProjectileState
+	id        string
+	caster    string
+	direction utils.Vector2
+	position  utils.Vector2
+	to        utils.Vector2
+	damage    int
+	state     ProjectileState
 }
 
 func CreateProjectile(id string, position utils.Vector2, targetDirection utils.Vector2, rangeValue float64, caster string) *Projectile {
@@ -30,13 +30,13 @@ func CreateProjectile(id string, position utils.Vector2, targetDirection utils.V
 	direction := normalizedVector.Scale(PROJECTILE_SPEED)
 
 	return &Projectile{
-		id: id,
-		caster: caster,
+		id:        id,
+		caster:    caster,
 		direction: direction,
-		position: position,
-		to: to,
-		damage: 30,
-		state: Active,
+		position:  position,
+		to:        to,
+		damage:    30,
+		state:     Active,
 	}
 }
 
@@ -73,11 +73,11 @@ func (p Projectile) GetRadius() float64 {
 
 func (p Projectile) GetState() string {
 	switch p.state {
-    case Active:
-        return "Active"
-    case Hit:
-        return "Hit"
-    default:
-        return "Unknown"
-    }
+	case Active:
+		return "Active"
+	case Hit:
+		return "Hit"
+	default:
+		return "Unknown"
+	}
 }

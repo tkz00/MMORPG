@@ -3,7 +3,7 @@ package dtos
 import (
 	"encoding/json"
 	"fmt"
-	"unnamed-mmo/backend/pkg/utils"
+	"tkz00/backend/pkg/utils"
 )
 
 type AbilityParameters int

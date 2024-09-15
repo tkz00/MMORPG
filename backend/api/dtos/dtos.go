@@ -2,8 +2,8 @@ package dtos
 
 import (
 	"fmt"
-	"unnamed-mmo/backend/pkg/game/character"
-	"unnamed-mmo/backend/pkg/utils"
+	"tkz00/backend/pkg/game/character"
+	"tkz00/backend/pkg/utils"
 )
 
 type DTO interface {

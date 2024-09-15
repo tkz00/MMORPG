@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"time"
 
-	"unnamed-mmo/backend/api/dtos"
-	"unnamed-mmo/backend/pkg/game"
+	"tkz00/backend/api/dtos"
+	"tkz00/backend/pkg/game"
 
 	"golang.org/x/net/websocket"
 )
@@ -50,11 +50,11 @@ func (server *NativeServer) readLoop() {
 			server.clients[client] = true
 			response := CreateWebSocketResponse(*dtos.GetMapper().CharacterToDTO(player))
 			message := response.Serialize()
-	        err := websocket.Message.Send(client, message)
-	        if err != nil {
-	        	log.Println("Error broadcasting message:", err)
-	        	return
-	        }
+			err := websocket.Message.Send(client, message)
+			if err != nil {
+				log.Println("Error broadcasting message:", err)
+				return
+			}
 			log.Println("Client connected", client.RemoteAddr())
 		case client := <-server.removeClient:
 			server.gameState.DeletePlayer(client)
@@ -62,11 +62,11 @@ func (server *NativeServer) readLoop() {
 			log.Println("Client disconnected", client.RemoteAddr())
 		case message := <-server.broadcast: // THIS IS AN OBSERVER
 			for client := range server.clients {
-	            err := websocket.Message.Send(client, message)
-	            if err != nil {
-	            	log.Println("Error broadcasting message:", err)
-	            	return
-	            }
+				err := websocket.Message.Send(client, message)
+				if err != nil {
+					log.Println("Error broadcasting message:", err)
+					return
+				}
 			}
 		}
 	}
@@ -95,34 +95,34 @@ func (server *NativeServer) broadcastGameState() {
 }
 
 func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
-    server.addClient <- conn
-    defer func() {
-        conn.Close()
-        server.removeClient <- conn
-    }()
-    for {
-        var data []byte
-        err := websocket.Message.Receive(conn, &data)
-        if err != nil {
-            log.Println("Error reading message from client:", err)
-            break
-        }
+	server.addClient <- conn
+	defer func() {
+		conn.Close()
+		server.removeClient <- conn
+	}()
+	for {
+		var data []byte
+		err := websocket.Message.Receive(conn, &data)
+		if err != nil {
+			log.Println("Error reading message from client:", err)
+			break
+		}
 
-        var message WebSocketMessage
-        if err := json.Unmarshal(data, &message); err != nil {
-            fmt.Println("Error decoding message:", err)
-            return
-        }
+		var message WebSocketMessage
+		if err := json.Unmarshal(data, &message); err != nil {
+			fmt.Println("Error decoding message:", err)
+			return
+		}
 
-        switch message.ActionType {
-        case "Position":
-            server.handlePlayerMovement(conn, message.Body.(dtos.PositionDTO))
-        case "AbilityCast":
-            server.handleAbilityCast(conn, message.Body.(dtos.AbilityCastDTO))
-        default:
-            fmt.Printf("Unknown message type: %s\n", message.ActionType)
-        }
-    }
+		switch message.ActionType {
+		case "Position":
+			server.handlePlayerMovement(conn, message.Body.(dtos.PositionDTO))
+		case "AbilityCast":
+			server.handleAbilityCast(conn, message.Body.(dtos.AbilityCastDTO))
+		default:
+			fmt.Printf("Unknown message type: %s\n", message.ActionType)
+		}
+	}
 }
 
 func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionDTO dtos.PositionDTO) {

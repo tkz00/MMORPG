@@ -8,9 +8,9 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
-	"unnamed-mmo/backend/pkg/game/character"
-	"unnamed-mmo/backend/pkg/game/spawner"
-	"unnamed-mmo/backend/pkg/utils"
+	"tkz00/backend/pkg/game/character"
+	"tkz00/backend/pkg/game/spawner"
+	"tkz00/backend/pkg/utils"
 )
 
 type GameState struct {

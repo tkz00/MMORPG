@@ -3,8 +3,8 @@ package character
 import (
 	"fmt"
 	"time"
-	"unnamed-mmo/backend/pkg/game/stats"
-	"unnamed-mmo/backend/pkg/utils"
+	"tkz00/backend/pkg/game/stats"
+	"tkz00/backend/pkg/utils"
 )
 
 const BASE_MAX_HEALTH = 100

@@ -1,7 +1,7 @@
 package character
 
 import (
-	"unnamed-mmo/backend/pkg/utils"
+	"tkz00/backend/pkg/utils"
 )
 
 type CharacterAction interface {

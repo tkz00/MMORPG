@@ -1,7 +1,7 @@
 package main
 
 import (
-	"unnamed-mmo/backend/connection"
+	"tkz00/backend/connection"
 )
 
 func main() {
@@ -9,4 +9,3 @@ func main() {
 	server := connection.CreateServer()
 	server.StartConnection(PORT)
 }
-
