@@ -1,7 +1,6 @@
 package dtos
 
 import (
-	"fmt"
 	"sync"
 
 	"unnamed-mmo/backend/pkg/game"
@@ -45,7 +44,6 @@ func (m Mapper) CharacterToDTO(character character.Character) *CharacterDTO {
 
 	characterExecutingAction := character.GetExecutingAction()
 	executingActionDirection := characterExecutingAction.Direction()
-	fmt.Println(executingActionDirection)
 	executingActionDTO := ExecutingActionDTO{Action: characterExecutingAction.ActionType(), Direction: *m.PositionToDTO(executingActionDirection)}
 
 	return &CharacterDTO{
