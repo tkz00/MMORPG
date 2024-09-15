@@ -202,13 +202,23 @@ func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo charac
 					fmt.Println(err)
 					return utils.Vector2{}, err
 				}
+				return target.GetPosition(), nil
+			},
+			func(targetId string) (utils.Vector2, error) {
+
+				target, err := gs.getCharacterById(targetId)
+				if err != nil {
+					fmt.Println(err)
+					return utils.Vector2{}, err
+				}
 
 				if caster.GetPosition().Distance(target.GetPosition()) > ability.Range() {
 					return caster.ClosestPositionInRange(target.GetPosition(), ability.Range()), nil
 				} else {
 					return caster.GetPosition(), nil
 				}
-			})
+			},
+		)
 		caster.EnqueueAbilityCast(abilityAction)
 	}
 }

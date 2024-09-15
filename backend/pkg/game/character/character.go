@@ -193,10 +193,10 @@ func (player *Character) ClosestPositionInRange(target utils.Vector2, rangeValue
 
 func (player *Character) CastAbility(ability Ability, params AbilityParameters) {
 	player.lastUsed[ability.id] = time.Now()
-	targetPosition, _ := params.GetTargetPosition()
+	targetCoordinates, _ := params.GetTargetCoordinates()
 	playerPosition := player.position
-	if playerPosition != targetPosition {
-		normalizedCastAbilityVector := utils.Normalize(playerPosition, targetPosition)
+	if playerPosition != targetCoordinates {
+		normalizedCastAbilityVector := utils.Normalize(playerPosition, targetCoordinates)
 		player.executingAction = ExecutingAction{Attacking, normalizedCastAbilityVector}
 	} else {
 		player.executingAction = ExecutingAction{Attacking, player.executingAction.direction}

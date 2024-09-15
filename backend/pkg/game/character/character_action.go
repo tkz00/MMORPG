@@ -34,7 +34,7 @@ type CastAbilityAction struct {
 
 func (a *CastAbilityAction) Execute(caster *Character) error {
 	if a.ability.targeting == Target {
-		targetPosition, err := a.params.GetTargetPosition()
+		targetPosition, err := a.params.GetCastingCoordinates()
 		if err != nil {
 			return err
 		}
@@ -55,22 +55,32 @@ func (a *CastAbilityAction) IsComplete() bool {
 }
 
 type AbilityParameters interface {
-	GetTargetPosition() (utils.Vector2, error)
+	GetTargetCoordinates() (utils.Vector2, error)
+	GetCastingCoordinates() (utils.Vector2, error)
 }
 
 type CoordinateAbilityParams struct {
 	Target utils.Vector2
 }
 
-func (p CoordinateAbilityParams) GetTargetPosition() (utils.Vector2, error) {
+func (p CoordinateAbilityParams) GetTargetCoordinates() (utils.Vector2, error) {
+	return p.Target, nil
+}
+
+func (p CoordinateAbilityParams) GetCastingCoordinates() (utils.Vector2, error) {
 	return p.Target, nil
 }
 
 type TargetIdAbilityParams struct {
-	TargetId               string
-	TargetPositionCallback func(targetId string) (utils.Vector2, error)
+	TargetId                   string
+	TargetCoordinatesCallback  func(targetId string) (utils.Vector2, error)
+	CastingCoordinatesCallback func(targetId string) (utils.Vector2, error)
 }
 
-func (p TargetIdAbilityParams) GetTargetPosition() (utils.Vector2, error) {
-	return p.TargetPositionCallback(p.TargetId)
+func (p TargetIdAbilityParams) GetTargetCoordinates() (utils.Vector2, error) {
+	return p.TargetCoordinatesCallback(p.TargetId)
+}
+
+func (p TargetIdAbilityParams) GetCastingCoordinates() (utils.Vector2, error) {
+	return p.CastingCoordinatesCallback(p.TargetId)
 }

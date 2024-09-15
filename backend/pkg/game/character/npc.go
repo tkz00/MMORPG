@@ -43,7 +43,7 @@ func (npc *Npc) Update(deltaTime float64) {
 
 func (npc *Npc) TakePacificAction() {
 	timeSinceLastDecision := time.Since(npc.lastActionDecided).Milliseconds()
-	if timeSinceLastDecision > 5000 {
+	if timeSinceLastDecision > 9999999 {
 		targetPosition := utils.RandomCoordinatesInRadius(npc.spawnerPosition, 10)
 		moveAction := &MoveAction{
 			TargetPosition: targetPosition,
@@ -69,8 +69,8 @@ func (npc *Npc) TakeAggressiveAction() {
 			}
 			targetId := npc.target.id
 			abilityParams = TargetIdAbilityParams{
-				TargetId:               targetId,
-				TargetPositionCallback: targetPositionCallback,
+				TargetId:                   targetId,
+				CastingCoordinatesCallback: targetPositionCallback,
 			}
 		case Coordinates:
 			targetPosition := npc.target.position

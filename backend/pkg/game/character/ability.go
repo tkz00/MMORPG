@@ -65,14 +65,16 @@ func (ability Ability) Cast(caster Character, params AbilityParameters) {
 	ability.Mechanic(caster, params)
 }
 
-func (ability Ability) CreateAction(abilityInfo AbilityInfo, targetPositionCallback func(targetId string) (utils.Vector2, error)) CastAbilityAction {
+// these callbacks should be optional, maybe a method overload, since they only are needed for point and click targeted skills
+func (ability Ability) CreateAction(abilityInfo AbilityInfo, targetCoordinatesCallback func(targetId string) (utils.Vector2, error), castingCoordinatesCallback func(targetId string) (utils.Vector2, error)) CastAbilityAction {
 	var abilityParams AbilityParameters
 	switch ability.targeting {
 	case Target:
 		targetId, _ := abilityInfo.GetTargetId()
 		abilityParams = TargetIdAbilityParams{
-			TargetId:               targetId,
-			TargetPositionCallback: targetPositionCallback,
+			TargetId:                   targetId,
+			TargetCoordinatesCallback:  targetCoordinatesCallback,
+			CastingCoordinatesCallback: castingCoordinatesCallback,
 		}
 	case Coordinates:
 		targetPosition, _ := abilityInfo.GetTargetPosition()
