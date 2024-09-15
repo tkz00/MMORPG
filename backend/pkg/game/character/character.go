@@ -197,9 +197,9 @@ func (player *Character) CastAbility(ability Ability, params AbilityParameters) 
 	playerPosition := player.position
 	if playerPosition != targetCoordinates {
 		normalizedCastAbilityVector := utils.Normalize(playerPosition, targetCoordinates)
-		player.executingAction = ExecutingAction{Attacking, normalizedCastAbilityVector}
+		player.executingAction = ExecutingAction{ability.characterState, normalizedCastAbilityVector}
 	} else {
-		player.executingAction = ExecutingAction{Attacking, player.executingAction.direction}
+		player.executingAction = ExecutingAction{ability.characterState, player.executingAction.direction}
 	}
 	ability.Cast(*player, params)
 }
