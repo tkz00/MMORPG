@@ -21,10 +21,23 @@ const (
 	CastingHeal
 )
 
+type ExecutingAction struct {
+	actionType Action
+	direction  utils.Vector2
+}
+
+func (action ExecutingAction) ActionType() Action {
+	return action.actionType
+}
+
+func (action ExecutingAction) Direction() utils.Vector2 {
+	return action.direction
+}
+
 type Character struct {
 	id string
 	stats.Health
-	ExecutingAction Action
+	executingAction ExecutingAction
 	position        utils.Vector2
 	to              utils.Vector2
 	direction       utils.Vector2
@@ -50,7 +63,7 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 		position:        initialPosition,
 		to:              initialPosition,
 		Health:          stats.NewHealth(BASE_MAX_HEALTH),
-		ExecutingAction: Idle,
+		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0)},
 		actionsQueue:    []CharacterAction{},
 		abilities:       abilities,
 		lastUsed:        lastUsed,
@@ -74,8 +87,8 @@ func (p Character) GetHealth() stats.Health {
 	return p.Health
 }
 
-func (p Character) GetExecutingAction() Action {
-	return p.ExecutingAction
+func (p Character) GetExecutingAction() ExecutingAction {
+	return p.executingAction
 }
 
 func (p Character) GetAbilities() map[string]*Ability {
@@ -96,7 +109,9 @@ func (p *Character) PrependAction(action CharacterAction) {
 
 func (c *Character) ExecuteNextAction() {
 	if len(c.actionsQueue) == 0 {
-		c.ExecutingAction = Idle
+		if c.executingAction.actionType != Idle {
+			c.executingAction = ExecutingAction{Idle, c.executingAction.direction}
+		}
 		return
 	}
 
@@ -119,8 +134,14 @@ func (c *Character) ExecuteNextAction() {
 
 func (p *Character) MoveTowards(to utils.Vector2) {
 	p.to = to
-	p.direction = utils.Normalize(p.position, p.to).Scale(CHARACTER_SPEED)
-	p.ExecutingAction = Moving
+	normalizedDirection := utils.Normalize(p.position, p.to)
+	p.direction = normalizedDirection.Scale(CHARACTER_SPEED)
+	// Wirty wirty
+	if p.position == p.to {
+		p.executingAction = ExecutingAction{Moving, p.executingAction.direction}
+	} else {
+		p.executingAction = ExecutingAction{Moving, normalizedDirection}
+	}
 }
 
 func (p Character) IsMoving() bool {
@@ -172,7 +193,14 @@ func (player *Character) ClosestPositionInRange(target utils.Vector2, rangeValue
 
 func (player *Character) CastAbility(ability Ability, params AbilityParameters) {
 	player.lastUsed[ability.id] = time.Now()
-	player.ExecutingAction = ability.characterState
+	targetPosition, _ := params.GetTargetPosition()
+	playerPosition := player.position
+	if playerPosition != targetPosition {
+		normalizedCastAbilityVector := utils.Normalize(playerPosition, targetPosition)
+		player.executingAction = ExecutingAction{Attacking, normalizedCastAbilityVector}
+	} else {
+		player.executingAction = ExecutingAction{Attacking, player.executingAction.direction}
+	}
 	ability.Cast(*player, params)
 }
 

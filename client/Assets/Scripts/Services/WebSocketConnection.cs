@@ -8,44 +8,58 @@ using UnityEngine;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-public static class WebSocketConnection 
+public static class WebSocketConnection
 {
     static ClientWebSocket webSocket;
     static String URL = "ws://localhost:3009/ws";
-	static Dictionary<string, Delegate> _responseHandlers = new Dictionary<string, Delegate>();
-	
-    public static async Task Connect() {
+    static Dictionary<string, Delegate> _responseHandlers = new Dictionary<string, Delegate>();
+
+    public static async Task Connect()
+    {
         // handshake
         webSocket = new ClientWebSocket();
         Uri wsUri = new Uri(URL);
-        try {
+        try
+        {
             webSocket.Options.SetRequestHeader("Origin", "http://example.com");
             await webSocket.ConnectAsync(wsUri, CancellationToken.None);
-			ReadLoopAsync();
-        } catch(Exception ex) {
+            ReadLoopAsync();
+        }
+        catch (Exception ex)
+        {
             Debug.Log(ex.Message);
         }
     }
 
-	public static void SetHandler<TResponse>(Action<TResponse> responseHandler, string type) where TResponse : DTO
+    public static void SetHandler<TResponse>(Action<TResponse> responseHandler, string type)
+        where TResponse : DTO
     {
         _responseHandlers[type] = responseHandler;
     }
 
-	public static async void SendMessage(string messageJson)
+    public static async void SendMessage(string messageJson)
     {
-		var encodedMessage = Encoding.UTF8.GetBytes(messageJson);
+        var encodedMessage = Encoding.UTF8.GetBytes(messageJson);
         var wsBuffer = new ArraySegment<Byte>(encodedMessage, 0, encodedMessage.Length);
 
-        try {
-            await webSocket.SendAsync(wsBuffer, WebSocketMessageType.Text, true, CancellationToken.None);
-        } catch(Exception ex) {
+        try
+        {
+            await webSocket.SendAsync(
+                wsBuffer,
+                WebSocketMessageType.Text,
+                true,
+                CancellationToken.None
+            );
+        }
+        catch (Exception ex)
+        {
             Debug.Log(ex.Message);
         }
     }
 
-	private static async void ReadLoopAsync() {
-		List<byte> messageBytes = new List<byte>();
+    private static async void ReadLoopAsync()
+    {
+        List<byte> messageBytes = new List<byte>();
         byte[] receiveBuffer = new byte[1024];
 
         JsonSerializerSettings settings = new JsonSerializerSettings();
@@ -56,21 +70,27 @@ public static class WebSocketConnection
             WebSocketReceiveResult result = null;
             do
             {
-                result = await webSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), CancellationToken.None);
+                result = await webSocket.ReceiveAsync(
+                    new ArraySegment<byte>(receiveBuffer),
+                    CancellationToken.None
+                );
                 for (int i = 0; i < result.Count; i++)
                 {
                     messageBytes.Add(receiveBuffer[i]);
                 }
-            }
-            while (!result.EndOfMessage);
+            } while (!result.EndOfMessage);
 
             if (result.MessageType == WebSocketMessageType.Binary)
             {
-				string responseJson = Encoding.UTF8.GetString(messageBytes.ToArray());
-                WebSocketMessage response = JsonConvert.DeserializeObject<WebSocketMessage>(responseJson, settings);
+                string responseJson = Encoding.UTF8.GetString(messageBytes.ToArray());
+                WebSocketMessage response = JsonConvert.DeserializeObject<WebSocketMessage>(
+                    responseJson,
+                    settings
+                );
                 messageBytes.Clear();
 
-                if(_responseHandlers.ContainsKey(response.ActionType)) {
+                if (_responseHandlers.ContainsKey(response.ActionType))
+                {
                     var handler = _responseHandlers[response.ActionType];
                     handler.DynamicInvoke(response.Body);
                 }
@@ -85,13 +105,19 @@ public static class WebSocketConnection
                 Debug.LogError("Message from server is not text");
             }
         }
-	}
+    }
 
-    public static void ClearHandlers() {
+    public static void ClearHandlers()
+    {
         _responseHandlers = new Dictionary<string, Delegate>();
     }
 
-    public static async Task Disconnect() {
-        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty, CancellationToken.None);
+    public static async Task Disconnect()
+    {
+        await webSocket.CloseAsync(
+            WebSocketCloseStatus.NormalClosure,
+            string.Empty,
+            CancellationToken.None
+        );
     }
 }

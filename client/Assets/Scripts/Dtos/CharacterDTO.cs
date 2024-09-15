@@ -11,7 +11,13 @@ public class CharacterDTO : DTO
     public AbilityDTO[] abilities;
 }
 
-public enum ExecutingAction
+public class ExecutingAction
+{
+    public CharacterAction action;
+    public PositionDTO direction;
+}
+
+public enum CharacterAction
 {
     [EnumMember(Value = "idle")]
     Idle,

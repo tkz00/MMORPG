@@ -11,9 +11,9 @@ type DTO interface {
 }
 
 type GameStateDTO struct {
-	Players 	[]CharacterDTO 	`json:"players"`
+	Players     []CharacterDTO  `json:"players"`
 	Projectiles []ProjectileDTO `json:"projectiles"`
-	Npcs 		[]CharacterDTO 	`json:"npcs"`
+	Npcs        []CharacterDTO  `json:"npcs"`
 }
 
 func (g GameStateDTO) GetType() string {
@@ -21,14 +21,13 @@ func (g GameStateDTO) GetType() string {
 }
 
 type CharacterDTO struct {
-	Id       		string      		`json:"id"`
-	MaxHealth 		int					`json:"maxHealth"`
-	CurrentHealth 	int					`json:"currentHealth"`
-	Radius 			float64 			`json:"radius"`	
-	Position 		PositionDTO 		`json:"position"`
-	ExecutingAction	character.Action	`json:"executingAction"`
-	Abilities		[]AbilityDTO		`json:"abilities"`
-	
+	Id              string             `json:"id"`
+	MaxHealth       int                `json:"maxHealth"`
+	CurrentHealth   int                `json:"currentHealth"`
+	Radius          float64            `json:"radius"`
+	Position        PositionDTO        `json:"position"`
+	ExecutingAction ExecutingActionDTO `json:"executingAction"`
+	Abilities       []AbilityDTO       `json:"abilities"`
 }
 
 func (p CharacterDTO) GetType() string {
@@ -57,14 +56,19 @@ func (p PositionDTO) GetType() string {
 }
 
 type ProjectileDTO struct {
-	Id			string 		`json:"id"`
-	Caster 		string 		`json:"caster"`
-	Position 	PositionDTO `json:"position"`
-	Radius 		float64 	`json:"radius"`
-	Damage		int 		`json:"damage"`
-	State		string 		`json:"state"`
+	Id       string      `json:"id"`
+	Caster   string      `json:"caster"`
+	Position PositionDTO `json:"position"`
+	Radius   float64     `json:"radius"`
+	Damage   int         `json:"damage"`
+	State    string      `json:"state"`
 }
 
 func (p ProjectileDTO) GetType() string {
 	return "Projectile"
+}
+
+type ExecutingActionDTO struct {
+	Action    character.Action `json:"action"`
+	Direction PositionDTO      `json:"direction"`
 }

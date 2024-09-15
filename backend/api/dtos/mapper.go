@@ -1,6 +1,7 @@
 package dtos
 
 import (
+	"fmt"
 	"sync"
 
 	"unnamed-mmo/backend/pkg/game"
@@ -33,22 +34,27 @@ func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
 	}
 }
 
-func (m Mapper) CharacterToDTO(player character.Character) *CharacterDTO {
-	playerHealth := player.GetHealth()
+func (m Mapper) CharacterToDTO(character character.Character) *CharacterDTO {
+	playerHealth := character.GetHealth()
 	playerAbilities := make([]AbilityDTO, 0)
-	for _, ability := range player.GetAbilities() {
+	for _, ability := range character.GetAbilities() {
 		abilityDTO := AbilityToDTO(*ability)
-		abilityDTO.RemainingCooldown = float64(player.RemainingCooldown(ability)) / 1000
+		abilityDTO.RemainingCooldown = float64(character.RemainingCooldown(ability)) / 1000
 		playerAbilities = append(playerAbilities, abilityDTO)
 	}
 
+	characterExecutingAction := character.GetExecutingAction()
+	executingActionDirection := characterExecutingAction.Direction()
+	fmt.Println(executingActionDirection)
+	executingActionDTO := ExecutingActionDTO{Action: characterExecutingAction.ActionType(), Direction: *m.PositionToDTO(executingActionDirection)}
+
 	return &CharacterDTO{
-		Id:              player.GetId(),
-		Position:        *m.PositionToDTO(player.GetPosition()),
-		Radius:          player.GetRadius(),
+		Id:              character.GetId(),
+		Position:        *m.PositionToDTO(character.GetPosition()),
+		Radius:          character.GetRadius(),
 		MaxHealth:       playerHealth.GetMaxHealth(),
 		CurrentHealth:   playerHealth.GetCurrentHealth(),
-		ExecutingAction: player.GetExecutingAction(),
+		ExecutingAction: executingActionDTO,
 		Abilities:       playerAbilities,
 	}
 }

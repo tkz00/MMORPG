@@ -111,17 +111,17 @@ public class GameManager : MonoBehaviour
             }
             player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
 
-            switch (playerDTO.executingAction)
+            switch (playerDTO.executingAction.action)
             {
-                case ExecutingAction.Attacking:
+                case CharacterAction.Attacking:
                     player.Movement.TriggerWalkingAnimation(false);
                     player.Movement.AttackAnimation();
                     break;
-                case ExecutingAction.CastingHeal:
+                case CharacterAction.CastingHeal:
                     player.Movement.TriggerWalkingAnimation(false);
                     player.Movement.HealAnimation();
                     break;
-                case ExecutingAction.Moving:
+                case CharacterAction.Moving:
                     player.Movement.TriggerWalkingAnimation(true);
                     break;
                 default:
@@ -250,17 +250,17 @@ public class GameManager : MonoBehaviour
             }
             npc.UpdateHealth(npcDTO.currentHealth, npcDTO.maxHealth);
 
-            switch (npcDTO.executingAction)
+            switch (npcDTO.executingAction.action)
             {
-                case ExecutingAction.Attacking:
+                case CharacterAction.Attacking:
                     npc.Movement.TriggerWalkingAnimation(false);
                     npc.Movement.AttackAnimation();
                     break;
-                case ExecutingAction.CastingHeal:
+                case CharacterAction.CastingHeal:
                     npc.Movement.TriggerWalkingAnimation(false);
                     npc.Movement.HealAnimation();
                     break;
-                case ExecutingAction.Moving:
+                case CharacterAction.Moving:
                     npc.Movement.TriggerWalkingAnimation(true);
                     break;
                 default:
