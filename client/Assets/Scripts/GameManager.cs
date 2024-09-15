@@ -116,13 +116,16 @@ public class GameManager : MonoBehaviour
                 case CharacterAction.Attacking:
                     player.Movement.TriggerWalkingAnimation(false);
                     player.Movement.AttackAnimation();
+                    player.Movement.RotateTowards(playerDTO.executingAction.direction);
                     break;
                 case CharacterAction.CastingHeal:
                     player.Movement.TriggerWalkingAnimation(false);
                     player.Movement.HealAnimation();
+                    player.Movement.RotateTowards(playerDTO.executingAction.direction);
                     break;
                 case CharacterAction.Moving:
                     player.Movement.TriggerWalkingAnimation(true);
+                    player.Movement.RotateTowards(playerDTO.executingAction.direction);
                     break;
                 default:
                     player.Movement.TriggerWalkingAnimation(false);
@@ -130,6 +133,8 @@ public class GameManager : MonoBehaviour
             }
 
             player.SetScale(playerDTO.radius * 2);
+
+            // Shouldn't this be in the toggle hitboxes method? To avoid calling it on each update?
             player.SetHitbox(hitboxOn);
         }
     }
@@ -255,13 +260,16 @@ public class GameManager : MonoBehaviour
                 case CharacterAction.Attacking:
                     npc.Movement.TriggerWalkingAnimation(false);
                     npc.Movement.AttackAnimation();
+                    npc.Movement.RotateTowards(npcDTO.executingAction.direction);
                     break;
                 case CharacterAction.CastingHeal:
                     npc.Movement.TriggerWalkingAnimation(false);
                     npc.Movement.HealAnimation();
+                    npc.Movement.RotateTowards(npcDTO.executingAction.direction);
                     break;
                 case CharacterAction.Moving:
                     npc.Movement.TriggerWalkingAnimation(true);
+                    npc.Movement.RotateTowards(npcDTO.executingAction.direction);
                     break;
                 default:
                     npc.Movement.TriggerWalkingAnimation(false);
@@ -269,6 +277,8 @@ public class GameManager : MonoBehaviour
             }
 
             npc.SetScale(npcDTO.radius * 2);
+
+            // Shouldn't this be in the toggle hitboxes method? To avoid calling it on each update?
             npc.SetHitbox(hitboxOn);
         }
     }

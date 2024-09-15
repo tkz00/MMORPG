@@ -37,12 +37,17 @@ public class Movement : MonoBehaviour
             Vector3 movement = direction.normalized * playerSpeed * Time.deltaTime;
             movement.y = 0;
             characterController.Move(movement);
-            transform.rotation = Quaternion.Slerp(
-                transform.rotation,
-                Quaternion.LookRotation(direction.normalized),
-                5f * Time.deltaTime
-            );
             yield return null;
+        }
+    }
+
+    public void RotateTowards(PositionDTO direction)
+    {
+        Vector3 directionRotation = new Vector3(direction.x, 0, direction.z);
+        if (directionRotation != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(directionRotation);
+            transform.rotation = Quaternion.Euler(0, targetRotation.eulerAngles.y, 0);
         }
     }
 
