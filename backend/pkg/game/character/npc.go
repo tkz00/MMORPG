@@ -43,7 +43,7 @@ func (npc *Npc) Update(deltaTime float64) {
 
 func (npc *Npc) TakePacificAction() {
 	timeSinceLastDecision := time.Since(npc.lastActionDecided).Milliseconds()
-	if timeSinceLastDecision > 9999999 {
+	if timeSinceLastDecision > 5000 {
 		targetPosition := utils.RandomCoordinatesInRadius(npc.spawnerPosition, 10)
 		moveAction := &MoveAction{
 			TargetPosition: targetPosition,
