@@ -8,7 +8,8 @@ import (
 	"time"
 
 	"tkz00/backend/api/dtos"
-	"tkz00/backend/pkg/game"
+	"tkz00/backend/pkg/game/entities"
+	"tkz00/backend/pkg/game/gameplay"
 
 	"golang.org/x/net/websocket"
 )
@@ -20,7 +21,7 @@ type NativeServer struct {
 	addClient    chan *websocket.Conn
 	removeClient chan *websocket.Conn
 	broadcast    chan []byte
-	gameState    game.GameState
+	gameState    entities.GameState
 }
 
 func (ws *NativeServer) newServer() Server {
@@ -29,7 +30,7 @@ func (ws *NativeServer) newServer() Server {
 		addClient:    make(chan *websocket.Conn),
 		removeClient: make(chan *websocket.Conn),
 		broadcast:    make(chan []byte),
-		gameState:    game.StartGameState(),
+		gameState:    entities.StartGameState(),
 	}
 }
 
@@ -83,7 +84,7 @@ func (server *NativeServer) broadcastGameState() {
 		currentUpdateTime := time.Now()
 		deltaTime := currentUpdateTime.Sub(previousUpdateTime)
 		previousUpdateTime = currentUpdateTime
-		server.gameState.UpdateState(deltaTime.Seconds())
+		gameplay.UpdateState(&server.gameState, deltaTime.Seconds())
 
 		gameStateDTO := *dtos.GetMapper().GameStateToDTO(server.gameState)
 		webSocketResponse := CreateWebSocketResponse(gameStateDTO)

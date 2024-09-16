@@ -1,4 +1,4 @@
-package game
+package entities
 
 import (
 	"tkz00/backend/pkg/utils"
@@ -44,7 +44,7 @@ func (p Projectile) GetId() string {
 	return p.id
 }
 
-func (p Projectile) GetCaster() string {
+func (p Projectile) Caster() string {
 	return p.caster
 }
 
@@ -69,6 +69,14 @@ func (p Projectile) GetPosition() utils.Vector2 {
 
 func (p Projectile) GetRadius() float64 {
 	return PROJECTILE_BOUNDS_RADIUS
+}
+
+func (p *Projectile) State() ProjectileState {
+	return p.state
+}
+
+func (p *Projectile) SetState(state ProjectileState) {
+	p.state = state
 }
 
 func (p Projectile) GetState() string {

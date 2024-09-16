@@ -3,7 +3,6 @@ package dtos
 import (
 	"sync"
 
-	"tkz00/backend/pkg/game"
 	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/utils"
 )
@@ -57,10 +56,10 @@ func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
 	}
 }
 
-func (m Mapper) ProjectileToDTO(projectile game.Projectile) *ProjectileDTO {
+func (m Mapper) ProjectileToDTO(projectile entities.Projectile) *ProjectileDTO {
 	return &ProjectileDTO{
 		Id:       projectile.GetId(),
-		Caster:   projectile.GetCaster(),
+		Caster:   projectile.Caster(),
 		Position: *m.PositionToDTO(projectile.GetPosition()),
 		Radius:   projectile.GetRadius(),
 		Damage:   projectile.GetDamage(),
@@ -68,7 +67,7 @@ func (m Mapper) ProjectileToDTO(projectile game.Projectile) *ProjectileDTO {
 	}
 }
 
-func (m Mapper) GameStateToDTO(gameState game.GameState) *GameStateDTO {
+func (m Mapper) GameStateToDTO(gameState entities.GameState) *GameStateDTO {
 	playerDTOS := make([]CharacterDTO, 0)
 	projectileDTOS := make([]ProjectileDTO, 0)
 	npcsDTOS := make([]CharacterDTO, 0)
