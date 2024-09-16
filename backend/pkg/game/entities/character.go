@@ -161,10 +161,6 @@ func (p Character) GetRadius() float64 {
 	return CHARACTER_BOUNDS_RADIUS
 }
 
-func (character *Character) EnqueueAbilityCast(castAbilityAction CastAbilityAction) {
-	character.EnqueueAction(&castAbilityAction)
-}
-
 func (player *Character) IsInCooldown(abilityId string) bool {
 	ability := player.abilities[abilityId]
 	if player.RemainingCooldown(ability) <= 0 {
@@ -181,14 +177,6 @@ func (player Character) RemainingCooldown(ability *Ability) int64 {
 		return remainingCooldown
 	}
 	return 0
-}
-
-func (player *Character) ClosestPositionInRange(target utils.Vector2, rangeValue float64) utils.Vector2 {
-	totalDistance := player.position.Distance(target)
-	normalizedMovementVector := utils.Normalize(player.position, target)
-	movementVector := normalizedMovementVector.Scale(totalDistance - rangeValue)
-	targetPosition := player.position.Add(movementVector)
-	return targetPosition
 }
 
 func (player *Character) CastAbility(ability Ability, params AbilityParameters) {
@@ -220,4 +208,14 @@ type AbilityInfo interface {
 	GetId() string
 	GetTargetPosition() (utils.Vector2, error)
 	GetTargetId() (string, error)
+}
+
+// Everything below this should be in a functionality module, not in the entities package
+
+func EnqueueMovementAction(character *Character, position utils.Vector2) {
+	moveAction := &MoveAction{
+		TargetPosition: position,
+	}
+	character.ClearActionsQueue()
+	character.EnqueueAction(moveAction)
 }

@@ -107,6 +107,12 @@ func (gs GameState) GetPlayers() []Character {
 	return playersSlice
 }
 
+// I don't know if this is OK, probably not, probably native server should hold the relationship between connections and character/player ids
+func (gs GameState) GetPlayerByConn(conn *websocket.Conn) *Character {
+	playerId := gs.playerIds[conn]
+	return gs.players[playerId]
+}
+
 func (gs *GameState) Projectiles() map[string]*Projectile {
 	return gs.projectiles
 }
@@ -135,57 +141,6 @@ func (gs GameState) NPCs() map[string]*Npc {
 	return gs.npcs
 }
 
-func (gs GameState) MovePlayer(conn *websocket.Conn, position utils.Vector2) {
-	playerId := gs.playerIds[conn]
-	moveAction := &MoveAction{
-		TargetPosition: position,
-	}
-	gs.players[playerId].ClearActionsQueue()
-	gs.players[playerId].EnqueueAction(moveAction)
-}
-
-func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo AbilityInfo) {
-	casterId := gs.playerIds[conn]
-	caster := gs.players[casterId]
-	abilityId := abilityInfo.GetId()
-	if !caster.IsInCooldown(abilityId) {
-		ability := caster.GetAbilities()[abilityId]
-		abilityAction := ability.CreateAction(abilityInfo,
-			func(targetId string) (utils.Vector2, error) {
-
-				target, err := gs.GetCharacterById(targetId)
-				if err != nil {
-					fmt.Println(err)
-					return utils.Vector2{}, err
-				}
-				return target.GetPosition(), nil
-			},
-			func(targetId string) (utils.Vector2, error) {
-
-				target, err := gs.GetCharacterById(targetId)
-				if err != nil {
-					fmt.Println(err)
-					return utils.Vector2{}, err
-				}
-
-				if caster.GetPosition().Distance(target.GetPosition()) > ability.Range() {
-					return caster.ClosestPositionInRange(target.GetPosition(), ability.Range()), nil
-				} else {
-					return caster.GetPosition(), nil
-				}
-			},
-		)
-		caster.EnqueueAbilityCast(abilityAction)
-	}
-}
-
-func (gs GameState) AreColliding(player Character, projectile Projectile) bool {
-	playerPosition := player.GetPosition()
-	projectilePosition := projectile.GetPosition()
-	distance := playerPosition.Distance(projectilePosition)
-	return distance < (player.GetRadius() + projectile.GetRadius())
-}
-
 func (gs GameState) GetCharacterById(targetId string) (*Character, error) {
 	target, exists := gs.players[targetId]
 	if !exists {
@@ -201,4 +156,38 @@ func (gs GameState) GetCharacterById(targetId string) (*Character, error) {
 
 func (gs GameState) Spawners() map[string]*Spawner {
 	return gs.spawners
+}
+
+// Everything below this should be in a functionality module, not in the entities package
+
+func EnqueueAbilityCast(gs GameState, caster *Character, abilityInfo AbilityInfo) {
+	abilityId := abilityInfo.GetId()
+	if caster.IsInCooldown(abilityId) {
+		return
+	}
+
+	ability := caster.GetAbilities()[abilityId]
+	targetCoordinatesCallback := func(targetId string) (utils.Vector2, error) {
+		target, err := gs.GetCharacterById(targetId)
+		if err != nil {
+			fmt.Println(err)
+			return utils.Vector2{}, err
+		}
+		return target.GetPosition(), nil
+	}
+	castingCoordinatesCallback := func(targetId string) (utils.Vector2, error) {
+		target, err := gs.GetCharacterById(targetId)
+		if err != nil {
+			fmt.Println(err)
+			return utils.Vector2{}, err
+		}
+
+		if caster.GetPosition().Distance(target.GetPosition()) > ability.Range() {
+			return utils.ClosestPositionInRange(caster.position, target.GetPosition(), ability.Range()), nil
+		} else {
+			return caster.GetPosition(), nil
+		}
+	}
+	abilityAction := ability.CreateAction(abilityInfo, targetCoordinatesCallback, castingCoordinatesCallback)
+	caster.EnqueueAction(&abilityAction)
 }

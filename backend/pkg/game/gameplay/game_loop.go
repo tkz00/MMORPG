@@ -66,17 +66,18 @@ func updateNpcs(gs *entities.GameState, deltaTime float64) {
 	}
 }
 
+// AreColliding surely must go in a separate collisions module, I don't know about checkCollisions, but from what I'm seeing it must be refactored
 func checkCollision(gs *entities.GameState, projectile entities.Projectile) bool {
 	projectileHit := false
 	for _, player := range gs.Players() {
-		if player.GetId() != projectile.Caster() && gs.AreColliding(*player, projectile) {
+		if player.GetId() != projectile.Caster() && AreColliding(*player, projectile) {
 			player.HealthVariation(-projectile.GetDamage())
 			projectileHit = true
 		}
 	}
 
 	for _, npc := range gs.NPCs() {
-		if npc.GetId() != projectile.Caster() && gs.AreColliding(*npc.Character, projectile) {
+		if npc.GetId() != projectile.Caster() && AreColliding(*npc.Character, projectile) {
 			npc.HealthVariation(-projectile.GetDamage())
 			if caster, err := gs.GetCharacterById(projectile.Caster()); err == nil {
 				npc.BecomeAggressive(caster)
@@ -86,4 +87,11 @@ func checkCollision(gs *entities.GameState, projectile entities.Projectile) bool
 	}
 
 	return projectileHit
+}
+
+func AreColliding(player entities.Character, projectile entities.Projectile) bool {
+	playerPosition := player.GetPosition()
+	projectilePosition := projectile.GetPosition()
+	distance := playerPosition.Distance(projectilePosition)
+	return distance < (player.GetRadius() + projectile.GetRadius())
 }

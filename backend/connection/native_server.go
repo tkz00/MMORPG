@@ -89,9 +89,6 @@ func (server *NativeServer) broadcastGameState() {
 		gameStateDTO := *dtos.GetMapper().GameStateToDTO(server.gameState)
 		webSocketResponse := CreateWebSocketResponse(gameStateDTO)
 		server.broadcast <- webSocketResponse.Serialize()
-
-		// return player's state back to normal
-		// server.gameState.ResetPlayersState()
 	}
 }
 
@@ -129,9 +126,12 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionDTO dtos.PositionDTO) {
 	position := *dtos.GetMapper().PositionDTOToEntity(positionDTO)
 
-	server.gameState.MovePlayer(client, position)
+	// this should be just one "action", one line of code, it gives access to two different things while the entry point should be single
+	player := server.gameState.GetPlayerByConn(client)
+	entities.EnqueueMovementAction(player, position)
 }
 
 func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO dtos.AbilityCastDTO) {
-	server.gameState.EnqueueAbilityCast(client, abilityCastDTO)
+	player := server.gameState.GetPlayerByConn(client)
+	entities.EnqueueAbilityCast(server.gameState, player, abilityCastDTO)
 }

@@ -52,7 +52,15 @@ func Normalize(a, b Vector2) Vector2 {
 func RandomCoordinatesInRadius(v Vector2, radius float64) Vector2 {
 	angle := rand.Float64() * 2 * math.Pi
 	r := math.Sqrt(rand.Float64()) * radius
-	x := v.x + r * math.Cos(angle)
-	z := v.z + r * math.Sin(angle)
+	x := v.x + r*math.Cos(angle)
+	z := v.z + r*math.Sin(angle)
 	return Vector2{x: x, z: z}
+}
+
+func ClosestPositionInRange(startingPosition Vector2, target Vector2, rangeValue float64) Vector2 {
+	totalDistance := startingPosition.Distance(target)
+	normalizedMovementVector := Normalize(startingPosition, target)
+	movementVector := normalizedMovementVector.Scale(totalDistance - rangeValue)
+	targetPosition := startingPosition.Add(movementVector)
+	return targetPosition
 }

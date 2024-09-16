@@ -26,7 +26,7 @@ func (npc *Npc) Update(deltaTime float64) {
 	if hasNoActionsInQueue {
 		switch npc.state {
 		case Pacific:
-			npc.TakePacificAction()
+			npc.takePacificAction()
 		case Aggressive:
 			if npc.target.IsAlive() && npc.targetIsInRange(npc.target.position) {
 				npc.TakeAggressiveAction()
@@ -41,7 +41,7 @@ func (npc *Npc) Update(deltaTime float64) {
 	}
 }
 
-func (npc *Npc) TakePacificAction() {
+func (npc *Npc) takePacificAction() {
 	timeSinceLastDecision := time.Since(npc.lastActionDecided).Milliseconds()
 	if timeSinceLastDecision > 5000 {
 		targetPosition := utils.RandomCoordinatesInRadius(npc.spawnerPosition, 10)
@@ -66,7 +66,7 @@ func (npc *Npc) TakeAggressiveAction() {
 			}
 			castingCoordinatesCallback := func(targetId string) (utils.Vector2, error) {
 				if npc.GetPosition().Distance(npc.target.GetPosition()) > ability.Range() {
-					return npc.ClosestPositionInRange(npc.target.GetPosition(), ability.Range()), nil
+					return utils.ClosestPositionInRange(npc.position, npc.target.GetPosition(), ability.Range()), nil
 				} else {
 					return npc.GetPosition(), nil
 				}
@@ -83,15 +83,15 @@ func (npc *Npc) TakeAggressiveAction() {
 				Target: targetPosition,
 			}
 		}
-		npc.EnqueueAbilityCast(
-			CastAbilityAction{
+		npc.EnqueueAction(
+			&CastAbilityAction{
 				ability: *ability,
 				params:  abilityParams,
 			},
 		)
 		// has a distance tolerance of 0.01, this is a patch, it won't be definitive solution
 	} else if (npc.GetPosition().Distance(npc.target.GetPosition()) - 0.01) > ability.Range() {
-		targetPosition := npc.ClosestPositionInRange(npc.target.GetPosition(), (ability.Range() - 0.01))
+		targetPosition := utils.ClosestPositionInRange(npc.position, npc.target.GetPosition(), (ability.Range() - 0.01))
 		moveAction := &MoveAction{
 			TargetPosition: targetPosition,
 		}
