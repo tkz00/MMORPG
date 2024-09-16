@@ -2,7 +2,7 @@ package dtos
 
 import (
 	"fmt"
-	"tkz00/backend/pkg/game/character"
+	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/utils"
 )
 
@@ -69,6 +69,6 @@ func (p ProjectileDTO) GetType() string {
 }
 
 type ExecutingActionDTO struct {
-	Action    character.Action `json:"action"`
-	Direction PositionDTO      `json:"direction"`
+	Action    entities.Action `json:"action"`
+	Direction PositionDTO     `json:"direction"`
 }

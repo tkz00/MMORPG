@@ -4,7 +4,7 @@ import (
 	"sync"
 
 	"tkz00/backend/pkg/game"
-	"tkz00/backend/pkg/game/character"
+	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/utils"
 )
 
@@ -33,7 +33,7 @@ func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
 	}
 }
 
-func (m Mapper) CharacterToDTO(character character.Character) *CharacterDTO {
+func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
 	playerHealth := character.GetHealth()
 	playerAbilities := make([]AbilityDTO, 0)
 	for _, ability := range character.GetAbilities() {
@@ -92,7 +92,7 @@ func (m Mapper) GameStateToDTO(gameState game.GameState) *GameStateDTO {
 	}
 }
 
-func AbilityToDTO(ability character.Ability) AbilityDTO {
+func AbilityToDTO(ability entities.Ability) AbilityDTO {
 	return AbilityDTO{
 		Id:       ability.Id(),
 		Name:     ability.Name(),

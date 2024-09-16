@@ -2,7 +2,7 @@ package spawner
 
 import (
 	"time"
-	"tkz00/backend/pkg/game/character"
+	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/utils"
 
 	"github.com/google/uuid"
@@ -12,25 +12,25 @@ type Spawner struct {
 	position    utils.Vector2
 	radius      float64
 	rate        time.Duration
-	npcTemplate character.NPCTemplate
+	npcTemplate entities.NPCTemplate
 	lastSpawned time.Time
-	activeNPCs  []*character.Npc
+	activeNPCs  []*entities.Npc
 	maxNPCs     int
 }
 
-func NewSpawner(position utils.Vector2, radius float64, rate time.Duration, npcTemplate character.NPCTemplate) *Spawner {
+func NewSpawner(position utils.Vector2, radius float64, rate time.Duration, npcTemplate entities.NPCTemplate) *Spawner {
 	return &Spawner{
 		position:    position,
 		radius:      radius,
 		rate:        rate,
 		npcTemplate: npcTemplate,
 		lastSpawned: time.Now(),
-		activeNPCs:  []*character.Npc{},
+		activeNPCs:  []*entities.Npc{},
 		maxNPCs:     3,
 	}
 }
 
-func (spawner *Spawner) GetNewNPCs() []*character.Npc {
+func (spawner *Spawner) GetNewNPCs() []*entities.Npc {
 	elapsedTime := time.Since(spawner.lastSpawned)
 	spawnIntervals := int(elapsedTime / spawner.rate)
 	if spawnIntervals <= 0 {
@@ -45,7 +45,7 @@ func (spawner *Spawner) GetNewNPCs() []*character.Npc {
 	}
 	spawner.lastSpawned = spawner.lastSpawned.Add(spawner.rate * time.Duration(spawnIntervals))
 
-	npcs := make([]*character.Npc, npcsToSpawn)
+	npcs := make([]*entities.Npc, npcsToSpawn)
 	for i := range npcs {
 		newNpcId := uuid.NewString()
 		npcPosition := utils.RandomCoordinatesInRadius(spawner.position, spawner.radius)
@@ -61,7 +61,7 @@ func (spawner *Spawner) GetNewNPCs() []*character.Npc {
 }
 
 // HandleNPCDeath removes the NPC from the activeNPCs list when it dies.
-func (spawner *Spawner) HandleNPCDeath(npc *character.Npc) {
+func (spawner *Spawner) HandleNPCDeath(npc *entities.Npc) {
 	for i, activeNPC := range spawner.activeNPCs {
 		if activeNPC == npc {
 			// Remove the NPC from the slice

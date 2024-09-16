@@ -1,4 +1,4 @@
-package character
+package entities
 
 import (
 	"tkz00/backend/pkg/utils"

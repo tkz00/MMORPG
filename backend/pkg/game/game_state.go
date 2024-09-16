@@ -8,32 +8,32 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
-	"tkz00/backend/pkg/game/character"
+	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/game/spawner"
 	"tkz00/backend/pkg/utils"
 )
 
 type GameState struct {
 	playerIds   map[*websocket.Conn]string
-	players     map[string]*character.Character
+	players     map[string]*entities.Character
 	projectiles map[string]*Projectile
 	spawners    map[string]*spawner.Spawner
-	npcs        map[string]*character.Npc
+	npcs        map[string]*entities.Npc
 }
 
 func StartGameState() GameState {
 	gs := GameState{
 		playerIds:   make(map[*websocket.Conn]string),
-		players:     make(map[string]*character.Character),
+		players:     make(map[string]*entities.Character),
 		projectiles: make(map[string]*Projectile),
 		spawners:    make(map[string]*spawner.Spawner),
-		npcs:        make(map[string]*character.Npc),
+		npcs:        make(map[string]*entities.Npc),
 	}
 
-	skeletonEnemiesAbilities := map[string]*character.Ability{
-		"0": character.NewAbility("0", "sword slash", 2, 1500, character.Target, character.Attacking,
-			func(caster character.Character, params character.AbilityParameters) {
-				targetId := params.(character.TargetIdAbilityParams).TargetId
+	skeletonEnemiesAbilities := map[string]*entities.Ability{
+		"0": entities.NewAbility("0", "sword slash", 2, 1500, entities.Target, entities.Attacking,
+			func(caster entities.Character, params entities.AbilityParameters) {
+				targetId := params.(entities.TargetIdAbilityParams).TargetId
 
 				target, err := gs.getCharacterById(targetId)
 				if err != nil {
@@ -45,7 +45,7 @@ func StartGameState() GameState {
 			}),
 	}
 
-	skeletonNPCTemplate := character.NewNPCTemplate("0", "skeleton", 25, 12, skeletonEnemiesAbilities)
+	skeletonNPCTemplate := entities.NewNPCTemplate("0", "skeleton", 25, 12, skeletonEnemiesAbilities)
 
 	gs.spawners["skeleton_spawner_0"] = spawner.NewSpawner(
 		*utils.NewVector2(0, 15),
@@ -57,18 +57,18 @@ func StartGameState() GameState {
 	return gs
 }
 
-func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Character {
+func (gs *GameState) AddPlayer(conn *websocket.Conn) entities.Character {
 	id := uuid.New()
 	playerId := id.String()
-	abilities := map[string]*character.Ability{
-		"0": character.NewAbility("0", "projectile", 5, 2000, character.Coordinates, character.Attacking,
-			func(caster character.Character, params character.AbilityParameters) {
+	abilities := map[string]*entities.Ability{
+		"0": entities.NewAbility("0", "projectile", 5, 2000, entities.Coordinates, entities.Attacking,
+			func(caster entities.Character, params entities.AbilityParameters) {
 				projectileId := uuid.NewString()
-				gs.projectiles[projectileId] = CreateProjectile(uuid.NewString(), caster.GetPosition(), params.(character.CoordinateAbilityParams).Target, 5, caster.GetId())
+				gs.projectiles[projectileId] = CreateProjectile(uuid.NewString(), caster.GetPosition(), params.(entities.CoordinateAbilityParams).Target, 5, caster.GetId())
 			}),
-		"1": character.NewAbility("1", "heal", 7, 3000, character.Target, character.CastingHeal,
-			func(caster character.Character, params character.AbilityParameters) {
-				targetId := params.(character.TargetIdAbilityParams).TargetId
+		"1": entities.NewAbility("1", "heal", 7, 3000, entities.Target, entities.CastingHeal,
+			func(caster entities.Character, params entities.AbilityParameters) {
+				targetId := params.(entities.TargetIdAbilityParams).TargetId
 
 				target, err := gs.getCharacterById(targetId)
 				if err != nil {
@@ -79,7 +79,7 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn) character.Character {
 				target.HealthVariation(10)
 			}),
 	}
-	player := character.CreateCharacter(playerId, 0, 0, abilities)
+	player := entities.CreateCharacter(playerId, 0, 0, abilities)
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
 	return *player
@@ -96,9 +96,9 @@ func (gs GameState) GetPlayerCount() int {
 	return len(gs.players)
 }
 
-func (gs GameState) GetPlayers() []character.Character {
+func (gs GameState) GetPlayers() []entities.Character {
 	// WTF is this shit scoob????
-	playersSlice := make([]character.Character, 0, len(gs.players))
+	playersSlice := make([]entities.Character, 0, len(gs.players))
 	for _, player := range gs.players {
 		playersSlice = append(playersSlice, *player)
 	}
@@ -113,8 +113,8 @@ func (gs GameState) GetProjectiles() []Projectile {
 	return projectilesSlice
 }
 
-func (gs GameState) GetNPCs() []character.Npc {
-	npcsSlice := make([]character.Npc, 0, len(gs.npcs))
+func (gs GameState) GetNPCs() []entities.Npc {
+	npcsSlice := make([]entities.Npc, 0, len(gs.npcs))
 	for _, player := range gs.npcs {
 		npcsSlice = append(npcsSlice, *player)
 	}
@@ -123,7 +123,7 @@ func (gs GameState) GetNPCs() []character.Npc {
 
 func (gs GameState) MovePlayer(conn *websocket.Conn, position utils.Vector2) {
 	playerId := gs.playerIds[conn]
-	moveAction := &character.MoveAction{
+	moveAction := &entities.MoveAction{
 		TargetPosition: position,
 	}
 	gs.players[playerId].ClearActionsQueue()
@@ -188,7 +188,7 @@ func (gs GameState) checkCollision(projectile Projectile) bool {
 	return projectileHit
 }
 
-func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo character.AbilityInfo) {
+func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo entities.AbilityInfo) {
 	casterId := gs.playerIds[conn]
 	caster := gs.players[casterId]
 	abilityId := abilityInfo.GetId()
@@ -223,7 +223,7 @@ func (gs *GameState) EnqueueAbilityCast(conn *websocket.Conn, abilityInfo charac
 	}
 }
 
-func (gs GameState) AreColliding(player character.Character, projectile Projectile) bool {
+func (gs GameState) AreColliding(player entities.Character, projectile Projectile) bool {
 	playerPosition := player.GetPosition()
 	projectilePosition := projectile.GetPosition()
 	distance := playerPosition.Distance(projectilePosition)
@@ -256,7 +256,7 @@ func (gs *GameState) updateNpcs(deltaTime float64) {
 	}
 }
 
-func (gs GameState) getCharacterById(targetId string) (*character.Character, error) {
+func (gs GameState) getCharacterById(targetId string) (*entities.Character, error) {
 	target, exists := gs.players[targetId]
 	if !exists {
 		targetNpc, npcExists := gs.npcs[targetId]
