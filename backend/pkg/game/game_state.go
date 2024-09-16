@@ -9,7 +9,6 @@ import (
 	"golang.org/x/net/websocket"
 
 	"tkz00/backend/pkg/game/entities"
-	"tkz00/backend/pkg/game/spawner"
 	"tkz00/backend/pkg/utils"
 )
 
@@ -17,7 +16,7 @@ type GameState struct {
 	playerIds   map[*websocket.Conn]string
 	players     map[string]*entities.Character
 	projectiles map[string]*Projectile
-	spawners    map[string]*spawner.Spawner
+	spawners    map[string]*entities.Spawner
 	npcs        map[string]*entities.Npc
 }
 
@@ -26,7 +25,7 @@ func StartGameState() GameState {
 		playerIds:   make(map[*websocket.Conn]string),
 		players:     make(map[string]*entities.Character),
 		projectiles: make(map[string]*Projectile),
-		spawners:    make(map[string]*spawner.Spawner),
+		spawners:    make(map[string]*entities.Spawner),
 		npcs:        make(map[string]*entities.Npc),
 	}
 
@@ -47,7 +46,7 @@ func StartGameState() GameState {
 
 	skeletonNPCTemplate := entities.NewNPCTemplate("0", "skeleton", 25, 12, skeletonEnemiesAbilities)
 
-	gs.spawners["skeleton_spawner_0"] = spawner.NewSpawner(
+	gs.spawners["skeleton_spawner_0"] = entities.NewSpawner(
 		*utils.NewVector2(0, 15),
 		2.5,
 		4*time.Second,
