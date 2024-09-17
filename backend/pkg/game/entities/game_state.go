@@ -28,21 +28,10 @@ func StartGameState() GameState {
 		npcs:        make(map[string]*Npc),
 	}
 
-	skeletonEnemiesAbilities := map[string]*Ability{
-		"0": NewAbility("0", "sword slash", 2, 1500, Target, Attacking,
-			func(caster Character, params AbilityParameters) {
-				targetId := params.(TargetIdAbilityParams).TargetId
+	return gs
+}
 
-				target, err := gs.GetCharacterById(targetId)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-
-				target.HealthVariation(-2)
-			}),
-	}
-
+func (gs *GameState) SetUpSkeletonEnemies(skeletonEnemiesAbilities map[string]*Ability) {
 	skeletonNPCTemplate := NewNPCTemplate("0", "skeleton", 25, 12, skeletonEnemiesAbilities)
 
 	gs.spawners["skeleton_spawner_0"] = NewSpawner(
@@ -51,8 +40,6 @@ func StartGameState() GameState {
 		4*time.Second,
 		skeletonNPCTemplate,
 	)
-
-	return gs
 }
 
 func (gs *GameState) AddPlayer(conn *websocket.Conn) Character {

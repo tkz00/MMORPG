@@ -212,7 +212,7 @@ type AbilityInfo interface {
 
 // Everything below this should be in a functionality module, not in the entities package
 
-func EnqueueMovementAction(character *Character, position utils.Vector2) {
+func (character *Character) EnqueueMovementAction(position utils.Vector2) {
 	moveAction := &MoveAction{
 		TargetPosition: position,
 	}

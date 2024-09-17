@@ -2,7 +2,16 @@ package gameplay
 
 import (
 	"tkz00/backend/pkg/game/entities"
+	"tkz00/backend/pkg/game/repository"
 )
+
+func StartGameState() entities.GameState {
+	gamestate := entities.StartGameState()
+	skeletonEnemyAbilities := repository.GetSkeletonEnemyAbilities(gamestate)
+	gamestate.SetUpSkeletonEnemies(skeletonEnemyAbilities)
+
+	return gamestate
+}
 
 func UpdateState(gs *entities.GameState, deltaTime float64) {
 	updatePlayers(gs, deltaTime)

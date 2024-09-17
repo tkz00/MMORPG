@@ -25,12 +25,14 @@ type NativeServer struct {
 }
 
 func (ws *NativeServer) newServer() Server {
+	gamestate := gameplay.StartGameState()
+
 	return &NativeServer{
 		clients:      make(map[*websocket.Conn]bool),
 		addClient:    make(chan *websocket.Conn),
 		removeClient: make(chan *websocket.Conn),
 		broadcast:    make(chan []byte),
-		gameState:    entities.StartGameState(),
+		gameState:    gamestate,
 	}
 }
 
@@ -74,7 +76,7 @@ func (server *NativeServer) readLoop() {
 }
 
 // the broadcast function should just broadcast, the updating of the state should be handled somewhere else
-// actually, native server shouldn't know anything about gamestate, it should only receive messages that it should send to the clients, but how then would client that connect to the server be convereted to players?
+// actually, native server shouldn't know anything about game state, it should only receive messages that it should send to the clients, but how then would client that connect to the server be convereted to players?
 func (server *NativeServer) broadcastGameState() {
 	ticker := time.NewTicker(TICKER_TIME)
 	defer ticker.Stop()
@@ -128,7 +130,7 @@ func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positio
 
 	// this should be just one "action", one line of code, it gives access to two different things while the entry point should be single
 	player := server.gameState.GetPlayerByConn(client)
-	entities.EnqueueMovementAction(player, position)
+	player.EnqueueMovementAction(position)
 }
 
 func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO dtos.AbilityCastDTO) {
