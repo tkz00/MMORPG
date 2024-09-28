@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cinemachine;
+using Newtonsoft.Json;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -31,6 +32,9 @@ public class GameManager : MonoBehaviour
 
     [SerializeField]
     public AbilitiesPanel abilitiesPanel;
+
+    [SerializeField]
+    GameObject deathSplash;
 
     Dictionary<string, Character> players = new Dictionary<string, Character>();
     Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
@@ -71,8 +75,6 @@ public class GameManager : MonoBehaviour
 
     void OnGameStateUpdate(GameStateDTO gameState)
     {
-        Debug.Log(string.Join(", ", this.players.Select(x => x.Key)));
-
         UpdatePlayers(gameState.players);
         UpdateProjectiles(gameState.projectiles);
         UpdateNPCs(gameState.npcs);
@@ -145,6 +147,14 @@ public class GameManager : MonoBehaviour
 
             // Shouldn't this be in the toggle hitboxes method? To avoid calling it on each update?
             player.SetHitbox(hitboxOn);
+
+            if (this.mainPlayerID == playerDTO.id)
+            {
+                if (playerDTO.currentHealth <= 0 && !deathSplash.activeSelf)
+                {
+                    deathSplash.SetActive(true);
+                }
+            }
         }
     }
 
@@ -179,6 +189,17 @@ public class GameManager : MonoBehaviour
             Destroy(this.players[playerIdToDestroy].gameObject);
             this.players.Remove(playerIdToDestroy);
         }
+    }
+
+    // this should defenitely not be here
+    public void Respawn()
+    {
+        WebSocketMessage message = new WebSocketMessage
+        {
+            ActionType = "Respawn"
+        };
+        string jsonMessage = JsonConvert.SerializeObject(message);
+        WebSocketConnection.SendMessage(jsonMessage);
     }
     #endregion
 

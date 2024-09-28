@@ -55,6 +55,7 @@ func (wr *WebSocketMessage) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		wr.Body = ability
+	case "Respawn":
 	default:
 		return fmt.Errorf("unknown message type: %s", tmp.ActionType)
 	}

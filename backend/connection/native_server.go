@@ -119,6 +119,8 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 			server.handlePlayerMovement(conn, message.Body.(dtos.PositionDTO))
 		case "AbilityCast":
 			server.handleAbilityCast(conn, message.Body.(dtos.AbilityCastDTO))
+		case "Respawn":
+			server.handleRespawn(conn)
 		default:
 			fmt.Printf("Unknown message type: %s\n", message.ActionType)
 		}
@@ -136,4 +138,11 @@ func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positio
 func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO dtos.AbilityCastDTO) {
 	player := server.gameState.GetPlayerByConn(client)
 	entities.EnqueueAbilityCast(server.gameState, player, abilityCastDTO)
+}
+
+func (server *NativeServer) handleRespawn(client *websocket.Conn) {
+	player := server.gameState.GetPlayerByConn(client)
+	if !player.IsAlive() {
+		player.HealthVariation(player.GetMaxHealth())
+	}
 }

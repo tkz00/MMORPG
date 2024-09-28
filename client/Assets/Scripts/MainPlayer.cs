@@ -20,16 +20,19 @@ public class MainPlayer : MonoBehaviour
 
     public AbilitiesPanel abilitiesPanel;
 
-    void Awake() {
+    void Awake()
+    {
         mainCamera = Camera.main;
     }
 
-    void Start() {
+    void Start()
+    {
         // The type of shit Unity makes you do:
         groundLayer = (1 << LayerMask.NameToLayer("Ground"));
     }
 
-    private void OnEnable() {
+    private void OnEnable()
+    {
         mouseClickAction.Enable();
         mouseClickAction.performed += SendMovementMessage;
 
@@ -40,7 +43,8 @@ public class MainPlayer : MonoBehaviour
         secondAbilityAction.performed += context => CastAbility(context, abilities[1]);
     }
 
-    private void OnDisable() {
+    private void OnDisable()
+    {
         mouseClickAction.performed -= SendMovementMessage;
         mouseClickAction.Disable();
 
@@ -54,7 +58,7 @@ public class MainPlayer : MonoBehaviour
     public void InitAbilities(AbilityDTO[] abilitiesDTOs, List<Ability> availableAbilities)
     {
         int index = 0;
-        foreach(AbilityDTO abilityDTO in abilitiesDTOs)
+        foreach (AbilityDTO abilityDTO in abilitiesDTOs)
         {
             this.abilities[index] = availableAbilities.Find(ability => ability.id == abilityDTO.id);
             index++;
@@ -64,10 +68,12 @@ public class MainPlayer : MonoBehaviour
     private void SendMovementMessage(InputAction.CallbackContext context)
     {
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
-        if(Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && hit.collider) {
+        if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && hit.collider)
+        {
             float x = hit.point.x, z = hit.point.z;
-            PositionDTO inputPosition = new PositionDTO{x = x, z = z};
-            WebSocketMessage response = new WebSocketMessage {
+            PositionDTO inputPosition = new PositionDTO { x = x, z = z };
+            WebSocketMessage response = new WebSocketMessage
+            {
                 Body = inputPosition,
                 ActionType = "Position"
             };
@@ -78,10 +84,10 @@ public class MainPlayer : MonoBehaviour
 
     private void CastAbility(InputAction.CallbackContext context, Ability ability)
     {
-        if(ability != null)
+        if (ability != null)
         {
             // abilities panel is doing the work of what should be an abilities manager, it should be refactored
-            if(abilitiesPanel.CanCast(ability.id))
+            if (abilitiesPanel.CanCast(ability.id))
             {
                 Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
                 if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, ability.GetLayerMask()) && hit.collider)

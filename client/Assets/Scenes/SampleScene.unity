@@ -810,7 +810,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 687038693}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1535886751}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: Respawn
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &687038693
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1796,6 +1808,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 64422d998c9dc4265937786b120f2204, type: 2}
   - {fileID: 11400000, guid: 70484fb3587b14d18a54217bca22d8a5, type: 2}
   abilitiesPanel: {fileID: 368664262}
+  deathSplash: {fileID: 93601524}
 --- !u!4 &1535886752
 Transform:
   m_ObjectHideFlags: 0

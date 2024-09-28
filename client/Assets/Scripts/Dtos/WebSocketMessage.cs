@@ -1,9 +1,10 @@
 using System;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-public class WebSocketMessage {
-	public DTO Body;
-	public string ActionType;
+public class WebSocketMessage
+{
+    public DTO Body;
+    public string ActionType;
 }
 
 public class WebSocketMessageConverter : JsonConverter

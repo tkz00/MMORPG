@@ -19,7 +19,7 @@ func GetSkeletonEnemyAbilities(gs entities.GameState) map[string]*entities.Abili
 					return
 				}
 
-				target.HealthVariation(-2)
+				target.HealthVariation(-20)
 			}),
 	}
 	return skeletonEnemiesAbilities
