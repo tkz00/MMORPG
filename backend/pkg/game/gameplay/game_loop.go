@@ -1,8 +1,12 @@
 package gameplay
 
 import (
+	"fmt"
 	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/game/repository"
+
+	"github.com/google/uuid"
+	"golang.org/x/net/websocket"
 )
 
 func StartGameState() entities.GameState {
@@ -103,4 +107,32 @@ func AreColliding(player entities.Character, projectile entities.Projectile) boo
 	projectilePosition := projectile.GetPosition()
 	distance := playerPosition.Distance(projectilePosition)
 	return distance < (player.GetRadius() + projectile.GetRadius())
+}
+
+// Should this be here? Where should this be?
+func AddPlayer(gs *entities.GameState, conn *websocket.Conn) entities.Character {
+	id := uuid.New()
+	playerId := id.String()
+	abilities := map[string]*entities.Ability{
+		"0": entities.NewAbility("0", "projectile", 5, 2000, entities.Coordinates, entities.Attacking,
+			func(caster entities.Character, params entities.AbilityParameters) {
+				projectile := entities.CreateProjectile(uuid.NewString(), caster.GetPosition(), params.(entities.CoordinateAbilityParams).Target, 5, caster.GetId())
+				gs.AddProjectile(projectile)
+			}),
+		"1": entities.NewAbility("1", "heal", 7, 3000, entities.Target, entities.CastingHeal,
+			func(caster entities.Character, params entities.AbilityParameters) {
+				targetId := params.(entities.TargetIdAbilityParams).TargetId
+
+				target, err := gs.GetCharacterById(targetId)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+
+				target.HealthVariation(10)
+			}),
+	}
+	player := entities.CreateCharacter(playerId, 0, 0, abilities)
+	gs.AddPlayer(conn, player)
+	return *player
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
 	"tkz00/backend/pkg/utils"
@@ -42,32 +41,10 @@ func (gs *GameState) SetUpSkeletonEnemies(skeletonEnemiesAbilities map[string]*A
 	)
 }
 
-func (gs *GameState) AddPlayer(conn *websocket.Conn) Character {
-	id := uuid.New()
-	playerId := id.String()
-	abilities := map[string]*Ability{
-		"0": NewAbility("0", "projectile", 5, 2000, Coordinates, Attacking,
-			func(caster Character, params AbilityParameters) {
-				projectileId := uuid.NewString()
-				gs.projectiles[projectileId] = CreateProjectile(uuid.NewString(), caster.GetPosition(), params.(CoordinateAbilityParams).Target, 5, caster.GetId())
-			}),
-		"1": NewAbility("1", "heal", 7, 3000, Target, CastingHeal,
-			func(caster Character, params AbilityParameters) {
-				targetId := params.(TargetIdAbilityParams).TargetId
-
-				target, err := gs.GetCharacterById(targetId)
-				if err != nil {
-					fmt.Println(err)
-					return
-				}
-
-				target.HealthVariation(10)
-			}),
-	}
-	player := CreateCharacter(playerId, 0, 0, abilities)
+func (gs *GameState) AddPlayer(conn *websocket.Conn, player *Character) {
+	playerId := player.GetId()
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
-	return *player
 }
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {
@@ -98,6 +75,10 @@ func (gs GameState) GetPlayers() []Character {
 func (gs GameState) GetPlayerByConn(conn *websocket.Conn) *Character {
 	playerId := gs.playerIds[conn]
 	return gs.players[playerId]
+}
+
+func (gs *GameState) AddProjectile(projectile *Projectile) {
+	gs.projectiles[projectile.GetId()] = projectile
 }
 
 func (gs *GameState) Projectiles() map[string]*Projectile {
