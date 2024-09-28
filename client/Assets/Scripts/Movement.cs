@@ -66,4 +66,9 @@ public class Movement : MonoBehaviour
     {
         playerAnimator.SetBool("IsMoving", isMoving);
     }
+
+    internal void DeathAnimation()
+    {
+        playerAnimator.SetTrigger("Death");
+    }
 }

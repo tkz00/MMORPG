@@ -71,6 +71,8 @@ public class GameManager : MonoBehaviour
 
     void OnGameStateUpdate(GameStateDTO gameState)
     {
+        Debug.Log(string.Join(", ", this.players.Select(x => x.Key)));
+
         UpdatePlayers(gameState.players);
         UpdateProjectiles(gameState.projectiles);
         UpdateNPCs(gameState.npcs);
@@ -111,25 +113,32 @@ public class GameManager : MonoBehaviour
             }
             player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
 
-            switch (playerDTO.executingAction.action)
+            if (playerDTO.currentHealth > 0)
             {
-                case CharacterAction.Attacking:
-                    player.Movement.TriggerWalkingAnimation(false);
-                    player.Movement.AttackAnimation();
-                    player.Movement.RotateTowards(playerDTO.executingAction.direction);
-                    break;
-                case CharacterAction.CastingHeal:
-                    player.Movement.TriggerWalkingAnimation(false);
-                    player.Movement.HealAnimation();
-                    player.Movement.RotateTowards(playerDTO.executingAction.direction);
-                    break;
-                case CharacterAction.Moving:
-                    player.Movement.TriggerWalkingAnimation(true);
-                    player.Movement.RotateTowards(playerDTO.executingAction.direction);
-                    break;
-                default:
-                    player.Movement.TriggerWalkingAnimation(false);
-                    break;
+                switch (playerDTO.executingAction.action)
+                {
+                    case CharacterAction.Attacking:
+                        player.Movement.TriggerWalkingAnimation(false);
+                        player.Movement.AttackAnimation();
+                        player.Movement.RotateTowards(playerDTO.executingAction.direction);
+                        break;
+                    case CharacterAction.CastingHeal:
+                        player.Movement.TriggerWalkingAnimation(false);
+                        player.Movement.HealAnimation();
+                        player.Movement.RotateTowards(playerDTO.executingAction.direction);
+                        break;
+                    case CharacterAction.Moving:
+                        player.Movement.TriggerWalkingAnimation(true);
+                        player.Movement.RotateTowards(playerDTO.executingAction.direction);
+                        break;
+                    default:
+                        player.Movement.TriggerWalkingAnimation(false);
+                        break;
+                }
+            }
+            else
+            {
+                player.Movement.DeathAnimation();
             }
 
             player.SetScale(playerDTO.radius * 2);
