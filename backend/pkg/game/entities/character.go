@@ -95,8 +95,10 @@ func (p Character) GetAbilities() map[string]*Ability {
 	return p.abilities
 }
 
-func (p *Character) EnqueueAction(action CharacterAction) {
-	p.actionsQueue = append(p.actionsQueue, action)
+func (character *Character) EnqueueAction(action CharacterAction) {
+	if character.IsAlive() {
+		character.actionsQueue = append(character.actionsQueue, action)
+	}
 }
 
 func (p *Character) ClearActionsQueue() {

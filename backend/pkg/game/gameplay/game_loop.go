@@ -25,9 +25,13 @@ func UpdateState(gs *entities.GameState, deltaTime float64) {
 
 func updatePlayers(gs *entities.GameState, deltaTime float64) {
 	for _, player := range gs.Players() {
-		player.ExecuteNextAction()
-		if player.IsMoving() {
-			player.UpdatePosition(deltaTime)
+		if player.IsAlive() {
+			player.ExecuteNextAction()
+			if player.IsMoving() {
+				player.UpdatePosition(deltaTime)
+			}
+		} else {
+			player.ClearActionsQueue()
 		}
 	}
 }
