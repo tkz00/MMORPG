@@ -75,7 +75,7 @@ func (p Character) GetId() string {
 }
 
 func (p *Character) SetPosition(position utils.Vector2) {
-	p.position = position
+	p.position.Teleport(position)
 }
 
 func (p Character) GetPosition() utils.Vector2 {

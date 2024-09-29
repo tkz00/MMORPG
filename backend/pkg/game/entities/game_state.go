@@ -157,5 +157,6 @@ func EnqueueAbilityCast(gs GameState, caster *Character, abilityInfo AbilityInfo
 		}
 	}
 	abilityAction := ability.CreateAction(abilityInfo, targetCoordinatesCallback, castingCoordinatesCallback)
+	caster.ClearActionsQueue()
 	caster.EnqueueAction(&abilityAction)
 }

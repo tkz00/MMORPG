@@ -32,6 +32,8 @@ public class WebSocketMessageConverter : JsonConverter
                 return new WebSocketMessage { ActionType = actionType, Body = body.ToObject<CharacterDTO>() };
             case "GameState":
                 return new WebSocketMessage { ActionType = actionType, Body = body.ToObject<GameStateDTO>() };
+            case "Respawn":
+                return new WebSocketMessage { ActionType = actionType, Body = body.ToObject<CharacterDTO>() };
             default:
                 throw new JsonSerializationException($"Unknown type '{actionType}' in JSON.");
         }

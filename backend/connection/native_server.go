@@ -10,6 +10,7 @@ import (
 	"tkz00/backend/api/dtos"
 	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/game/gameplay"
+	"tkz00/backend/pkg/utils"
 
 	"golang.org/x/net/websocket"
 )
@@ -144,5 +145,11 @@ func (server *NativeServer) handleRespawn(client *websocket.Conn) {
 	player := server.gameState.GetPlayerByConn(client)
 	if !player.IsAlive() {
 		player.HealthVariation(player.GetMaxHealth())
+		player.MoveTowards(*utils.NewVector2(0, 0))
+		player.SetPosition(*utils.NewVector2(0, 0))
+		response := CreateWebSocketResponse(*dtos.GetMapper().CharacterToDTO(*player))
+		response.ActionType = "Respawn"
+		message := response.Serialize()
+		websocket.Message.Send(client, message)
 	}
 }

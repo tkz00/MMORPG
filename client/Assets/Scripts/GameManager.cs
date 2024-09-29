@@ -60,6 +60,17 @@ public class GameManager : MonoBehaviour
             "GameState"
         );
 
+        WebSocketConnection.SetHandler(
+            new Action<CharacterDTO>(
+                (playerDTO) =>
+                {
+                    Character player = players[playerDTO.id];
+                    player.Respawn(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
+                }
+            ),
+            "Respawn"
+        );
+
         await WebSocketConnection.Connect();
     }
 
@@ -140,7 +151,10 @@ public class GameManager : MonoBehaviour
             }
             else
             {
-                player.Movement.DeathAnimation();
+                if (player.IsAlive)
+                {
+                    player.TriggerDeath();
+                }
             }
 
             player.SetScale(playerDTO.radius * 2);
@@ -169,7 +183,7 @@ public class GameManager : MonoBehaviour
         );
         player = newPlayerGO.GetComponent<Character>();
         player.id = playerDTO.id;
-        player.SetNpcName(player.id);
+        player.SetCharacterName(player.id);
         player.SetHealthBarColor(playerColor);
         players[playerDTO.id] = player;
         if (this.mainPlayerID == player.id)
@@ -324,7 +338,7 @@ public class GameManager : MonoBehaviour
         );
         npc = newNpcGO.GetComponent<Character>();
         npc.id = npcDTO.id;
-        npc.SetNpcName(npc.id);
+        npc.SetCharacterName(npc.id);
         npc.SetHealthBarColor(npcColor);
         npcs[npcDTO.id] = npc;
         return npc;

@@ -51,6 +51,12 @@ public class Movement : MonoBehaviour
         }
     }
 
+    public void Respawn(Vector3 position)
+    {
+        transform.position = position;
+        playerAnimator.SetTrigger("Spawn");
+    }
+
     // this shouldn't be handled in the movement script, there should be an animations controller or smth like that
     public void AttackAnimation()
     {

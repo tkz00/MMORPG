@@ -12,69 +12,88 @@ public class Character : MonoBehaviour, ITargeteable
     [SerializeField]
     private Transform model;
 
-	[SerializeField]
+    [SerializeField]
     private Transform hitbox;
 
     [SerializeField]
     private Movement movement;
 
-    public Movement Movement {
+    public Movement Movement
+    {
         get { return movement; }
     }
 
-	[SerializeField]
-	TMP_Text playerNameUI;
+    [SerializeField]
+    TMP_Text playerNameUI;
 
-	[SerializeField]
-	HealthBar healthBar;
+    [SerializeField]
+    HealthBar healthBar;
 
     [SerializeField]
     PlayerVFXsHandler playerVFXsHandler;
 
-	private PlayerStats stats = new PlayerStats();
+    private PlayerStats stats = new PlayerStats();
 
-	public PlayerStats Stats {
+    public PlayerStats Stats
+    {
         get { return stats; }
     }
 
-	public void SetNpcName(string playerName) {
-		playerNameUI.text = playerName;
-	}
+    public bool IsAlive { get; private set; } = true;
 
-	public void UpdateHealth(int currentHealth, int maxHealth) {
+    public void SetCharacterName(string playerName)
+    {
+        playerNameUI.text = playerName;
+    }
+
+    public void UpdateHealth(int currentHealth, int maxHealth)
+    {
         // this logic should be changed, "states" should come from the backend and them trigger specific feedbacks, i.e.: the "healed" state should trigger the respective healing vfx
-        if(this.Stats.CurrentHealth < currentHealth)
+        if (this.Stats.CurrentHealth < currentHealth)
         {
             this.playerVFXsHandler.TriggerHealingVFX();
         }
 
-		this.Stats.UpdateHealth(currentHealth, maxHealth);
-		this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
-	}
+        this.Stats.UpdateHealth(currentHealth, maxHealth);
+        this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
+    }
 
     public string GetTargetId()
     {
         return id;
-	}
+    }
 
-    public void SetMovement(Movement movement) {
+    public void SetMovement(Movement movement)
+    {
         this.movement = movement;
-	}
+    }
 
-	// remove later
-	public void SetHealthBarColor(Color color)
-	{
-		this.healthBar.SetColor(color);
-	}
+    // remove later
+    public void SetHealthBarColor(Color color)
+    {
+        this.healthBar.SetColor(color);
+    }
 
     public void SetScale(float scale)
     {
         model.localScale = Vector3.one * scale;
-		hitbox.localScale = Vector3.one * scale;
+        hitbox.localScale = Vector3.one * scale;
     }
 
     public void SetHitbox(bool hitboxOn)
     {
         hitbox.gameObject.SetActive(hitboxOn);
+    }
+
+    public void Respawn(Vector3 position)
+    {
+        IsAlive = true;
+        this.Movement.Respawn(position);
+    }
+
+    public void TriggerDeath()
+    {
+        IsAlive = false;
+        Movement.DeathAnimation();
     }
 }
