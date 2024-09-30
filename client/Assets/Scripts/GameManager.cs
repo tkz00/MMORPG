@@ -111,64 +111,60 @@ public class GameManager : MonoBehaviour
     {
         foreach (CharacterDTO playerDTO in playerDTOS)
         {
-            Character player;
-            bool playerExists = this.players.Any(
-                playerMovement => playerMovement.Key == playerDTO.id
-            );
-            if (playerExists)
-            {
-                player = players[playerDTO.id];
-                player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
-            }
-            else
-            {
-                player = CreatePlayer(playerDTO);
-            }
+            Character player = GetPlayer(playerDTO);
+            player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
             player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
-
-            if (playerDTO.currentHealth > 0)
-            {
-                switch (playerDTO.executingAction.action)
-                {
-                    case CharacterAction.Attacking:
-                        player.Movement.TriggerWalkingAnimation(false);
-                        player.Movement.AttackAnimation();
-                        player.Movement.RotateTowards(playerDTO.executingAction.direction);
-                        break;
-                    case CharacterAction.CastingHeal:
-                        player.Movement.TriggerWalkingAnimation(false);
-                        player.Movement.HealAnimation();
-                        player.Movement.RotateTowards(playerDTO.executingAction.direction);
-                        break;
-                    case CharacterAction.Moving:
-                        player.Movement.TriggerWalkingAnimation(true);
-                        player.Movement.RotateTowards(playerDTO.executingAction.direction);
-                        break;
-                    default:
-                        player.Movement.TriggerWalkingAnimation(false);
-                        break;
-                }
-            }
-            else
-            {
-                if (player.IsAlive)
-                {
-                    player.TriggerDeath();
-                }
-            }
+            UpdateCharacterAnimations(playerDTO, player);
 
             player.SetScale(playerDTO.radius * 2);
 
             // Shouldn't this be in the toggle hitboxes method? To avoid calling it on each update?
             player.SetHitbox(hitboxOn);
+            CheckDeathSplash(playerDTO);
+        }
+    }
 
-            if (this.mainPlayerID == playerDTO.id)
+    private Character GetPlayer(CharacterDTO playerDTO)
+    {
+        Character player;
+        bool playerExists = this.players.Any(
+            playerMovement => playerMovement.Key == playerDTO.id
+        );
+        if (playerExists)
+        {
+            player = players[playerDTO.id];
+        }
+        else
+        {
+            player = CreatePlayer(playerDTO);
+        }
+
+        return player;
+    }
+
+    private void CheckDeathSplash(CharacterDTO playerDTO)
+    {
+        if (this.mainPlayerID == playerDTO.id)
+        {
+            if (playerDTO.currentHealth <= 0 && !deathSplash.activeSelf)
             {
-                if (playerDTO.currentHealth <= 0 && !deathSplash.activeSelf)
-                {
-                    deathSplash.SetActive(true);
-                }
+                deathSplash.SetActive(true);
             }
+        }
+    }
+
+    private void UpdateCharacterAnimations(CharacterDTO characterDTO, Character character)
+    {
+        if (characterDTO.currentHealth > 0)
+        {
+            character.HandleActionFeedback(characterDTO.executingAction);
+
+            return;
+        }
+
+        if (character.IsAlive)
+        {
+            character.TriggerDeath();
         }
     }
 
