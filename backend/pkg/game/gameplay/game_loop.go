@@ -86,9 +86,11 @@ func updateNpcs(gs *entities.GameState, deltaTime float64) {
 func checkCollision(gs *entities.GameState, projectile entities.Projectile) bool {
 	projectileHit := false
 	for _, player := range gs.Players() {
-		if player.GetId() != projectile.Caster() && AreColliding(*player, projectile) {
-			player.HealthVariation(-projectile.GetDamage())
-			projectileHit = true
+		if player.IsAlive() {
+			if player.GetId() != projectile.Caster() && AreColliding(*player, projectile) {
+				player.HealthVariation(-projectile.GetDamage())
+				projectileHit = true
+			}
 		}
 	}
 

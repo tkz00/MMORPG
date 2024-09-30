@@ -89,12 +89,16 @@ public class Character : MonoBehaviour, ITargeteable
     {
         IsAlive = true;
         this.Movement.Respawn(position);
+        healthBar.gameObject.SetActive(true);
+        playerNameUI.transform.parent.gameObject.SetActive(true);
     }
 
     public void TriggerDeath()
     {
         IsAlive = false;
         Movement.DeathAnimation();
+        healthBar.gameObject.SetActive(false);
+        playerNameUI.transform.parent.gameObject.SetActive(false);
     }
 
     public void HandleActionFeedback(ExecutingAction action)

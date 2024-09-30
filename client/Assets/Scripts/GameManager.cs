@@ -118,8 +118,6 @@ public class GameManager : MonoBehaviour
 
             player.SetScale(playerDTO.radius * 2);
 
-            // Shouldn't this be in the toggle hitboxes method? To avoid calling it on each update?
-            player.SetHitbox(hitboxOn);
             CheckDeathSplash(playerDTO);
         }
     }
@@ -181,6 +179,7 @@ public class GameManager : MonoBehaviour
         player.id = playerDTO.id;
         player.SetCharacterName(player.id);
         player.SetHealthBarColor(playerColor);
+        player.SetHitbox(hitboxOn);
         players[playerDTO.id] = player;
         if (this.mainPlayerID == player.id)
         {
@@ -295,31 +294,9 @@ public class GameManager : MonoBehaviour
             }
             npc.UpdateHealth(npcDTO.currentHealth, npcDTO.maxHealth);
 
-            switch (npcDTO.executingAction.action)
-            {
-                case CharacterAction.Attacking:
-                    npc.Movement.TriggerWalkingAnimation(false);
-                    npc.Movement.AttackAnimation();
-                    npc.Movement.RotateTowards(npcDTO.executingAction.direction);
-                    break;
-                case CharacterAction.CastingHeal:
-                    npc.Movement.TriggerWalkingAnimation(false);
-                    npc.Movement.HealAnimation();
-                    npc.Movement.RotateTowards(npcDTO.executingAction.direction);
-                    break;
-                case CharacterAction.Moving:
-                    npc.Movement.TriggerWalkingAnimation(true);
-                    npc.Movement.RotateTowards(npcDTO.executingAction.direction);
-                    break;
-                default:
-                    npc.Movement.TriggerWalkingAnimation(false);
-                    break;
-            }
+            npc.HandleActionFeedback(npcDTO.executingAction);
 
             npc.SetScale(npcDTO.radius * 2);
-
-            // Shouldn't this be in the toggle hitboxes method? To avoid calling it on each update?
-            npc.SetHitbox(hitboxOn);
         }
     }
 
@@ -336,6 +313,7 @@ public class GameManager : MonoBehaviour
         npc.id = npcDTO.id;
         npc.SetCharacterName(npc.id);
         npc.SetHealthBarColor(npcColor);
+        npc.SetHitbox(hitboxOn);
         npcs[npcDTO.id] = npc;
         return npc;
     }
@@ -356,6 +334,11 @@ public class GameManager : MonoBehaviour
         hitboxOn = !hitboxOn;
 
         foreach (Character player in this.players.Values)
+        {
+            player.SetHitbox(hitboxOn);
+        }
+
+        foreach (Character player in this.npcs.Values)
         {
             player.SetHitbox(hitboxOn);
         }
