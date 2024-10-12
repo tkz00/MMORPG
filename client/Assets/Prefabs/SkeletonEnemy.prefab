@@ -365,7 +365,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1044985334616851782, guid: c21a5ed2a55b149ac830d01bc2abb51d, type: 3}
       propertyPath: m_Name
-      value: PlayerPanel
+      value: CharacterPanel
       objectReference: {fileID: 0}
     - target: {fileID: 1218900718636346672, guid: c21a5ed2a55b149ac830d01bc2abb51d, type: 3}
       propertyPath: m_AnchorMax.y
