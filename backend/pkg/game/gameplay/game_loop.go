@@ -13,6 +13,9 @@ func StartGameState() entities.GameState {
 	skeletonEnemyAbilities := repository.GetSkeletonEnemyAbilities(gamestate)
 	gamestate.SetUpSkeletonEnemies(skeletonEnemyAbilities)
 
+	mapObstacleColliders := repository.GetObstacleColliders()
+	gamestate.SetUpObstacles(mapObstacleColliders)
+
 	return gamestate
 }
 
@@ -25,13 +28,16 @@ func UpdateState(gs *entities.GameState, deltaTime float64) {
 
 func updatePlayers(gs *entities.GameState, deltaTime float64) {
 	for _, player := range gs.Players() {
-		if player.IsAlive() {
-			player.ExecuteNextAction()
-			if player.IsMoving() {
-				player.UpdatePosition(deltaTime)
-			}
-		} else {
+		if !player.IsAlive() {
 			player.ClearActionsQueue()
+			return
+		}
+
+		player.ExecuteNextAction()
+		if player.IsMoving() {
+			if !player.UpdatePosition(deltaTime, gs.GetObstacleColliders()) {
+				player.ClearActionsQueue()
+			}
 		}
 	}
 }
@@ -70,7 +76,13 @@ func updateNpcs(gs *entities.GameState, deltaTime float64) {
 
 	for id, npc := range gs.NPCs() {
 		if npc.IsAlive() {
-			npc.Update(deltaTime)
+			npc.ExecuteNextAction()
+			npc.UpdateBehaviour()
+			if npc.IsMoving() {
+				if !npc.UpdatePosition(deltaTime, gs.GetObstacleColliders()) {
+					npc.ClearActionsQueue()
+				}
+			}
 		} else {
 			npc.Remove()
 			deadNpcs = append(deadNpcs, id)

@@ -21,7 +21,7 @@ type Npc struct {
 	aggroRange        float64
 }
 
-func (npc *Npc) Update(deltaTime float64) {
+func (npc *Npc) UpdateBehaviour() {
 	hasNoActionsInQueue := len(npc.Character.actionsQueue) == 0
 	if hasNoActionsInQueue {
 		switch npc.state {
@@ -34,10 +34,6 @@ func (npc *Npc) Update(deltaTime float64) {
 				npc.BecomePacific()
 			}
 		}
-	}
-	npc.Character.ExecuteNextAction()
-	if npc.IsMoving() {
-		npc.UpdatePosition(deltaTime)
 	}
 }
 

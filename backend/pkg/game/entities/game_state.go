@@ -16,6 +16,7 @@ type GameState struct {
 	projectiles map[string]*Projectile
 	spawners    map[string]*Spawner
 	npcs        map[string]*Npc
+	obstacles   [][]utils.Vector2
 }
 
 func StartGameState() GameState {
@@ -39,6 +40,10 @@ func (gs *GameState) SetUpSkeletonEnemies(skeletonEnemiesAbilities map[string]*A
 		4*time.Second,
 		skeletonNPCTemplate,
 	)
+}
+
+func (gs *GameState) SetUpObstacles(obstacleColliders [][]utils.Vector2) {
+	gs.obstacles = obstacleColliders
 }
 
 func (gs *GameState) AddPlayer(conn *websocket.Conn, player *Character) {
@@ -159,4 +164,8 @@ func EnqueueAbilityCast(gs GameState, caster *Character, abilityInfo AbilityInfo
 	abilityAction := ability.CreateAction(abilityInfo, targetCoordinatesCallback, castingCoordinatesCallback)
 	caster.ClearActionsQueue()
 	caster.EnqueueAction(&abilityAction)
+}
+
+func (gs GameState) GetObstacleColliders() [][]utils.Vector2 {
+	return gs.obstacles
 }

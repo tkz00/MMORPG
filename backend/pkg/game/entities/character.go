@@ -150,13 +150,41 @@ func (p Character) IsMoving() bool {
 	return !p.position.Equals(p.to)
 }
 
-func (p *Character) UpdatePosition(deltaTime float64) {
+// returns if the character has been able to complete the movement without colliding with any obstacle
+func (p *Character) UpdatePosition(deltaTime float64, obstacles [][]utils.Vector2) bool {
 	distanceToTarget := p.position.Distance(p.to)
 	if distanceToTarget < (CHARACTER_SPEED * deltaTime) {
 		p.position.Teleport(p.to)
 	} else {
-		p.position = p.position.Add(p.direction.Scale(deltaTime))
+		nextPosition := p.position.Add(p.direction.Scale(deltaTime))
+
+		// Define the character's circle center and radius
+		circleCenter := nextPosition
+		circleRadius := CHARACTER_BOUNDS_RADIUS
+
+		for _, obstacle := range obstacles {
+			for index := range obstacle {
+				// Get the current and next vertices of the obstacle segment
+				vertice := obstacle[index]
+				var nextVertice utils.Vector2
+				if index+1 < len(obstacle) {
+					nextVertice = obstacle[index+1]
+				} else {
+					// If it's the last vertex, connect it to the first one (assuming closed shape)
+					nextVertice = obstacle[0]
+				}
+
+				// Check if the circle (character) intersects or touches the segment
+				if utils.CircleSegmentIntersect(circleCenter, circleRadius, vertice, nextVertice) {
+					// Handle the collision, e.g., stop movement or adjust direction
+					return false // Early exit if a collision is detected
+				}
+			}
+		}
+		// No collision detected, update position
+		p.position = nextPosition
 	}
+	return true
 }
 
 func (p Character) GetRadius() float64 {

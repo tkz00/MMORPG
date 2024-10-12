@@ -22,6 +22,10 @@ func (v Vector2) Add(additive Vector2) Vector2 {
 	return Vector2{(v.x + additive.x), (v.z + additive.z)}
 }
 
+func (v Vector2) Subtract(subtractive Vector2) Vector2 {
+	return Vector2{(v.x - subtractive.x), (v.z - subtractive.z)}
+}
+
 func (v *Vector2) Teleport(to Vector2) {
 	v.x = to.x
 	v.z = to.z
@@ -29,6 +33,10 @@ func (v *Vector2) Teleport(to Vector2) {
 
 func (v Vector2) Equals(other Vector2) bool {
 	return v.x == other.x && v.z == other.z
+}
+
+func (v Vector2) Dot(other Vector2) float64 {
+	return v.x*other.x + v.z*other.z
 }
 
 func (v Vector2) Scale(scalar float64) Vector2 {
@@ -63,4 +71,29 @@ func ClosestPositionInRange(startingPosition Vector2, target Vector2, rangeValue
 	movementVector := normalizedMovementVector.Scale(totalDistance - rangeValue)
 	targetPosition := startingPosition.Add(movementVector)
 	return targetPosition
+}
+
+// CircleSegmentIntersect checks if a circle intersects or touches a line segment
+func CircleSegmentIntersect(center Vector2, radius float64, segStart Vector2, segEnd Vector2) bool {
+	// Segment vector (from segStart to segEnd)
+	segment := segEnd.Subtract(segStart)
+
+	// Vector from segment start to circle center
+	toCenter := center.Subtract(segStart)
+
+	// Project circle center onto the line segment
+	segmentLengthSquared := segment.Dot(segment) // Length of the segment squared
+	projection := toCenter.Dot(segment) / segmentLengthSquared
+
+	// Clamp projection to the range [0, 1]
+	t := math.Max(0, math.Min(1, projection))
+
+	// Find the closest point on the segment to the circle's center
+	closestPoint := segStart.Add(segment.Scale(t))
+
+	// Calculate the distance from the closest point to the circle's center
+	distanceToCenter := closestPoint.Distance(center)
+
+	// Return true if the distance is less than or equal to the radius
+	return distanceToCenter <= radius
 }
