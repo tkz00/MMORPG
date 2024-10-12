@@ -169,7 +169,6 @@ public class GameManager : MonoBehaviour
     private Character CreatePlayer(CharacterDTO playerDTO)
     {
         Character player;
-        Color playerColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
         GameObject newPlayerGO = Instantiate(
             this.playerPrefab,
             new Vector3(playerDTO.position.x, 0, playerDTO.position.z),
@@ -178,7 +177,6 @@ public class GameManager : MonoBehaviour
         player = newPlayerGO.GetComponent<Character>();
         player.id = playerDTO.id;
         player.SetCharacterName(player.id);
-        player.SetHealthBarColor(playerColor);
         player.SetHitbox(hitboxOn);
         players[playerDTO.id] = player;
         if (this.mainPlayerID == player.id)
@@ -187,6 +185,13 @@ public class GameManager : MonoBehaviour
             mainPlayer.abilitiesPanel = abilitiesPanel;
             mainPlayer.InitAbilities(mainPlayerAbilities, availableAbilities);
             this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
+            Color playerColor = Color.green;
+            player.SetHealthBarColor(playerColor);
+        }
+        else
+        {
+            Color playerColor = Color.red;
+            player.SetHealthBarColor(playerColor);
         }
         return player;
     }
@@ -303,7 +308,6 @@ public class GameManager : MonoBehaviour
     private Character CreateNPC(CharacterDTO npcDTO)
     {
         Character npc;
-        Color npcColor = UnityEngine.Random.ColorHSV(0f, 1f, 1f, 1f, 0.5f, 1f);
         GameObject newNpcGO = Instantiate(
             this.npcPrefab,
             new Vector3(npcDTO.position.x, 0, npcDTO.position.z),
@@ -312,6 +316,7 @@ public class GameManager : MonoBehaviour
         npc = newNpcGO.GetComponent<Character>();
         npc.id = npcDTO.id;
         npc.SetCharacterName(npc.id);
+        Color npcColor = Color.yellow;
         npc.SetHealthBarColor(npcColor);
         npc.SetHitbox(hitboxOn);
         npcs[npcDTO.id] = npc;
