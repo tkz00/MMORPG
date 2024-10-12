@@ -163,22 +163,8 @@ func (p *Character) UpdatePosition(deltaTime float64, obstacles [][]utils.Vector
 		circleRadius := CHARACTER_BOUNDS_RADIUS
 
 		for _, obstacle := range obstacles {
-			for index := range obstacle {
-				// Get the current and next vertices of the obstacle segment
-				vertice := obstacle[index]
-				var nextVertice utils.Vector2
-				if index+1 < len(obstacle) {
-					nextVertice = obstacle[index+1]
-				} else {
-					// If it's the last vertex, connect it to the first one (assuming closed shape)
-					nextVertice = obstacle[0]
-				}
-
-				// Check if the circle (character) intersects or touches the segment
-				if utils.CircleSegmentIntersect(circleCenter, circleRadius, vertice, nextVertice) {
-					// Handle the collision, e.g., stop movement or adjust direction
-					return false // Early exit if a collision is detected
-				}
+			if utils.CirclePolygonIntersect(circleCenter, circleRadius, obstacle) {
+				return false
 			}
 		}
 		// No collision detected, update position

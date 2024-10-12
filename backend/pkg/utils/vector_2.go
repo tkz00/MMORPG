@@ -97,3 +97,25 @@ func CircleSegmentIntersect(center Vector2, radius float64, segStart Vector2, se
 	// Return true if the distance is less than or equal to the radius
 	return distanceToCenter <= radius
 }
+
+// returns if circle and polygon are intersecting
+func CirclePolygonIntersect(circleCenter Vector2, circleRadius float64, polygon []Vector2) bool {
+	for index := range polygon {
+		// Get the current and next vertices of the obstacle segment
+		vertice := polygon[index]
+		var nextVertice Vector2
+		if index+1 < len(polygon) {
+			nextVertice = polygon[index+1]
+		} else {
+			// If it's the last vertex, connect it to the first one (assuming closed shape)
+			nextVertice = polygon[0]
+		}
+
+		// Check if the circle (character) intersects or touches the segment
+		if CircleSegmentIntersect(circleCenter, circleRadius, vertice, nextVertice) {
+			// Handle the collision, e.g., stop movement or adjust direction
+			return true // Early exit if a collision is detected
+		}
+	}
+	return false
+}
