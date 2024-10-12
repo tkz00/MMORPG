@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 926660225203830127}
   - component: {fileID: -7547665633225960698}
   - component: {fileID: 1347126284256943876}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: PlayerPanel
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -51,8 +51,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 387d1e1a11afb463281d156e9ef6b2aa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerName: {fileID: 6260434122960224975}
-  healthBar: {fileID: 4980293910190688287}
 --- !u!223 &1347126284256943876
 Canvas:
   m_ObjectHideFlags: 0
@@ -73,7 +71,7 @@ Canvas:
   m_VertexColorAlwaysGammaSpace: 0
   m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
-  m_SortingLayerID: 0
+  m_SortingLayerID: 1965446357
   m_SortingOrder: 0
   m_TargetDisplay: 0
 --- !u!1 &6236640411061643967
@@ -314,7 +312,7 @@ GameObject:
   - component: {fileID: 6068918671002017146}
   - component: {fileID: 4980293910190688287}
   - component: {fileID: 7704246636020031636}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: HealthBar
   m_TagString: Untagged
   m_Icon: {fileID: 0}
