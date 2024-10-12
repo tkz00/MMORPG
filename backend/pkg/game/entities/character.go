@@ -164,6 +164,8 @@ func (p *Character) UpdatePosition(deltaTime float64, obstacles [][]utils.Vector
 
 		for _, obstacle := range obstacles {
 			if utils.CirclePolygonIntersect(circleCenter, circleRadius, obstacle) {
+				// Should this be null and IsMoving check for null?
+				p.to = p.position
 				return false
 			}
 		}
