@@ -13,7 +13,7 @@ public class Projectile : MonoBehaviour
 
     [SerializeField]
     private ParticleSystem hitParticle;
-    
+
     public void Move(Vector3 target)
     {
         if (movementCoroutine != null)
@@ -44,7 +44,7 @@ public class Projectile : MonoBehaviour
     public void TriggerHit()
     {
         GetComponent<MeshRenderer>().material.color = Color.red;
-        ParticleSystem hitParticleInstance = Instantiate(hitParticle);
+        ParticleSystem hitParticleInstance = Instantiate(hitParticle, transform.position, transform.rotation);
         Destroy(hitParticleInstance.gameObject, hitParticleInstance.main.duration);
     }
 }
