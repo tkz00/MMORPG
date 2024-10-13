@@ -35,7 +35,7 @@ func CreateProjectile(id string, position utils.Vector2, targetDirection utils.V
 		direction: direction,
 		position:  position,
 		to:        to,
-		damage:    30,
+		damage:    100,
 		state:     Active,
 	}
 }
@@ -44,7 +44,7 @@ func (p Projectile) GetId() string {
 	return p.id
 }
 
-func (p Projectile) Caster() string {
+func (p Projectile) CasterId() string {
 	return p.caster
 }
 

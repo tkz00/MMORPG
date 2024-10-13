@@ -132,7 +132,6 @@ func (gs GameState) Spawners() map[string]*Spawner {
 }
 
 // Everything below this should be in a functionality module, not in the entities package
-
 func EnqueueAbilityCast(gs GameState, caster *Character, abilityInfo AbilityInfo) {
 	abilityId := abilityInfo.GetId()
 	if caster.IsInCooldown(abilityId) {

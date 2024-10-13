@@ -43,6 +43,8 @@ type Character struct {
 	direction       utils.Vector2
 	actionsQueue    []CharacterAction
 
+	Inventory
+
 	// should this be here?
 	abilities map[string]*Ability
 	lastUsed  map[string]time.Time

@@ -39,6 +39,8 @@ func updatePlayers(gs *entities.GameState, deltaTime float64) {
 				player.ClearActionsQueue()
 			}
 		}
+
+		player.PrintInventory()
 	}
 }
 
@@ -97,22 +99,33 @@ func updateNpcs(gs *entities.GameState, deltaTime float64) {
 // AreColliding surely must go in a separate collisions module, I don't know about checkCollisions, but from what I'm seeing it must be refactored
 func checkCollision(gs *entities.GameState, projectile entities.Projectile) bool {
 	projectileHit := false
+
 	for _, player := range gs.Players() {
-		if player.IsAlive() {
-			if player.GetId() != projectile.Caster() && AreColliding(*player, projectile) {
-				player.HealthVariation(-projectile.GetDamage())
-				projectileHit = true
+		if !player.IsAlive() || player.GetId() == projectile.CasterId() {
+			continue
+		}
+		if AreColliding(*player, projectile) {
+			player.HealthVariation(-projectile.GetDamage())
+			projectileHit = true
+			if !player.IsAlive() {
+				gs.Players()[projectile.CasterId()].Loot(player.Inventory)
 			}
 		}
 	}
 
 	for _, npc := range gs.NPCs() {
-		if npc.GetId() != projectile.Caster() && AreColliding(*npc.Character, projectile) {
+		if !npc.IsAlive() || npc.GetId() == projectile.CasterId() {
+			continue
+		}
+		if AreColliding(*npc.Character, projectile) {
 			npc.HealthVariation(-projectile.GetDamage())
-			if caster, err := gs.GetCharacterById(projectile.Caster()); err == nil {
+			if caster, err := gs.GetCharacterById(projectile.CasterId()); err == nil {
 				npc.BecomeAggressive(caster)
 			}
 			projectileHit = true
+			if !npc.IsAlive() {
+				gs.Players()[projectile.CasterId()].Loot(npc.Inventory)
+			}
 		}
 	}
 

@@ -52,6 +52,7 @@ func (spawner *Spawner) GetNewNPCs() []*Npc {
 		npcs[i].SubscribeToRemoval(func() {
 			spawner.HandleNPCDeath(npcs[i])
 		})
+		npcs[i].AddItem(&Item{ItemTemplate{"1", "small health potion"}, 1})
 	}
 
 	spawner.activeNPCs = append(spawner.activeNPCs, npcs...)

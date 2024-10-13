@@ -59,7 +59,7 @@ func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
 func (m Mapper) ProjectileToDTO(projectile entities.Projectile) *ProjectileDTO {
 	return &ProjectileDTO{
 		Id:       projectile.GetId(),
-		Caster:   projectile.Caster(),
+		Caster:   projectile.CasterId(),
 		Position: *m.PositionToDTO(projectile.GetPosition()),
 		Radius:   projectile.GetRadius(),
 		Damage:   projectile.GetDamage(),
