@@ -43,7 +43,7 @@ type Character struct {
 	direction       utils.Vector2
 	actionsQueue    []CharacterAction
 
-	Inventory
+	*Inventory
 
 	// should this be here?
 	abilities map[string]*Ability
@@ -67,6 +67,7 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 		Health:          stats.NewHealth(BASE_MAX_HEALTH),
 		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0)},
 		actionsQueue:    []CharacterAction{},
+		Inventory:       &Inventory{},
 		abilities:       abilities,
 		lastUsed:        lastUsed,
 	}

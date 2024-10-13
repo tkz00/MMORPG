@@ -33,26 +33,29 @@ func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
 }
 
 func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
-	playerHealth := character.GetHealth()
-	playerAbilities := make([]AbilityDTO, 0)
+	characterHealth := character.GetHealth()
+	characterAbilities := make([]AbilityDTO, 0)
 	for _, ability := range character.GetAbilities() {
 		abilityDTO := AbilityToDTO(*ability)
 		abilityDTO.RemainingCooldown = float64(character.RemainingCooldown(ability)) / 1000
-		playerAbilities = append(playerAbilities, abilityDTO)
+		characterAbilities = append(characterAbilities, abilityDTO)
 	}
 
 	characterExecutingAction := character.GetExecutingAction()
 	executingActionDirection := characterExecutingAction.Direction()
 	executingActionDTO := ExecutingActionDTO{Action: characterExecutingAction.ActionType(), Direction: *m.PositionToDTO(executingActionDirection)}
 
+	characterInventory := InventoryDTO{Items: character.ChangeLogs()}
+
 	return &CharacterDTO{
 		Id:              character.GetId(),
 		Position:        *m.PositionToDTO(character.GetPosition()),
 		Radius:          character.GetRadius(),
-		MaxHealth:       playerHealth.GetMaxHealth(),
-		CurrentHealth:   playerHealth.GetCurrentHealth(),
+		MaxHealth:       characterHealth.GetMaxHealth(),
+		CurrentHealth:   characterHealth.GetCurrentHealth(),
 		ExecutingAction: executingActionDTO,
-		Abilities:       playerAbilities,
+		Abilities:       characterAbilities,
+		Inventory:       characterInventory,
 	}
 }
 

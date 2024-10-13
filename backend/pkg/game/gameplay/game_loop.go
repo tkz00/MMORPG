@@ -39,8 +39,6 @@ func updatePlayers(gs *entities.GameState, deltaTime float64) {
 				player.ClearActionsQueue()
 			}
 		}
-
-		player.PrintInventory()
 	}
 }
 

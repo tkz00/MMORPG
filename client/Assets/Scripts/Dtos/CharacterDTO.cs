@@ -9,6 +9,7 @@ public class CharacterDTO : DTO
     public int currentHealth;
     public ExecutingAction executingAction;
     public AbilityDTO[] abilities;
+    public InventoryDTO inventory;
 }
 
 public class ExecutingAction
@@ -38,4 +39,15 @@ public class AbilityDTO
     public string name;
     public float range;
     public float remainingCooldown;
+}
+
+public class InventoryDTO
+{
+    public ItemDTO[] items;
+}
+
+public class ItemDTO
+{
+    public string id;
+    public int quantity;
 }

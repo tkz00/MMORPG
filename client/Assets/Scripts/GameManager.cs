@@ -93,6 +93,14 @@ public class GameManager : MonoBehaviour
         abilitiesPanel.UpdatePlayerPanel(
             gameState.players.Find(player => player.id == mainPlayerID)
         );
+
+        if (gameState?.players[0]?.inventory?.items != null)
+        {
+            foreach (var item in gameState.players[0].inventory.items)
+            {
+                Debug.Log($"{item.id}, {item.quantity}");
+            }
+        }
     }
 
     #region Players

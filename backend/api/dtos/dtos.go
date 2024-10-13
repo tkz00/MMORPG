@@ -28,6 +28,7 @@ type CharacterDTO struct {
 	Position        PositionDTO        `json:"position"`
 	ExecutingAction ExecutingActionDTO `json:"executingAction"`
 	Abilities       []AbilityDTO       `json:"abilities"`
+	Inventory       InventoryDTO       `json:"inventory"`
 }
 
 func (p CharacterDTO) GetType() string {
@@ -71,4 +72,8 @@ func (p ProjectileDTO) GetType() string {
 type ExecutingActionDTO struct {
 	Action    entities.Action `json:"action"`
 	Direction PositionDTO     `json:"direction"`
+}
+
+type InventoryDTO struct {
+	Items []entities.ItemChange `json:"items"`
 }
