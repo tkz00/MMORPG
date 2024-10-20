@@ -26,7 +26,7 @@ func (looter *Inventory) AddItem(item *Item) {
 			// Log an update change
 			looter.changeLog = append(looter.changeLog, ItemChange{
 				Id:       item.template.id,
-				Quantity: itemInInventory.quantity,
+				Quantity: item.quantity,
 			})
 			return
 		}
