@@ -10,31 +10,27 @@ using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {
-    [SerializeField]
-    GameObject playerPrefab;
+    [SerializeField] GameObject playerPrefab;
 
-    [SerializeField]
-    GameObject projectilePrefab;
+    [SerializeField] GameObject projectilePrefab;
 
-    [SerializeField]
-    GameObject npcPrefab;
+    [SerializeField] GameObject npcPrefab;
 
-    [SerializeField]
-    CinemachineVirtualCamera cinemachineVirtualCamera;
+    [SerializeField] CinemachineVirtualCamera cinemachineVirtualCamera;
 
     bool hitboxOn = false;
 
     private string mainPlayerID;
     private AbilityDTO[] mainPlayerAbilities; // Naughty naughty (in Borat's voice)
 
-    [SerializeField]
-    public List<Ability> availableAbilities;
+    [SerializeField] public List<Ability> availableAbilities;
 
-    [SerializeField]
-    public AbilitiesPanel abilitiesPanel;
+    [SerializeField] public AbilitiesPanel abilitiesPanel;
 
-    [SerializeField]
-    GameObject deathSplash;
+    [SerializeField] GameObject deathSplash;
+
+    [SerializeField] Inventory inventory;
+
 
     Dictionary<string, Character> players = new Dictionary<string, Character>();
     Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
@@ -100,6 +96,9 @@ public class GameManager : MonoBehaviour
             {
                 Debug.Log($"{item.id}, {item.quantity}");
             }
+
+            var itemVariations = gameState.players[0].inventory.items.Select(item => (item.id, item.quantity));
+            inventory.UpdateInventory(itemVariations);
         }
     }
 
