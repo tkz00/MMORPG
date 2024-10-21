@@ -1258,6 +1258,7 @@ MonoBehaviour:
   itemsContainer: {fileID: 1302647065}
   availableItems:
   - {fileID: 11400000, guid: ea7b51fced50649b2adc9b2da3785a82, type: 2}
+  - {fileID: 11400000, guid: 3d6508ab4ae8f4e52a3ce986de574675, type: 2}
   openCloseInventoryAction:
     m_Name: Open Close Inventory
     m_Type: 0

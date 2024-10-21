@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"math/rand/v2"
 	"time"
 	"tkz00/backend/pkg/utils"
 
@@ -52,7 +53,11 @@ func (spawner *Spawner) GetNewNPCs() []*Npc {
 		npcs[i].SubscribeToRemoval(func() {
 			spawner.HandleNPCDeath(npcs[i])
 		})
-		npcs[i].AddItem(&Item{ItemTemplate{"1", "small health potion"}, 1})
+		if rand.IntN(2) == 0 {
+			npcs[i].AddItem(&Item{ItemTemplate{"1", "small health potion"}, 1})
+		} else {
+			npcs[i].AddItem(&Item{ItemTemplate{"2", "leather"}, 2})
+		}
 	}
 
 	spawner.activeNPCs = append(spawner.activeNPCs, npcs...)
