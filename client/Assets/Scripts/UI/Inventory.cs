@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -58,8 +59,14 @@ public class Inventory : MonoBehaviour
 
         foreach (var item in items)
         {
+            Item itemSO = availableItems.SingleOrDefault(i => i.id == item.Key);
+            if (itemSO == null)
+            {
+                Debug.LogError($"Item with ID: {item.Key} not found in available items collection");
+                continue;
+            }
             InventoryItem itemUI = Instantiate(itemUIPrefab, itemsContainer).GetComponent<InventoryItem>();
-            itemUI.SetUp(item.Key, item.Value, availableItems.Find(i => i.id == item.Key).icon);
+            itemUI.SetUp(item.Key, item.Value, itemSO.icon);
         }
     }
 }
