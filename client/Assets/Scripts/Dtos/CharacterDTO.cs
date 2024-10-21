@@ -51,3 +51,8 @@ public class ItemDTO
     public string id;
     public int quantity;
 }
+
+public class UseItemDTO : DTO
+{
+    public string id;
+}

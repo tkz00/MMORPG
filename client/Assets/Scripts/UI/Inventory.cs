@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -66,7 +67,19 @@ public class Inventory : MonoBehaviour
                 continue;
             }
             InventoryItem itemUI = Instantiate(itemUIPrefab, itemsContainer).GetComponent<InventoryItem>();
-            itemUI.SetUp(item.Key, item.Value, itemSO.icon);
+            itemUI.SetUp(item.Key, item.Value, itemSO.icon, UseItem);
         }
+    }
+
+    private void UseItem(string itemId)
+    {
+        UseItemDTO useItem = new UseItemDTO { id = itemId };
+        WebSocketMessage response = new WebSocketMessage
+        {
+            Body = useItem,
+            ActionType = "use_item"
+        };
+        string message = JsonConvert.SerializeObject(response);
+        WebSocketConnection.SendMessage(message);
     }
 }

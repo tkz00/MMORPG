@@ -92,8 +92,11 @@ public class GameManager : MonoBehaviour
 
         if (gameState?.players[0]?.inventory?.items != null)
         {
-            var itemVariations = gameState.players[0].inventory.items.Select(item => (item.id, item.quantity));
-            inventory.UpdateInventory(itemVariations);
+            if (gameState.players[0].inventory.items.Length > 0)
+            {
+                var itemVariations = gameState.players[0].inventory.items.Select(item => (item.id, item.quantity));
+                inventory.UpdateInventory(itemVariations);
+            }
         }
     }
 
