@@ -43,19 +43,20 @@ func (wr *WebSocketMessage) UnmarshalJSON(data []byte) error {
 	wr.ActionType = tmp.ActionType
 
 	switch tmp.ActionType {
-	case "Position":
+	case "position":
 		var pos dtos.PositionDTO
 		if err := json.Unmarshal(tmp.Body, &pos); err != nil {
 			return err
 		}
 		wr.Body = pos
-	case "AbilityCast":
+	case "ability_cast":
 		var ability dtos.AbilityCastDTO
 		if err := json.Unmarshal(tmp.Body, &ability); err != nil {
 			return err
 		}
 		wr.Body = ability
-	case "Respawn":
+	case "respawn":
+	case "use_item":
 	default:
 		return fmt.Errorf("unknown message type: %s", tmp.ActionType)
 	}

@@ -19,7 +19,7 @@ type AbilityCastDTO struct {
 }
 
 func (p AbilityCastDTO) GetType() string {
-	return "AbilityCast"
+	return "ability_cast"
 }
 
 var stringToAbilityParameters = map[string]AbilityParameters{

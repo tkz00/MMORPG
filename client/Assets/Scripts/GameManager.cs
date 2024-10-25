@@ -64,7 +64,7 @@ public class GameManager : MonoBehaviour
                     player.Respawn(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
                 }
             ),
-            "Respawn"
+            "respawn"
         );
 
         await WebSocketConnection.Connect();
@@ -215,7 +215,7 @@ public class GameManager : MonoBehaviour
     {
         WebSocketMessage message = new WebSocketMessage
         {
-            ActionType = "Respawn"
+            ActionType = "respawn"
         };
         string jsonMessage = JsonConvert.SerializeObject(message);
         WebSocketConnection.SendMessage(jsonMessage);

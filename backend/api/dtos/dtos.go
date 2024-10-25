@@ -53,7 +53,7 @@ func CreatePositionDTO(data []byte) *PositionDTO {
 }
 
 func (p PositionDTO) GetType() string {
-	return "Position"
+	return "position"
 }
 
 type ProjectileDTO struct {

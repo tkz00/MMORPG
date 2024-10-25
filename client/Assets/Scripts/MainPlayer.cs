@@ -75,7 +75,7 @@ public class MainPlayer : MonoBehaviour
             WebSocketMessage response = new WebSocketMessage
             {
                 Body = inputPosition,
-                ActionType = "Position"
+                ActionType = "position"
             };
             string message = JsonConvert.SerializeObject(response);
             WebSocketConnection.SendMessage(message);
@@ -101,7 +101,7 @@ public class MainPlayer : MonoBehaviour
                             abilityParameters = abilityParameters,
                             id = ability.id
                         },
-                        ActionType = "AbilityCast"
+                        ActionType = "ability_cast"
                     };
                     string message = JsonConvert.SerializeObject(response);
                     WebSocketConnection.SendMessage(message);

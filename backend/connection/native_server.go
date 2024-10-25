@@ -116,12 +116,14 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 		}
 
 		switch message.ActionType {
-		case "Position":
+		case "position":
 			server.handlePlayerMovement(conn, message.Body.(dtos.PositionDTO))
-		case "AbilityCast":
+		case "ability_cast":
 			server.handleAbilityCast(conn, message.Body.(dtos.AbilityCastDTO))
-		case "Respawn":
+		case "respawn":
 			server.handleRespawn(conn)
+		case "use_item":
+			fmt.Println("use_item")
 		default:
 			fmt.Printf("Unknown message type: %s\n", message.ActionType)
 		}
@@ -148,7 +150,7 @@ func (server *NativeServer) handleRespawn(client *websocket.Conn) {
 		player.MoveTowards(*utils.NewVector2(0, 0))
 		player.SetPosition(*utils.NewVector2(0, 0))
 		response := CreateWebSocketResponse(*dtos.GetMapper().CharacterToDTO(*player))
-		response.ActionType = "Respawn"
+		response.ActionType = "respawn"
 		message := response.Serialize()
 		websocket.Message.Send(client, message)
 	}
