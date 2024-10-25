@@ -77,3 +77,11 @@ type ExecutingActionDTO struct {
 type InventoryDTO struct {
 	Items []entities.ItemChange `json:"items"`
 }
+
+type UseItemDTO struct {
+	Id string `json:"id"`
+}
+
+func (u UseItemDTO) GetType() string {
+	return "use_item"
+}

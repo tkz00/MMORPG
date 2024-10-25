@@ -35,7 +35,7 @@ func CreateProjectile(id string, position utils.Vector2, targetDirection utils.V
 		direction: direction,
 		position:  position,
 		to:        to,
-		damage:    100,
+		damage:    40,
 		state:     Active,
 	}
 }

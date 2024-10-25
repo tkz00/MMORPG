@@ -9,6 +9,7 @@ type ItemChange struct {
 }
 
 type Inventory struct {
+	// should this be a map instead of an array?
 	items     []*Item
 	changeLog []ItemChange
 }
@@ -20,9 +21,12 @@ func (looter *Inventory) Loot(loot *Inventory) {
 }
 
 func (looter *Inventory) AddItem(item *Item) {
-	for _, itemInInventory := range looter.items {
+	for index, itemInInventory := range looter.items {
 		if itemInInventory.template.id == item.template.id {
 			itemInInventory.quantity += item.quantity
+			if itemInInventory.quantity == 0 {
+				looter.items = append(looter.items[:index], looter.items[index+1:]...)
+			}
 			// Log an update change
 			looter.changeLog = append(looter.changeLog, ItemChange{
 				Id:       item.template.id,
@@ -47,6 +51,15 @@ func (inventory *Inventory) ChangeLogs() []ItemChange {
 	// Clear the change log after sending it
 	inventory.changeLog = []ItemChange{}
 	return changes
+}
+
+func (inv Inventory) CanUseItem(itemId string) bool {
+	for _, itemInInventory := range inv.items {
+		if itemInInventory.template.id == itemId {
+			return true
+		}
+	}
+	return false
 }
 
 func (inv *Inventory) PrintInventory() {

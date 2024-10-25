@@ -123,7 +123,7 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 		case "respawn":
 			server.handleRespawn(conn)
 		case "use_item":
-			fmt.Println("use_item")
+			server.handleUseItem(conn, message.Body.(dtos.UseItemDTO))
 		default:
 			fmt.Printf("Unknown message type: %s\n", message.ActionType)
 		}
@@ -154,4 +154,9 @@ func (server *NativeServer) handleRespawn(client *websocket.Conn) {
 		message := response.Serialize()
 		websocket.Message.Send(client, message)
 	}
+}
+
+func (server *NativeServer) handleUseItem(client *websocket.Conn, useItemDTO dtos.UseItemDTO) {
+	player := server.gameState.GetPlayerByConn(client)
+	player.UseItem(useItemDTO.Id)
 }

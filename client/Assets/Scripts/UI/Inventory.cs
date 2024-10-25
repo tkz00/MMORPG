@@ -13,7 +13,8 @@ public class Inventory : MonoBehaviour
     [SerializeField] Transform itemsContainer;
     [SerializeField] List<Item> availableItems;
 
-    Dictionary<string, int> items = new Dictionary<string, int>();
+    readonly Dictionary<string, int> items = new Dictionary<string, int>();
+
 
     public InputAction openCloseInventoryAction = new InputAction(binding: "<Keyboard>/i");
 
@@ -45,6 +46,11 @@ public class Inventory : MonoBehaviour
             else
             {
                 items[id] = quantity;
+            }
+
+            if (items[id] == 0)
+            {
+                items.Remove(id);
             }
         }
 

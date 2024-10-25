@@ -231,7 +231,7 @@ type AbilityInfo interface {
 	GetTargetId() (string, error)
 }
 
-// Everything below this should be in a functionality module, not in the entities package
+// Everything below this should be in a functionality module, not in the entities package?
 
 func (character *Character) EnqueueMovementAction(position utils.Vector2) {
 	moveAction := &MoveAction{
@@ -239,4 +239,16 @@ func (character *Character) EnqueueMovementAction(position utils.Vector2) {
 	}
 	character.ClearActionsQueue()
 	character.EnqueueAction(moveAction)
+}
+
+func (character *Character) UseItem(itemId string) {
+	if !character.Inventory.CanUseItem(itemId) {
+		err := fmt.Errorf("character %s tried to use item %s, but is unable to", character.id, itemId)
+		fmt.Println(err.Error())
+		return
+	}
+
+	character.HealthVariation(10)
+
+	character.Inventory.AddItem(&Item{ItemTemplate{itemId, ""}, -1})
 }
