@@ -10,53 +10,55 @@ type ItemChange struct {
 
 type Inventory struct {
 	// should this be a map instead of an array?
-	items     []*Item
+	items     map[*Item]int
 	changeLog []ItemChange
 }
 
-func (looter *Inventory) Loot(loot *Inventory) {
-	for _, item := range loot.items {
-		looter.AddItem(item)
+func NewInventory() *Inventory {
+	return &Inventory{
+		items: make(map[*Item]int),
 	}
 }
 
-func (looter *Inventory) AddItem(item *Item) {
-	for index, itemInInventory := range looter.items {
-		if itemInInventory.template.id == item.template.id {
-			itemInInventory.quantity += item.quantity
-			if itemInInventory.quantity == 0 {
-				looter.items = append(looter.items[:index], looter.items[index+1:]...)
+func (looter *Inventory) Loot(loot *Inventory) {
+	for item := range loot.items {
+		looter.AddItem(item, loot.items[item])
+	}
+}
+
+func (looter *Inventory) AddItem(item *Item, quantity int) {
+	for itemInInventory := range looter.items {
+		if itemInInventory.id == item.id {
+			looter.items[item] += quantity
+			if looter.items[item] == 0 {
+				delete(looter.items, item)
 			}
 			// Log an update change
 			looter.changeLog = append(looter.changeLog, ItemChange{
-				Id:       item.template.id,
-				Quantity: item.quantity,
+				Id:       item.id,
+				Quantity: looter.items[item],
 			})
 			return
 		}
 	}
 
-	// Add a new item
-	looter.items = append(looter.items, item)
-	// Log an add change
+	looter.items[item] = quantity
 	looter.changeLog = append(looter.changeLog, ItemChange{
-		Id:       item.template.id,
-		Quantity: item.quantity,
+		Id:       item.id,
+		Quantity: quantity,
 	})
 }
 
 func (inventory *Inventory) ChangeLogs() []ItemChange {
-	// Return the list of changes since last check
 	changes := inventory.changeLog
-	// Clear the change log after sending it
 	inventory.changeLog = []ItemChange{}
 	return changes
 }
 
-func (inv Inventory) CanUseItem(itemId string) bool {
-	for _, itemInInventory := range inv.items {
-		if itemInInventory.template.id == itemId {
-			return true
+func (inv Inventory) CanConsume(itemId string) bool {
+	for item := range inv.items {
+		if item.id == itemId {
+			return item.isConsumable
 		}
 	}
 	return false
@@ -64,8 +66,8 @@ func (inv Inventory) CanUseItem(itemId string) bool {
 
 func (inv *Inventory) PrintInventory() {
 	if len(inv.items) > 0 {
-		for _, item := range inv.items {
-			fmt.Printf("%s, %d - ", item.template.name, item.quantity)
+		for item, quantity := range inv.items {
+			fmt.Printf("%s, %d - ", item.name, quantity)
 		}
 		fmt.Print("\n")
 	}

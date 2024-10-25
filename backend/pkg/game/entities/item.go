@@ -1,14 +1,15 @@
 package entities
 
 type Item struct {
-	template ItemTemplate
-	quantity int
+	id           string
+	name         string
+	isConsumable bool
 }
 
-func (item Item) Template() ItemTemplate {
-	return item.template
+func (itemTemplate Item) Id() string {
+	return itemTemplate.id
 }
 
-func (item Item) Quantity() int {
-	return item.quantity
+func (itemTemplate Item) Name() string {
+	return itemTemplate.name
 }

@@ -67,7 +67,7 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 		Health:          stats.NewHealth(BASE_MAX_HEALTH),
 		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0)},
 		actionsQueue:    []CharacterAction{},
-		Inventory:       &Inventory{},
+		Inventory:       NewInventory(),
 		abilities:       abilities,
 		lastUsed:        lastUsed,
 	}
@@ -242,13 +242,13 @@ func (character *Character) EnqueueMovementAction(position utils.Vector2) {
 }
 
 func (character *Character) UseItem(itemId string) {
-	if !character.Inventory.CanUseItem(itemId) {
+	if !character.Inventory.CanConsume(itemId) {
 		err := fmt.Errorf("character %s tried to use item %s, but is unable to", character.id, itemId)
 		fmt.Println(err.Error())
 		return
 	}
 
 	character.HealthVariation(10)
-
-	character.Inventory.AddItem(&Item{ItemTemplate{itemId, ""}, -1})
+	// I don't like creating a mock item to pass to the AddItem function but for now it'll do
+	character.Inventory.AddItem(&Item{itemId, "", true}, -1)
 }
