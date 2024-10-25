@@ -33,7 +33,6 @@ func (looter *Inventory) AddItem(item *Item, quantity int) {
 			if looter.items[item] == 0 {
 				delete(looter.items, item)
 			}
-			// Log an update change
 			looter.changeLog = append(looter.changeLog, ItemChange{
 				Id:       item.id,
 				Quantity: looter.items[item],
@@ -62,6 +61,15 @@ func (inv Inventory) CanConsume(itemId string) bool {
 		}
 	}
 	return false
+}
+
+func (inv Inventory) GetItem(itemId string) *Item {
+	for item := range inv.items {
+		if item.id == itemId {
+			return item
+		}
+	}
+	return nil
 }
 
 func (inv *Inventory) PrintInventory() {

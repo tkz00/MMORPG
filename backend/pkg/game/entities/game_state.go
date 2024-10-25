@@ -17,6 +17,7 @@ type GameState struct {
 	spawners    map[string]*Spawner
 	npcs        map[string]*Npc
 	obstacles   [][]utils.Vector2
+	// mechanicHandler map[string]MechanicHandler
 }
 
 func StartGameState() GameState {
@@ -26,7 +27,11 @@ func StartGameState() GameState {
 		projectiles: make(map[string]*Projectile),
 		spawners:    make(map[string]*Spawner),
 		npcs:        make(map[string]*Npc),
+		// mechanicHandler: make(map[string]MechanicHandler),
 	}
+
+	RegisterMechanicHandler("heal", HealMechanic)
+	RegisterMechanicHandler("damage", DamageMechanic)
 
 	return gs
 }

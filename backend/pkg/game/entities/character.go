@@ -248,7 +248,18 @@ func (character *Character) UseItem(itemId string) {
 		return
 	}
 
-	character.HealthVariation(10)
+	item := character.GetItem(itemId)
+
+	for _, mechanic := range item.mechanics {
+		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
+			if err := handler(character, mechanic.Params); err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			fmt.Println("no handler found for effect type: %s", mechanic.MechanicType)
+		}
+	}
+
 	// I don't like creating a mock item to pass to the AddItem function but for now it'll do
-	character.Inventory.AddItem(&Item{itemId, "", true}, -1)
+	character.Inventory.AddItem(&Item{itemId, "", false, []Mechanic{}}, -1)
 }
