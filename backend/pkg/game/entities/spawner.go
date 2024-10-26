@@ -54,9 +54,9 @@ func (spawner *Spawner) GetNewNPCs() []*Npc {
 			spawner.HandleNPCDeath(npcs[i])
 		})
 		if rand.IntN(2) == 0 {
-			npcs[i].AddItem(&Item{"1", "small health potion", true, []Mechanic{{MechanicType: "heal", Params: map[string]interface{}{"amount": 40}}}}, 1)
+			npcs[i].AddItem(NewItem("1", "small health potion", Mechanic{MechanicType: "heal", Params: map[string]interface{}{"amount": 40}}), 1)
 		} else {
-			npcs[i].AddItem(&Item{"2", "leather", true, []Mechanic{{MechanicType: "damage", Params: map[string]interface{}{"amount": 5}}}}, 2)
+			npcs[i].AddItem(NewItem("2", "leather"), 2)
 		}
 	}
 

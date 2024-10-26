@@ -17,6 +17,23 @@ func (itemTemplate Item) Name() string {
 	return itemTemplate.name
 }
 
+func NewItem(id, name string, mechanics ...Mechanic) *Item {
+	item := &Item{
+		id:   id,
+		name: name,
+	}
+
+	if len(mechanics) > 0 {
+		item.isConsumable = true
+		item.mechanics = mechanics
+	} else {
+		item.isConsumable = false
+		item.mechanics = nil
+	}
+
+	return item
+}
+
 func (item *Item) ExecuteMechanics(caster *Character) {
 	for _, mechanic := range item.mechanics {
 		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
