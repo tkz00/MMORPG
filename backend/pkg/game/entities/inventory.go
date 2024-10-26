@@ -35,7 +35,7 @@ func (looter *Inventory) AddItem(item *Item, quantity int) {
 			}
 			looter.changeLog = append(looter.changeLog, ItemChange{
 				Id:       item.id,
-				Quantity: looter.items[item],
+				Quantity: quantity,
 			})
 			return
 		}

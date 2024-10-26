@@ -35,8 +35,15 @@ public class Inventory : MonoBehaviour
         inventoryMenu.SetActive(!inventoryMenu.activeSelf);
     }
 
-    public void UpdateInventory(IEnumerable<(string id, int quantity)> itemVariations)
+    public void UpdateInventory(InventoryDTO inventory)
     {
+        if (inventory?.items == null)
+            return;
+
+        if (inventory.items.Length == 0)
+            return;
+
+        var itemVariations = inventory.items.Select(item => (item.id, item.quantity));
         foreach ((string id, int quantity) in itemVariations)
         {
             if (items.ContainsKey(id))

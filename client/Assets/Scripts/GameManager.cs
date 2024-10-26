@@ -86,18 +86,11 @@ public class GameManager : MonoBehaviour
         UpdateProjectiles(gameState.projectiles);
         UpdateNPCs(gameState.npcs);
 
-        abilitiesPanel.UpdatePlayerPanel(
-            gameState.players.Find(player => player.id == mainPlayerID)
-        );
+        CharacterDTO mainPlayer = gameState.players.Find(player => player.id == mainPlayerID);
 
-        if (gameState?.players[0]?.inventory?.items != null)
-        {
-            if (gameState.players[0].inventory.items.Length > 0)
-            {
-                var itemVariations = gameState.players[0].inventory.items.Select(item => (item.id, item.quantity));
-                inventory.UpdateInventory(itemVariations);
-            }
-        }
+        abilitiesPanel.UpdatePlayerPanel(mainPlayer);
+
+        inventory.UpdateInventory(mainPlayer.inventory);
     }
 
     #region Players
