@@ -9,7 +9,6 @@ type ItemChange struct {
 }
 
 type Inventory struct {
-	// should this be a map instead of an array?
 	items     map[*Item]int
 	changeLog []ItemChange
 }

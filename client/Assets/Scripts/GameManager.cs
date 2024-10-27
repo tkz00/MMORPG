@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cinemachine;
 using Newtonsoft.Json;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class GameManager : MonoBehaviour
 {

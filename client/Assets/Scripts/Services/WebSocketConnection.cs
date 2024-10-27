@@ -6,7 +6,6 @@ using System.Net.WebSockets;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 public static class WebSocketConnection
 {

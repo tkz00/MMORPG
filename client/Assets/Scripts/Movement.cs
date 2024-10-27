@@ -1,8 +1,6 @@
 using System;
 using System.Collections;
-using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(CharacterController))]
 public class Movement : MonoBehaviour
