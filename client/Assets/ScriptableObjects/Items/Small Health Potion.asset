@@ -14,3 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   id: 1
   icon: {fileID: 21300000, guid: 4e8b35477a7fb5a46870c1973a523722, type: 3}
+  isConsumible: 1

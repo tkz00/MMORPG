@@ -12,11 +12,19 @@ public class InventoryItem : MonoBehaviour
     [SerializeField] Image image;
     [SerializeField] Button button;
 
-    public void SetUp(string key, int value, Sprite icon, Action<string> useItem)
+    public void SetUp(string id, int quantity, Sprite icon, bool isConsumible, Action<string> useItem)
     {
-        id = key;
-        quantity.text = value.ToString();
+        this.id = id;
+        this.quantity.text = quantity.ToString();
         image.sprite = icon;
-        button.onClick.AddListener(() => useItem(id));
+        if (isConsumible)
+        {
+            button.onClick.AddListener(() => useItem(id));
+            button.enabled = true;
+        }
+        else
+        {
+            button.enabled = false;
+        }
     }
 }

@@ -80,7 +80,7 @@ public class Inventory : MonoBehaviour
                 continue;
             }
             InventoryItem itemUI = Instantiate(itemUIPrefab, itemsContainer).GetComponent<InventoryItem>();
-            itemUI.SetUp(item.Key, item.Value, itemSO.icon, UseItem);
+            itemUI.SetUp(item.Key, item.Value, itemSO.icon, itemSO.isConsumible, UseItem);
         }
     }
 
