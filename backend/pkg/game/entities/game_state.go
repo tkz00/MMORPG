@@ -171,3 +171,9 @@ func EnqueueAbilityCast(gs GameState, caster *Character, abilityInfo AbilityInfo
 func (gs GameState) GetObstacleColliders() [][]utils.Vector2 {
 	return gs.obstacles
 }
+
+func (gs GameState) HandleUseItem(client *websocket.Conn, itemId string) GameState {
+	player := gs.GetPlayerByConn(client)
+	gs = player.UseItem(itemId, gs)
+	return gs
+}

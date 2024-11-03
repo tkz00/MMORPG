@@ -34,14 +34,20 @@ func NewItem(id, name string, mechanics ...Mechanic) *Item {
 	return item
 }
 
-func (item *Item) ExecuteMechanics(caster *Character) {
-	for _, mechanic := range item.mechanics {
-		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-			if err := handler(caster, mechanic.Params); err != nil {
-				fmt.Println(err)
-			}
-		} else {
+func (gs GameState) ExecuteMechanics(mechanics []Mechanic, caster Character) GameState {
+	for _, mechanic := range mechanics {
+		handler, exists := mechanicHandlers[mechanic.MechanicType]
+		if !exists {
 			fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
 		}
+
+		var err error
+		gs, err = handler(caster, gs, mechanic.Params)
+
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
+
+	return gs
 }

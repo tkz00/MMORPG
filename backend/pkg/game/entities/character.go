@@ -241,14 +241,15 @@ func (character *Character) EnqueueMovementAction(position utils.Vector2) {
 	character.EnqueueAction(moveAction)
 }
 
-func (character *Character) UseItem(itemId string) {
+func (character Character) UseItem(itemId string, gs GameState) GameState {
 	if !character.Inventory.CanConsume(itemId) {
 		err := fmt.Errorf("character %s tried to use item %s, but is unable to", character.id, itemId)
 		fmt.Println(err.Error())
-		return
+		return gs
 	}
 
 	item := character.GetItem(itemId)
-	item.ExecuteMechanics(character)
+	gs = gs.ExecuteMechanics(item.mechanics, character)
 	character.Inventory.AddItem(item, -1)
+	return gs
 }

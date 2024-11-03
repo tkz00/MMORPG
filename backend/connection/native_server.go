@@ -157,6 +157,5 @@ func (server *NativeServer) handleRespawn(client *websocket.Conn) {
 }
 
 func (server *NativeServer) handleUseItem(client *websocket.Conn, useItemDTO dtos.UseItemDTO) {
-	player := server.gameState.GetPlayerByConn(client)
-	player.UseItem(useItemDTO.Id)
+	server.gameState = server.gameState.HandleUseItem(client, useItemDTO.Id)
 }
