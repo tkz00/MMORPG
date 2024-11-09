@@ -50,6 +50,13 @@ func (server *NativeServer) readLoop() {
 			id := uuid.New().String()
 			server.clients[client] = id
 			server.gameState = server.gameState.AddPlayer(id)
+			response := CreateWebSocketResponse(dtos.CharacterToDTO(id, server.gameState.Players()[id]))
+			message := response.Serialize()
+			err := websocket.Message.Send(client, message)
+			if err != nil {
+				log.Println("Error broadcasting message:", err)
+				return
+			}
 		case client := <-server.removeClient:
 			id := server.clients[client]
 			delete(server.clients, client)
@@ -72,15 +79,14 @@ func (server *NativeServer) serverLoop() {
 	// previousUpdateTime := time.Now()
 
 	for range ticker.C {
-		fmt.Println(server.gameState)
 		// currentUpdateTime := time.Now()
 		// deltaTime := currentUpdateTime.Sub(previousUpdateTime)
 		// previousUpdateTime = currentUpdateTime
 		// gameplay.UpdateState(&server.gameState, deltaTime.Seconds())
 
-		// gameStateDTO := *dtos.GetMapper().GameStateToDTO(server.gameState)
-		// webSocketResponse := CreateWebSocketResponse(gameStateDTO)
-		// server.broadcast <- webSocketResponse.Serialize()
+		gameStateDTO := dtos.GameStateToDTO(server.gameState)
+		webSocketResponse := CreateWebSocketResponse(gameStateDTO)
+		server.broadcast <- webSocketResponse.Serialize()
 	}
 }
 
@@ -107,12 +113,12 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 		switch message.ActionType {
 		case "position":
 			server.handlePlayerMovement(conn, message.Body.(dtos.PositionDTO))
-		case "ability_cast":
-			server.handleAbilityCast(conn, message.Body.(dtos.AbilityCastDTO))
-		case "respawn":
-			server.handleRespawn(conn)
-		case "use_item":
-			server.handleUseItem(conn, message.Body.(dtos.UseItemDTO))
+		// case "ability_cast":
+		// 	server.handleAbilityCast(conn, message.Body.(dtos.AbilityCastDTO))
+		// case "respawn":
+		// 	server.handleRespawn(conn)
+		// case "use_item":
+		// 	server.handleUseItem(conn, message.Body.(dtos.UseItemDTO))
 		default:
 			fmt.Printf("Unknown message type: %s\n", message.ActionType)
 		}
@@ -120,12 +126,14 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 }
 
 func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionDTO dtos.PositionDTO) {
+	position := dtos.PositionDTOToEntity(positionDTO)
+	server.gameState = server.gameState.MovePlayer(server.clients[client], position)
 }
 
-func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO dtos.AbilityCastDTO) {
-}
+// func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO dtos.AbilityCastDTO) {
+// }
 
-func (server *NativeServer) handleRespawn(client *websocket.Conn) {}
+// func (server *NativeServer) handleRespawn(client *websocket.Conn) {}
 
-func (server *NativeServer) handleUseItem(client *websocket.Conn, useItemDTO dtos.UseItemDTO) {
-}
+// func (server *NativeServer) handleUseItem(client *websocket.Conn, useItemDTO dtos.UseItemDTO) {
+// }

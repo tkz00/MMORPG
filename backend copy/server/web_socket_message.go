@@ -49,19 +49,19 @@ func (wr *WebSocketMessage) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		wr.Body = pos
-	case "ability_cast":
-		var ability dtos.AbilityCastDTO
-		if err := json.Unmarshal(tmp.Body, &ability); err != nil {
-			return err
-		}
-		wr.Body = ability
-	case "respawn":
-	case "use_item":
-		var useItem dtos.UseItemDTO
-		if err := json.Unmarshal(tmp.Body, &useItem); err != nil {
-			return err
-		}
-		wr.Body = useItem
+	// case "ability_cast":
+	// 	var ability dtos.AbilityCastDTO
+	// 	if err := json.Unmarshal(tmp.Body, &ability); err != nil {
+	// 		return err
+	// 	}
+	// 	wr.Body = ability
+	// case "respawn":
+	// case "use_item":
+	// 	var useItem dtos.UseItemDTO
+	// 	if err := json.Unmarshal(tmp.Body, &useItem); err != nil {
+	// 		return err
+	// 	}
+	// 	wr.Body = useItem
 	default:
 		return fmt.Errorf("unknown message type: %s", tmp.ActionType)
 	}

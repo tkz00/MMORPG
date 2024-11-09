@@ -22,6 +22,13 @@ func (gs GameState) RemovePlayer(id string) GameState {
 	return gs
 }
 
-type Character struct {
-	position utils.Vector2
+func (gs GameState) Players() map[string]Character {
+	return gs.players
+}
+
+func (gs GameState) MovePlayer(id string, position utils.Vector2) GameState {
+	player := gs.players[id]
+	player.position = position
+	gs.players[id] = player
+	return gs
 }

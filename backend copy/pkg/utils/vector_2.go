@@ -10,8 +10,8 @@ type Vector2 struct {
 	z float64
 }
 
-func NewVector2(x float64, z float64) *Vector2 {
-	return &Vector2{x: x, z: z}
+func NewVector2(x float64, z float64) Vector2 {
+	return Vector2{x: x, z: z}
 }
 
 func (v Vector2) GetPosition() (float64, float64) {

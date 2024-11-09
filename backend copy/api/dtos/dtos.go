@@ -2,6 +2,7 @@ package dtos
 
 import (
 	"fmt"
+	"tkz00/backend/pkg/game"
 	"tkz00/backend/pkg/utils"
 )
 
@@ -83,4 +84,35 @@ type UseItemDTO struct {
 
 func (u UseItemDTO) GetType() string {
 	return "use_item"
+}
+
+func GameStateToDTO(gameState game.GameState) GameStateDTO {
+	playerDTOS := make([]CharacterDTO, 0)
+
+	for id, player := range gameState.Players() {
+		playerDTOS = append(playerDTOS, CharacterToDTO(id, player))
+	}
+
+	return GameStateDTO{
+		Players: playerDTOS,
+	}
+}
+
+func CharacterToDTO(id string, character game.Character) CharacterDTO {
+	return CharacterDTO{
+		Id:       id,
+		Position: PositionToDTO(character.Position()),
+	}
+}
+
+func PositionToDTO(position utils.Vector2) PositionDTO {
+	x, z := position.GetPosition()
+	return PositionDTO{
+		X: x,
+		Z: z,
+	}
+}
+
+func PositionDTOToEntity(positionDTO PositionDTO) utils.Vector2 {
+	return utils.NewVector2(positionDTO.X, positionDTO.Z)
 }
