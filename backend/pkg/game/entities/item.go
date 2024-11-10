@@ -34,10 +34,10 @@ func NewItem(id, name string, mechanics ...Mechanic) *Item {
 	return item
 }
 
-func (item *Item) ExecuteMechanics(caster *Character) {
+func (item *Item) ExecuteMechanics(caster *Character, targetId string, gs *GameState) {
 	for _, mechanic := range item.mechanics {
 		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-			if err := handler(caster, mechanic.Params); err != nil {
+			if err := handler(caster, targetId, gs, mechanic.Params); err != nil {
 				fmt.Println(err)
 			}
 		} else {

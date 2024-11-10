@@ -86,7 +86,7 @@ public class Inventory : MonoBehaviour
 
     private void UseItem(string itemId)
     {
-        UseItemDTO useItem = new UseItemDTO { id = itemId };
+        UseItemDTO useItem = new UseItemDTO { itemId = itemId, targetId = GameManager.MainPlayerID };
         WebSocketMessage response = new WebSocketMessage
         {
             Body = useItem,

@@ -22,7 +22,7 @@ type NativeServer struct {
 	addClient    chan *websocket.Conn
 	removeClient chan *websocket.Conn
 	broadcast    chan []byte
-	gameState    entities.GameState
+	gameState    *entities.GameState
 }
 
 func (ws *NativeServer) newServer() Server {
@@ -50,7 +50,7 @@ func (server *NativeServer) readLoop() {
 	for {
 		select {
 		case client := <-server.addClient:
-			player := gameplay.AddPlayer(&server.gameState, client)
+			player := gameplay.AddPlayer(server.gameState, client)
 			server.clients[client] = true
 			response := CreateWebSocketResponse(*dtos.GetMapper().CharacterToDTO(player))
 			message := response.Serialize()
@@ -87,9 +87,9 @@ func (server *NativeServer) broadcastGameState() {
 		currentUpdateTime := time.Now()
 		deltaTime := currentUpdateTime.Sub(previousUpdateTime)
 		previousUpdateTime = currentUpdateTime
-		gameplay.UpdateState(&server.gameState, deltaTime.Seconds())
+		gameplay.UpdateState(server.gameState, deltaTime.Seconds())
 
-		gameStateDTO := *dtos.GetMapper().GameStateToDTO(server.gameState)
+		gameStateDTO := *dtos.GetMapper().GameStateToDTO(*server.gameState)
 		webSocketResponse := CreateWebSocketResponse(gameStateDTO)
 		server.broadcast <- webSocketResponse.Serialize()
 	}
@@ -158,5 +158,5 @@ func (server *NativeServer) handleRespawn(client *websocket.Conn) {
 
 func (server *NativeServer) handleUseItem(client *websocket.Conn, useItemDTO dtos.UseItemDTO) {
 	player := server.gameState.GetPlayerByConn(client)
-	player.UseItem(useItemDTO.Id)
+	player.UseItem(useItemDTO.ItemId, useItemDTO.TargetId, server.gameState)
 }

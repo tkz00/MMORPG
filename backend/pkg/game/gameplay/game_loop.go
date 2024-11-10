@@ -8,7 +8,7 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-func StartGameState() entities.GameState {
+func StartGameState() *entities.GameState {
 	gamestate := entities.StartGameState()
 	skeletonEnemyAbilities := repository.GetSkeletonEnemyAbilities(gamestate)
 	gamestate.SetUpSkeletonEnemies(skeletonEnemyAbilities)

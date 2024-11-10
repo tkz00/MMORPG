@@ -1,4 +1,5 @@
 using System.Runtime.Serialization;
+using Newtonsoft.Json;
 
 public class CharacterDTO : DTO
 {
@@ -54,5 +55,8 @@ public class ItemDTO
 
 public class UseItemDTO : DTO
 {
-    public string id;
+    [JsonProperty("item_id")]
+    public string itemId;
+    [JsonProperty("target_id")]
+    public string targetId;
 }

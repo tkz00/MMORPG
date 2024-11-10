@@ -7,7 +7,7 @@ type Mechanic struct {
 	Params       map[string]interface{} // Dynamic parameters for the effect (e.g., healing amount, target)
 }
 
-type MechanicHandler func(caster *Character, params map[string]interface{}) error
+type MechanicHandler func(caster *Character, targetId string, gs *GameState, params map[string]interface{}) error
 
 var mechanicHandlers = map[string]MechanicHandler{}
 
@@ -15,17 +15,17 @@ func RegisterMechanicHandler(mechanicType string, handler MechanicHandler) {
 	mechanicHandlers[mechanicType] = handler
 }
 
-func HealMechanic(caster *Character, params map[string]interface{}) error {
+func HealMechanic(caster *Character, targetId string, gs *GameState, params map[string]interface{}) error {
 	if amount, ok := params["amount"].(int); ok {
-		caster.HealthVariation(amount)
+		gs.players[targetId].HealthVariation(amount)
 		return nil
 	}
 	return fmt.Errorf("missing or invalid 'amount' parameter")
 }
 
-func DamageMechanic(caster *Character, params map[string]interface{}) error {
+func DamageMechanic(caster *Character, targetId string, gs *GameState, params map[string]interface{}) error {
 	if amount, ok := params["amount"].(int); ok {
-		caster.HealthVariation(-amount)
+		gs.players[targetId].HealthVariation(amount)
 		return nil
 	}
 	return fmt.Errorf("missing or invalid 'amount' parameter")

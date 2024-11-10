@@ -19,8 +19,8 @@ type GameState struct {
 	obstacles   [][]utils.Vector2
 }
 
-func StartGameState() GameState {
-	gs := GameState{
+func StartGameState() *GameState {
+	gs := &GameState{
 		playerIds:   make(map[*websocket.Conn]string),
 		players:     make(map[string]*Character),
 		projectiles: make(map[string]*Projectile),
@@ -135,7 +135,7 @@ func (gs GameState) Spawners() map[string]*Spawner {
 }
 
 // Everything below this should be in a functionality module, not in the entities package
-func EnqueueAbilityCast(gs GameState, caster *Character, abilityInfo AbilityInfo) {
+func EnqueueAbilityCast(gs *GameState, caster *Character, abilityInfo AbilityInfo) {
 	abilityId := abilityInfo.GetId()
 	if caster.IsInCooldown(abilityId) {
 		return

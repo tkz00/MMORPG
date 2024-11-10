@@ -7,7 +7,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func GetSkeletonEnemyAbilities(gs entities.GameState) map[string]*entities.Ability {
+func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Ability {
 	skeletonEnemiesAbilities := map[string]*entities.Ability{
 		"0": entities.NewAbility("0", "sword slash", 2, 1500, entities.Target, entities.Attacking,
 			func(caster entities.Character, params entities.AbilityParameters) {

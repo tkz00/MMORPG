@@ -79,7 +79,8 @@ type InventoryDTO struct {
 }
 
 type UseItemDTO struct {
-	Id string `json:"id"`
+	ItemId   string `json:"item_id"`
+	TargetId string `json:"target_id"`
 }
 
 func (u UseItemDTO) GetType() string {

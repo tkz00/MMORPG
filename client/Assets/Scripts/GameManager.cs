@@ -18,7 +18,8 @@ public class GameManager : MonoBehaviour
 
     bool hitboxOn = false;
 
-    private string mainPlayerID;
+    private static string mainPlayerID;
+    public static string MainPlayerID { get { return mainPlayerID; } }
     private AbilityDTO[] mainPlayerAbilities; // Naughty naughty (in Borat's voice)
 
     [SerializeField] public List<Ability> availableAbilities;
@@ -40,8 +41,8 @@ public class GameManager : MonoBehaviour
             new Action<CharacterDTO>(
                 (playerDTO) =>
                 {
-                    this.mainPlayerID = playerDTO.id;
-                    Debug.Log($"Player connected, id: {this.mainPlayerID}");
+                    mainPlayerID = playerDTO.id;
+                    Debug.Log($"Player connected, id: {mainPlayerID}");
                     abilitiesPanel.Init(playerDTO.abilities);
                     mainPlayerAbilities = playerDTO.abilities;
                 }
@@ -138,7 +139,7 @@ public class GameManager : MonoBehaviour
 
     private void CheckDeathSplash(CharacterDTO playerDTO)
     {
-        if (this.mainPlayerID == playerDTO.id)
+        if (mainPlayerID == playerDTO.id)
         {
             if (playerDTO.currentHealth <= 0 && !deathSplash.activeSelf)
             {
@@ -175,7 +176,7 @@ public class GameManager : MonoBehaviour
         player.SetCharacterName(player.id);
         player.SetHitbox(hitboxOn);
         players[playerDTO.id] = player;
-        if (this.mainPlayerID == player.id)
+        if (mainPlayerID == player.id)
         {
             MainPlayer mainPlayer = newPlayerGO.AddComponent<MainPlayer>();
             mainPlayer.abilitiesPanel = abilitiesPanel;
