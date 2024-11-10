@@ -134,40 +134,6 @@ func (gs GameState) Spawners() map[string]*Spawner {
 	return gs.spawners
 }
 
-// Everything below this should be in a functionality module, not in the entities package
-func EnqueueAbilityCast(gs *GameState, caster *Character, abilityInfo AbilityInfo) {
-	abilityId := abilityInfo.GetId()
-	if caster.IsInCooldown(abilityId) {
-		return
-	}
-
-	ability := caster.GetAbilities()[abilityId]
-	targetCoordinatesCallback := func(targetId string) (utils.Vector2, error) {
-		target, err := gs.GetCharacterById(targetId)
-		if err != nil {
-			fmt.Println(err)
-			return utils.Vector2{}, err
-		}
-		return target.GetPosition(), nil
-	}
-	castingCoordinatesCallback := func(targetId string) (utils.Vector2, error) {
-		target, err := gs.GetCharacterById(targetId)
-		if err != nil {
-			fmt.Println(err)
-			return utils.Vector2{}, err
-		}
-
-		if caster.GetPosition().Distance(target.GetPosition()) > ability.Range() {
-			return utils.ClosestPositionInRange(caster.position, target.GetPosition(), ability.Range()), nil
-		} else {
-			return caster.GetPosition(), nil
-		}
-	}
-	abilityAction := ability.CreateAction(abilityInfo, targetCoordinatesCallback, castingCoordinatesCallback)
-	caster.ClearActionsQueue()
-	caster.EnqueueAction(&abilityAction)
-}
-
 func (gs GameState) GetObstacleColliders() [][]utils.Vector2 {
 	return gs.obstacles
 }

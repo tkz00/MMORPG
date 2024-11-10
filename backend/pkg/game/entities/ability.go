@@ -1,9 +1,5 @@
 package entities
 
-import (
-	"tkz00/backend/pkg/utils"
-)
-
 type Targeting int
 
 const (
@@ -19,7 +15,6 @@ type Ability struct {
 	cooldown       int64
 	targeting      Targeting
 	characterState Action
-	Mechanic       func(caster Character, params AbilityParameters)
 }
 
 func NewAbility(
@@ -28,8 +23,7 @@ func NewAbility(
 	rangeValue float64,
 	cooldown int64,
 	targeting Targeting,
-	characterState Action,
-	mechanic func(caster Character, params AbilityParameters)) *Ability {
+	characterState Action) *Ability {
 	return &Ability{
 		id:             id,
 		name:           name,
@@ -37,7 +31,6 @@ func NewAbility(
 		cooldown:       cooldown,
 		targeting:      targeting,
 		characterState: characterState,
-		Mechanic:       mechanic,
 	}
 }
 
@@ -59,31 +52,4 @@ func (ability Ability) Cooldown() int64 {
 
 func (ability Ability) Targeting() Targeting {
 	return ability.targeting
-}
-
-func (ability Ability) Cast(caster Character, params AbilityParameters) {
-	ability.Mechanic(caster, params)
-}
-
-// these callbacks should be optional, maybe a method overload, since they only are needed for point and click targeted skills
-func (ability Ability) CreateAction(abilityInfo AbilityInfo, targetCoordinatesCallback func(targetId string) (utils.Vector2, error), castingCoordinatesCallback func(targetId string) (utils.Vector2, error)) CastAbilityAction {
-	var abilityParams AbilityParameters
-	switch ability.targeting {
-	case Target:
-		targetId, _ := abilityInfo.GetTargetId()
-		abilityParams = TargetIdAbilityParams{
-			TargetId:                   targetId,
-			TargetCoordinatesCallback:  targetCoordinatesCallback,
-			CastingCoordinatesCallback: castingCoordinatesCallback,
-		}
-	case Coordinates:
-		targetPosition, _ := abilityInfo.GetTargetPosition()
-		abilityParams = CoordinateAbilityParams{
-			Target: targetPosition,
-		}
-	}
-	return CastAbilityAction{
-		ability: ability,
-		params:  abilityParams,
-	}
 }

@@ -119,7 +119,7 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 		case "position":
 			server.handlePlayerMovement(conn, message.Body.(dtos.PositionDTO))
 		case "ability_cast":
-			server.handleAbilityCast(conn, message.Body.(dtos.AbilityCastDTO))
+			fmt.Println("ability_cast")
 		case "respawn":
 			server.handleRespawn(conn)
 		case "use_item":
@@ -136,11 +136,6 @@ func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positio
 	// this should be just one "action", one line of code, it gives access to two different things while the entry point should be single
 	player := server.gameState.GetPlayerByConn(client)
 	player.EnqueueMovementAction(position)
-}
-
-func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO dtos.AbilityCastDTO) {
-	player := server.gameState.GetPlayerByConn(client)
-	entities.EnqueueAbilityCast(server.gameState, player, abilityCastDTO)
 }
 
 func (server *NativeServer) handleRespawn(client *websocket.Conn) {

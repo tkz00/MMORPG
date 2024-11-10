@@ -200,19 +200,6 @@ func (player Character) RemainingCooldown(ability *Ability) int64 {
 	return 0
 }
 
-func (player *Character) CastAbility(ability Ability, params AbilityParameters) {
-	player.lastUsed[ability.id] = time.Now()
-	targetCoordinates, _ := params.GetTargetCoordinates()
-	playerPosition := player.position
-	if playerPosition != targetCoordinates {
-		normalizedCastAbilityVector := utils.Normalize(playerPosition, targetCoordinates)
-		player.executingAction = ExecutingAction{ability.characterState, normalizedCastAbilityVector}
-	} else {
-		player.executingAction = ExecutingAction{ability.characterState, player.executingAction.direction}
-	}
-	ability.Cast(*player, params)
-}
-
 // removal => disconnection & death, for now, but for players nothing subscribes to removal.
 func (c *Character) SubscribeToRemoval(callback func()) {
 	c.onRemoved = append(c.onRemoved, callback)
@@ -222,13 +209,6 @@ func (c *Character) Remove() {
 	for _, callback := range c.onRemoved {
 		callback()
 	}
-}
-
-// where should this be?
-type AbilityInfo interface {
-	GetId() string
-	GetTargetPosition() (utils.Vector2, error)
-	GetTargetId() (string, error)
 }
 
 // Everything below this should be in a functionality module, not in the entities package?

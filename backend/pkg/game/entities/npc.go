@@ -50,50 +50,7 @@ func (npc *Npc) takePacificAction() {
 }
 
 func (npc *Npc) TakeAggressiveAction() {
-	ability := npc.abilities["0"]
 
-	if !npc.IsInCooldown(ability.id) {
-		var abilityParams AbilityParameters
-		switch ability.targeting {
-		case Target:
-			targetingCoordinatesCallback := func(targetId string) (utils.Vector2, error) {
-				target := npc.target
-				return target.GetPosition(), nil
-			}
-			castingCoordinatesCallback := func(targetId string) (utils.Vector2, error) {
-				if npc.GetPosition().Distance(npc.target.GetPosition()) > ability.Range() {
-					return utils.ClosestPositionInRange(npc.position, npc.target.GetPosition(), ability.Range()), nil
-				} else {
-					return npc.GetPosition(), nil
-				}
-			}
-			targetId := npc.target.id
-			abilityParams = TargetIdAbilityParams{
-				TargetId:                   targetId,
-				TargetCoordinatesCallback:  targetingCoordinatesCallback,
-				CastingCoordinatesCallback: castingCoordinatesCallback,
-			}
-		case Coordinates:
-			targetPosition := npc.target.position
-			abilityParams = CoordinateAbilityParams{
-				Target: targetPosition,
-			}
-		}
-		npc.EnqueueAction(
-			&CastAbilityAction{
-				ability: *ability,
-				params:  abilityParams,
-			},
-		)
-		// has a distance tolerance of 0.01, this is a patch, it won't be definitive solution
-	} else if (npc.GetPosition().Distance(npc.target.GetPosition()) - 0.01) > ability.Range() {
-		targetPosition := utils.ClosestPositionInRange(npc.position, npc.target.GetPosition(), (ability.Range() - 0.01))
-		moveAction := &MoveAction{
-			TargetPosition: targetPosition,
-		}
-		npc.EnqueueAction(moveAction)
-		return
-	}
 }
 
 func (npc *Npc) BecomeAggressive(target *Character) {
