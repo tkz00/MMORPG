@@ -144,7 +144,25 @@ func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCas
 	for key, value := range abilityCastDTO.AbilityParameters {
 		switch key {
 		case dtos.TargetPosition:
-			castParameters[entities.Coordinates] = value
+			// Cast value to map[string]interface{} first
+			valueMap, ok := value.(map[string]interface{})
+			if !ok {
+				// Handle the error if it's not a map[string]interface{}
+				fmt.Printf("expected map[string]interface{} but got %T", value)
+			}
+
+			// Now extract and cast the individual elements to float64
+			x, xOk := valueMap["x"].(float64)
+			z, zOk := valueMap["z"].(float64)
+			if !xOk || !zOk {
+				// Handle the error if x or z are not float64
+				fmt.Printf("expected x and z to be float64 but got %T and %T", valueMap["x"], valueMap["z"])
+			}
+
+			// Now you can use x and z as float64 values to create the vector
+			coordinates := *utils.NewVector2(x, z)
+			castParameters[entities.Coordinates] = coordinates
+
 		case dtos.TargetId:
 			castParameters[entities.Target] = value
 		}

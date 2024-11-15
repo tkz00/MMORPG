@@ -2,6 +2,8 @@ package entities
 
 import (
 	"tkz00/backend/pkg/utils"
+
+	"github.com/google/uuid"
 )
 
 const PROJECTILE_SPEED float64 = 15
@@ -24,16 +26,16 @@ type Projectile struct {
 	state     ProjectileState
 }
 
-func CreateProjectile(id string, position utils.Vector2, targetDirection utils.Vector2, rangeValue float64, caster string) *Projectile {
-	normalizedVector := utils.Normalize(position, targetDirection)
-	to := normalizedVector.Scale(rangeValue).Add(position)
+func CreateProjectile(initialPosition utils.Vector2, targetDirection utils.Vector2, rangeValue float64, caster string) *Projectile {
+	normalizedVector := utils.Normalize(initialPosition, targetDirection)
+	to := normalizedVector.Scale(rangeValue).Add(initialPosition)
 	direction := normalizedVector.Scale(PROJECTILE_SPEED)
 
 	return &Projectile{
-		id:        id,
+		id:        uuid.New().String(),
 		caster:    caster,
 		direction: direction,
-		position:  position,
+		position:  initialPosition,
 		to:        to,
 		damage:    40,
 		state:     Active,

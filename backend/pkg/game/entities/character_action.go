@@ -35,14 +35,32 @@ type AbilityCastAction struct {
 }
 
 func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error {
-	if action.ability.targeting == Target {
+	switch action.ability.targeting {
+	case Target:
 		targetId := action.castParameters[Target].(string)
 		if MoveIfNotInRange(caster, action, gs) {
 			return nil
 		}
 		for _, mechanic := range action.ability.mechanics {
 			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-				if err := handler(caster, targetId, gs, mechanic.Params); err != nil {
+				mechanic.Params["targetId"] = targetId
+				if err := handler(caster, gs, mechanic.Params); err != nil {
+					fmt.Println(err)
+				} else {
+					caster.lastUsed[action.ability.id] = time.Now()
+					action.isComplete = true
+				}
+			} else {
+				fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
+			}
+		}
+	case Coordinates:
+		targetCoordinates := action.castParameters[Coordinates].(utils.Vector2)
+		for _, mechanic := range action.ability.mechanics {
+			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
+				mechanic.Params["targetCoordinates"] = targetCoordinates
+				mechanic.Params["range"] = action.ability.rangeValue
+				if err := handler(caster, gs, mechanic.Params); err != nil {
 					fmt.Println(err)
 				} else {
 					caster.lastUsed[action.ability.id] = time.Now()

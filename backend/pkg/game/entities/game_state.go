@@ -30,6 +30,7 @@ func StartGameState() *GameState {
 
 	RegisterMechanicHandler("heal", HealMechanic)
 	RegisterMechanicHandler("damage", DamageMechanic)
+	RegisterMechanicHandler("create_projectile", CreateProjectileMechanic)
 
 	return gs
 }
