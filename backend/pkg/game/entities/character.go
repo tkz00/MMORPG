@@ -112,7 +112,7 @@ func (p *Character) PrependAction(action CharacterAction) {
 	p.actionsQueue = append([]CharacterAction{action}, p.actionsQueue...)
 }
 
-func (c *Character) ExecuteNextAction() {
+func (c *Character) ExecuteNextAction(gs *GameState) {
 	if len(c.actionsQueue) == 0 {
 		if c.executingAction.actionType != Idle {
 			c.executingAction = ExecutingAction{Idle, c.executingAction.direction}
@@ -126,7 +126,7 @@ func (c *Character) ExecuteNextAction() {
 	// completed (IsComplete()), the next action in the queue is moved to this single field and it's Execute
 	// function called, probably can be done with just the queue and changing some of the logic
 	currentAction := c.actionsQueue[0]
-	err := currentAction.Execute(c)
+	err := currentAction.Execute(c, gs)
 	if err != nil {
 		fmt.Println("Error executing action:", err)
 		return
@@ -231,4 +231,18 @@ func (character *Character) UseItem(itemId string, targetId string, gs *GameStat
 	item := character.GetItem(itemId)
 	item.ExecuteMechanics(character, targetId, gs)
 	character.Inventory.AddItem(item, -1)
+}
+
+func (caster *Character) EnqueueAbilityCastAction(abilityId string, abilityCastParameters map[Targeting]interface{}) {
+	if caster.IsInCooldown(abilityId) {
+		return
+	}
+
+	ability := caster.abilities[abilityId]
+	caster.ClearActionsQueue()
+	castAbilityAction := &AbilityCastAction{
+		ability:        *ability,
+		castParameters: abilityCastParameters,
+	}
+	caster.EnqueueAction(castAbilityAction)
 }

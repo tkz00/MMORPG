@@ -15,6 +15,7 @@ type Ability struct {
 	cooldown       int64
 	targeting      Targeting
 	characterState Action
+	mechanics      []Mechanic
 }
 
 func NewAbility(
@@ -23,7 +24,8 @@ func NewAbility(
 	rangeValue float64,
 	cooldown int64,
 	targeting Targeting,
-	characterState Action) *Ability {
+	characterState Action,
+	mechanics ...Mechanic) *Ability {
 	return &Ability{
 		id:             id,
 		name:           name,
@@ -31,6 +33,7 @@ func NewAbility(
 		cooldown:       cooldown,
 		targeting:      targeting,
 		characterState: characterState,
+		mechanics:      mechanics,
 	}
 }
 

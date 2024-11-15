@@ -25,7 +25,13 @@ func HealMechanic(caster *Character, targetId string, gs *GameState, params map[
 
 func DamageMechanic(caster *Character, targetId string, gs *GameState, params map[string]interface{}) error {
 	if amount, ok := params["amount"].(int); ok {
-		gs.players[targetId].HealthVariation(amount)
+		target, err := gs.GetCharacterById(targetId)
+		if err != nil {
+			fmt.Println(err)
+			return err
+		}
+		target.HealthVariation(-amount)
+
 		return nil
 	}
 	return fmt.Errorf("missing or invalid 'amount' parameter")

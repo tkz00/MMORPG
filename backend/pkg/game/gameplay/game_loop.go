@@ -33,7 +33,7 @@ func updatePlayers(gs *entities.GameState, deltaTime float64) {
 			return
 		}
 
-		player.ExecuteNextAction()
+		player.ExecuteNextAction(gs)
 		if player.IsMoving() {
 			if !player.UpdatePosition(deltaTime, gs.GetObstacleColliders()) {
 				player.ClearActionsQueue()
@@ -76,7 +76,7 @@ func updateNpcs(gs *entities.GameState, deltaTime float64) {
 
 	for id, npc := range gs.NPCs() {
 		if npc.IsAlive() {
-			npc.ExecuteNextAction()
+			npc.ExecuteNextAction(gs)
 			npc.UpdateBehaviour()
 			if npc.IsMoving() {
 				if !npc.UpdatePosition(deltaTime, gs.GetObstacleColliders()) {
