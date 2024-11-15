@@ -36,9 +36,13 @@ type AbilityCastAction struct {
 
 func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error {
 	if action.ability.targeting == Target {
+		targetId := action.castParameters[Target].(string)
+		if MoveIfNotInRange(caster, action, gs) {
+			return nil
+		}
 		for _, mechanic := range action.ability.mechanics {
 			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-				if err := handler(caster, action.castParameters[Target].(string), gs, mechanic.Params); err != nil {
+				if err := handler(caster, targetId, gs, mechanic.Params); err != nil {
 					fmt.Println(err)
 				} else {
 					caster.lastUsed[action.ability.id] = time.Now()
@@ -54,4 +58,17 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 
 func (action *AbilityCastAction) IsComplete() bool {
 	return action.isComplete
+}
+
+func MoveIfNotInRange(caster *Character, action *AbilityCastAction, gs *GameState) bool {
+	target, _ := gs.GetCharacterById(action.castParameters[Target].(string))
+	const epsilon = 1e-9
+	if (caster.position.Distance(target.position) - action.ability.rangeValue) > epsilon {
+		moveAction := &MoveAction{
+			TargetPosition: utils.ClosestPositionInRange(caster.position, target.position, action.ability.rangeValue),
+		}
+		caster.PrependAction(moveAction)
+		return true
+	}
+	return false
 }
