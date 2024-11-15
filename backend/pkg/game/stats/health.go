@@ -1,7 +1,5 @@
 package stats
 
-import "fmt"
-
 type Health struct {
 	maxHealth     int
 	currentHealth int
@@ -20,7 +18,6 @@ func (health Health) GetCurrentHealth() int {
 }
 
 func (h *Health) HealthVariation(variation int) {
-	fmt.Printf("health variation: %d\n", variation)
 	newHealth := h.GetCurrentHealth() + variation
 	if newHealth > 0 {
 		if h.GetMaxHealth() > newHealth {

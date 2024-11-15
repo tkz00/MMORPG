@@ -2,6 +2,7 @@ package entities
 
 import (
 	"fmt"
+	"time"
 	"tkz00/backend/pkg/utils"
 )
 
@@ -40,6 +41,7 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 				if err := handler(caster, action.castParameters[Target].(string), gs, mechanic.Params); err != nil {
 					fmt.Println(err)
 				} else {
+					caster.lastUsed[action.ability.id] = time.Now()
 					action.isComplete = true
 				}
 			} else {

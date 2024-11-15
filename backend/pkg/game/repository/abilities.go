@@ -11,7 +11,22 @@ func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Abil
 
 func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
 	return map[string]*entities.Ability{
-		"0": entities.NewAbility("0", "projectile", 5, 2000, entities.Coordinates, entities.Attacking),
-		"1": entities.NewAbility("1", "heal", 7, 3000, entities.Target, entities.CastingHeal, entities.Mechanic{MechanicType: "damage", Params: map[string]interface{}{"amount": 40}}),
+		"0": entities.NewAbility(
+			"0",
+			"projectile",
+			5,
+			2000,
+			entities.Coordinates,
+			entities.Attacking,
+		),
+		"1": entities.NewAbility(
+			"1",
+			"heal",
+			7,
+			3000,
+			entities.Target,
+			entities.CastingHeal,
+			entities.Mechanic{MechanicType: "heal", Params: map[string]interface{}{"amount": 40}},
+		),
 	}
 }
