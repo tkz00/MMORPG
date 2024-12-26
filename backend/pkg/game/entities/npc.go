@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"fmt"
 	"time"
 	"tkz00/backend/pkg/utils"
 )
@@ -29,7 +30,7 @@ func (npc *Npc) UpdateBehaviour() {
 			npc.takePacificAction()
 		case Aggressive:
 			if npc.target.IsAlive() && npc.targetIsInRange(npc.target.position) {
-				npc.TakeAggressiveAction()
+				npc.takeAggressiveAction()
 			} else {
 				npc.BecomePacific()
 			}
@@ -49,8 +50,27 @@ func (npc *Npc) takePacificAction() {
 	}
 }
 
-func (npc *Npc) TakeAggressiveAction() {
+func (npc *Npc) takeAggressiveAction() {
+	ability := npc.abilities["0"]
+	if npc.IsInCooldown(ability.id) {
+		targetPosition := utils.ClosestPositionInRange(npc.position, npc.target.GetPosition(), (ability.Range() - 0.01))
+		moveAction := &MoveAction{
+			TargetPosition: targetPosition,
+		}
+		npc.EnqueueAction(moveAction)
+		return
+	}
 
+	castParameters := make(map[Targeting]interface{})
+
+	switch ability.targeting {
+	case Target:
+		castParameters[Target] = npc.target.id
+	case Coordinates:
+		fmt.Println("No npc logic for coordinate targetted abilities")
+	}
+
+	npc.EnqueueAbilityCastAction(ability.id, castParameters)
 }
 
 func (npc *Npc) BecomeAggressive(target *Character) {

@@ -5,7 +5,17 @@ import (
 )
 
 func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Ability {
-	skeletonEnemiesAbilities := map[string]*entities.Ability{}
+	skeletonEnemiesAbilities := map[string]*entities.Ability{
+		"0": entities.NewAbility(
+			"0",
+			"sword slash",
+			2,
+			4000,
+			entities.Target,
+			entities.Attacking,
+			entities.Mechanic{MechanicType: "damage", Params: map[string]interface{}{"amount": 19}},
+		),
+	}
 	return skeletonEnemiesAbilities
 }
 
