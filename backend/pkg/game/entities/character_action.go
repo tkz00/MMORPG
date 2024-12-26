@@ -49,6 +49,21 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 				} else {
 					caster.lastUsed[action.ability.id] = time.Now()
 					action.isComplete = true
+
+					switch action.ability.characterState {
+					case Attacking:
+						target, _ := gs.GetCharacterById(action.castParameters[Target].(string))
+						normalizedCastAbilityVector := utils.Normalize(caster.position, target.position)
+						caster.executingAction = ExecutingAction{Attacking, normalizedCastAbilityVector}
+					case CastingHeal:
+						target, _ := gs.GetCharacterById(action.castParameters[Target].(string))
+						if caster.id == target.id {
+							caster.executingAction = ExecutingAction{CastingHeal, caster.executingAction.direction}
+						} else {
+							normalizedCastAbilityVector := utils.Normalize(caster.position, target.position)
+							caster.executingAction = ExecutingAction{CastingHeal, normalizedCastAbilityVector}
+						}
+					}
 				}
 			} else {
 				fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
@@ -65,6 +80,20 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 				} else {
 					caster.lastUsed[action.ability.id] = time.Now()
 					action.isComplete = true
+
+					switch action.ability.characterState {
+					case Attacking:
+						normalizedCastAbilityVector := utils.Normalize(caster.position, targetCoordinates)
+						caster.executingAction = ExecutingAction{Attacking, normalizedCastAbilityVector}
+					case CastingHeal:
+						target, _ := gs.GetCharacterById(action.castParameters[Target].(string))
+						if caster.id == target.id {
+							caster.executingAction = ExecutingAction{CastingHeal, caster.executingAction.direction}
+						} else {
+							normalizedCastAbilityVector := utils.Normalize(caster.position, target.position)
+							caster.executingAction = ExecutingAction{CastingHeal, normalizedCastAbilityVector}
+						}
+					}
 				}
 			} else {
 				fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)

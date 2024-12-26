@@ -53,11 +53,14 @@ func (npc *Npc) takePacificAction() {
 func (npc *Npc) takeAggressiveAction() {
 	ability := npc.abilities["0"]
 	if npc.IsInCooldown(ability.id) {
-		targetPosition := utils.ClosestPositionInRange(npc.position, npc.target.GetPosition(), (ability.Range() - 0.01))
-		moveAction := &MoveAction{
-			TargetPosition: targetPosition,
+		const epsilon = 1e-9
+		if (npc.position.Distance(npc.target.position) - ability.rangeValue) > epsilon {
+			targetPosition := utils.ClosestPositionInRange(npc.position, npc.target.GetPosition(), (ability.Range() - 0.01))
+			moveAction := &MoveAction{
+				TargetPosition: targetPosition,
+			}
+			npc.EnqueueAction(moveAction)
 		}
-		npc.EnqueueAction(moveAction)
 		return
 	}
 
