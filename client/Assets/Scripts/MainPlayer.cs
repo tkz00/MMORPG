@@ -104,7 +104,6 @@ public class MainPlayer : MonoBehaviour
                         ActionType = "ability_cast"
                     };
                     string message = JsonConvert.SerializeObject(response);
-                    Debug.Log(message);
                     WebSocketConnection.SendMessage(message);
 
                     abilitiesPanel.CastAbility(ability.id);
