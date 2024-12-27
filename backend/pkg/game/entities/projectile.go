@@ -98,7 +98,12 @@ func (p Projectile) GetState() string {
 func (projectile Projectile) Hit(target *Character, gs *GameState) {
 	for _, mechanic := range projectile.onHitMechanics {
 		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-			mechanic.Params["targetId"] = target.id
+			resolveParameters(
+				mechanic.Params,
+				projectile.caster,
+				target.id,
+				gs,
+			)
 			caster, err := gs.GetCharacterById(projectile.caster)
 			if err != nil {
 				fmt.Println(err)

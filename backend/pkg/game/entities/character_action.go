@@ -43,7 +43,12 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 		}
 		for _, mechanic := range action.ability.mechanics {
 			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-				mechanic.Params["targetId"] = targetId
+				resolveParameters(
+					mechanic.Params,
+					caster.id,
+					targetId,
+					gs,
+				)
 				if err := handler(caster, gs, mechanic.Params); err != nil {
 					fmt.Println(err)
 				} else {

@@ -13,7 +13,13 @@ func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Abil
 			4000,
 			entities.Target,
 			entities.Attacking,
-			entities.Mechanic{MechanicType: "damage", Params: map[string]interface{}{"amount": 19}},
+			entities.Mechanic{
+				MechanicType: "damage",
+				Params: map[string]interface{}{
+					"amount":             19,
+					"targeting_strategy": "character_hit",
+				},
+			},
 		),
 	}
 	return skeletonEnemiesAbilities
@@ -32,7 +38,20 @@ func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
 				MechanicType: "create_projectile",
 				Params: map[string]interface{}{
 					"on_hit_mechanics": []entities.Mechanic{
-						{MechanicType: "damage", Params: map[string]interface{}{"amount": 40}},
+						{
+							MechanicType: "damage",
+							Params: map[string]interface{}{
+								"amount":             40,
+								"targeting_strategy": "character_hit",
+							},
+						},
+						{
+							MechanicType: "heal",
+							Params: map[string]interface{}{
+								"amount":             20,
+								"targeting_strategy": "caster",
+							},
+						},
 					},
 				},
 			},
@@ -44,7 +63,13 @@ func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
 			3000,
 			entities.Target,
 			entities.CastingHeal,
-			entities.Mechanic{MechanicType: "heal", Params: map[string]interface{}{"amount": 40}},
+			entities.Mechanic{
+				MechanicType: "heal",
+				Params: map[string]interface{}{
+					"amount":             40,
+					"targeting_strategy": "character_hit",
+				},
+			},
 		),
 	}
 }

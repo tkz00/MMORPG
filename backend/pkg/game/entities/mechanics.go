@@ -65,3 +65,20 @@ func CreateProjectileMechanic(
 	}
 	return fmt.Errorf("missing or invalid 'targetCoordinates' parameter")
 }
+
+// For now this designates the target of a mechanic depending on it's targeting strategy
+func resolveParameters(
+	params map[string]interface{},
+	casterId string,
+	targetId string,
+	_ *GameState, // currently unused but will be in the future
+) {
+	switch params["targeting_strategy"] {
+	case "caster":
+		params["targetId"] = casterId
+	case "character_hit":
+		params["targetId"] = targetId
+	default:
+		panic("no targeting_strategy for projectile hit mechanic found")
+	}
+}
