@@ -8,7 +8,6 @@ public class ProjectileDTO : DTO
    public string caster;
    public PositionDTO position;
    public float radius;
-   public int damage;
 
    [JsonProperty("state")]
    [JsonConverter(typeof(StringEnumConverter))]

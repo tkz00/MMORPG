@@ -73,7 +73,7 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 		targetCoordinates := action.castParameters[Coordinates].(utils.Vector2)
 		for _, mechanic := range action.ability.mechanics {
 			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-				mechanic.Params["targetCoordinates"] = targetCoordinates
+				mechanic.Params["target_coordinates"] = targetCoordinates
 				mechanic.Params["range"] = action.ability.rangeValue
 				if err := handler(caster, gs, mechanic.Params); err != nil {
 					fmt.Println(err)

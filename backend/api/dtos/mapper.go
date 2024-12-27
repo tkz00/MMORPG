@@ -65,7 +65,6 @@ func (m Mapper) ProjectileToDTO(projectile entities.Projectile) *ProjectileDTO {
 		Caster:   projectile.CasterId(),
 		Position: *m.PositionToDTO(projectile.GetPosition()),
 		Radius:   projectile.GetRadius(),
-		Damage:   projectile.GetDamage(),
 		State:    projectile.GetState(),
 	}
 }

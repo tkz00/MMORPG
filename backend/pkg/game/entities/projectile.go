@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"fmt"
 	"tkz00/backend/pkg/utils"
 
 	"github.com/google/uuid"
@@ -17,28 +18,28 @@ const (
 )
 
 type Projectile struct {
-	id        string
-	caster    string
-	direction utils.Vector2
-	position  utils.Vector2
-	to        utils.Vector2
-	damage    int
-	state     ProjectileState
+	id             string
+	caster         string
+	direction      utils.Vector2
+	position       utils.Vector2
+	to             utils.Vector2
+	state          ProjectileState
+	onHitMechanics []Mechanic
 }
 
-func CreateProjectile(initialPosition utils.Vector2, targetDirection utils.Vector2, rangeValue float64, caster string) *Projectile {
+func CreateProjectile(initialPosition utils.Vector2, targetDirection utils.Vector2, rangeValue float64, caster string, onHitMechanics []Mechanic) *Projectile {
 	normalizedVector := utils.Normalize(initialPosition, targetDirection)
 	to := normalizedVector.Scale(rangeValue).Add(initialPosition)
 	direction := normalizedVector.Scale(PROJECTILE_SPEED)
 
 	return &Projectile{
-		id:        uuid.New().String(),
-		caster:    caster,
-		direction: direction,
-		position:  initialPosition,
-		to:        to,
-		damage:    40,
-		state:     Active,
+		id:             uuid.New().String(),
+		caster:         caster,
+		direction:      direction,
+		position:       initialPosition,
+		to:             to,
+		state:          Active,
+		onHitMechanics: onHitMechanics,
 	}
 }
 
@@ -48,10 +49,6 @@ func (p Projectile) GetId() string {
 
 func (p Projectile) CasterId() string {
 	return p.caster
-}
-
-func (p Projectile) GetDamage() int {
-	return p.damage
 }
 
 func (p *Projectile) UpdatePosition(deltaTime float64) bool {
@@ -89,5 +86,22 @@ func (p Projectile) GetState() string {
 		return "Hit"
 	default:
 		return "Unknown"
+	}
+}
+
+func (projectile Projectile) Hit(target *Character, gs *GameState) {
+	for _, mechanic := range projectile.onHitMechanics {
+		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
+			mechanic.Params["targetId"] = target.id
+			caster, err := gs.GetCharacterById(projectile.caster)
+			if err != nil {
+				fmt.Println(err)
+			}
+			if err := handler(caster, gs, mechanic.Params); err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
+		}
 	}
 }
