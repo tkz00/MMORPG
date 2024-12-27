@@ -46,10 +46,20 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 	return fmt.Errorf("missing or invalid 'amount' parameter")
 }
 
-func CreateProjectileMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
+func CreateProjectileMechanic(
+	caster *Character,
+	gs *GameState,
+	params map[string]interface{},
+) error {
 	if targetPosition, ok := params["target_coordinates"].(utils.Vector2); ok {
 		onHitMechanics, _ := params["on_hit_mechanics"].([]Mechanic)
-		newProjectile := CreateProjectile(caster.position, targetPosition, params["range"].(float64), caster.id, onHitMechanics)
+		newProjectile := CreateProjectile(
+			caster.position,
+			targetPosition,
+			params["range"].(float64),
+			caster.id,
+			onHitMechanics,
+		)
 		gs.projectiles[newProjectile.id] = newProjectile
 		return nil
 	}

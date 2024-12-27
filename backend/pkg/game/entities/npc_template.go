@@ -13,7 +13,13 @@ type NPCTemplate struct {
 	aggroRange     float64
 }
 
-func NewNPCTemplate(id string, name string, startingHealth int, aggroRange float64, abilities map[string]*Ability) NPCTemplate {
+func NewNPCTemplate(
+	id string,
+	name string,
+	startingHealth int,
+	aggroRange float64,
+	abilities map[string]*Ability,
+) NPCTemplate {
 	return NPCTemplate{
 		id:             id,
 		name:           name,
@@ -23,7 +29,11 @@ func NewNPCTemplate(id string, name string, startingHealth int, aggroRange float
 	}
 }
 
-func (npcTemplate NPCTemplate) NewNPC(id string, position utils.Vector2, spawnerPosition utils.Vector2) *Npc {
+func (npcTemplate NPCTemplate) NewNPC(
+	id string,
+	position utils.Vector2,
+	spawnerPosition utils.Vector2,
+) *Npc {
 	x, z := position.GetPosition()
 	return &Npc{
 		Character:         CreateCharacter(id, x, z, npcTemplate.abilities),

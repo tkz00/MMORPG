@@ -28,7 +28,14 @@ func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
 			2000,
 			entities.Coordinates,
 			entities.Attacking,
-			entities.Mechanic{MechanicType: "create_projectile", Params: map[string]interface{}{"on_hit_mechanics": []entities.Mechanic{{MechanicType: "damage", Params: map[string]interface{}{"amount": 40}}}}},
+			entities.Mechanic{
+				MechanicType: "create_projectile",
+				Params: map[string]interface{}{
+					"on_hit_mechanics": []entities.Mechanic{
+						{MechanicType: "damage", Params: map[string]interface{}{"amount": 40}},
+					},
+				},
+			},
 		),
 		"1": entities.NewAbility(
 			"1",

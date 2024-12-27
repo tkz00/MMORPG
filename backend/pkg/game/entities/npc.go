@@ -55,7 +55,11 @@ func (npc *Npc) takeAggressiveAction() {
 	if npc.IsInCooldown(ability.id) {
 		const epsilon = 1e-9
 		if (npc.position.Distance(npc.target.position) - ability.rangeValue) > epsilon {
-			targetPosition := utils.ClosestPositionInRange(npc.position, npc.target.GetPosition(), (ability.Range() - 0.01))
+			targetPosition := utils.ClosestPositionInRange(
+				npc.position,
+				npc.target.GetPosition(),
+				(ability.Range() - 0.01),
+			)
 			moveAction := &MoveAction{
 				TargetPosition: targetPosition,
 			}

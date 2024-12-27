@@ -18,7 +18,12 @@ type Spawner struct {
 	maxNPCs     int
 }
 
-func NewSpawner(position utils.Vector2, radius float64, rate time.Duration, npcTemplate NPCTemplate) *Spawner {
+func NewSpawner(
+	position utils.Vector2,
+	radius float64,
+	rate time.Duration,
+	npcTemplate NPCTemplate,
+) *Spawner {
 	return &Spawner{
 		position:    position,
 		radius:      radius,
@@ -54,7 +59,14 @@ func (spawner *Spawner) GetNewNPCs() []*Npc {
 			spawner.HandleNPCDeath(npcs[i])
 		})
 		if rand.IntN(2) == 0 {
-			npcs[i].AddItem(NewItem("1", "small health potion", Mechanic{MechanicType: "heal", Params: map[string]interface{}{"amount": 40}}), 1)
+			npcs[i].AddItem(
+				NewItem(
+					"1",
+					"small health potion",
+					Mechanic{MechanicType: "heal", Params: map[string]interface{}{"amount": 40}},
+				),
+				1,
+			)
 		} else {
 			npcs[i].AddItem(NewItem("2", "leather"), 2)
 		}

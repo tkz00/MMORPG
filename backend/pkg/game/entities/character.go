@@ -193,7 +193,8 @@ func (player *Character) IsInCooldown(abilityId string) bool {
 
 func (player Character) RemainingCooldown(ability *Ability) int64 {
 	now := time.Now()
-	remainingCooldown := player.abilities[ability.id].cooldown - now.Sub(player.lastUsed[ability.id]).Milliseconds()
+	remainingCooldown := player.abilities[ability.id].cooldown - now.Sub(player.lastUsed[ability.id]).
+		Milliseconds()
 	if remainingCooldown > 0 {
 		return remainingCooldown
 	}
@@ -223,7 +224,11 @@ func (character *Character) EnqueueMovementAction(position utils.Vector2) {
 
 func (character *Character) UseItem(itemId string, targetId string, gs *GameState) {
 	if !character.Inventory.CanConsume(itemId) {
-		err := fmt.Errorf("character %s tried to use item %s, but is unable to", character.id, itemId)
+		err := fmt.Errorf(
+			"character %s tried to use item %s, but is unable to",
+			character.id,
+			itemId,
+		)
 		fmt.Println(err.Error())
 		return
 	}
@@ -233,7 +238,10 @@ func (character *Character) UseItem(itemId string, targetId string, gs *GameStat
 	character.Inventory.AddItem(item, -1)
 }
 
-func (caster *Character) EnqueueAbilityCastAction(abilityId string, abilityCastParameters map[Targeting]interface{}) {
+func (caster *Character) EnqueueAbilityCastAction(
+	abilityId string,
+	abilityCastParameters map[Targeting]interface{},
+) {
 	if caster.IsInCooldown(abilityId) {
 		return
 	}

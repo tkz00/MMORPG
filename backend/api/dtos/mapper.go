@@ -43,7 +43,10 @@ func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
 
 	characterExecutingAction := character.GetExecutingAction()
 	executingActionDirection := characterExecutingAction.Direction()
-	executingActionDTO := ExecutingActionDTO{Action: characterExecutingAction.ActionType(), Direction: *m.PositionToDTO(executingActionDirection)}
+	executingActionDTO := ExecutingActionDTO{
+		Action:    characterExecutingAction.ActionType(),
+		Direction: *m.PositionToDTO(executingActionDirection),
+	}
 
 	characterInventory := InventoryDTO{Items: character.ChangeLogs()}
 

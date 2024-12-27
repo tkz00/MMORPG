@@ -112,7 +112,11 @@ func MoveIfNotInRange(caster *Character, action *AbilityCastAction, gs *GameStat
 	const epsilon = 1e-9
 	if (caster.position.Distance(target.position) - action.ability.rangeValue) > epsilon {
 		moveAction := &MoveAction{
-			TargetPosition: utils.ClosestPositionInRange(caster.position, target.position, action.ability.rangeValue),
+			TargetPosition: utils.ClosestPositionInRange(
+				caster.position,
+				target.position,
+				action.ability.rangeValue,
+			),
 		}
 		caster.PrependAction(moveAction)
 		return true

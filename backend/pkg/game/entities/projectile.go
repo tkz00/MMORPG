@@ -27,7 +27,13 @@ type Projectile struct {
 	onHitMechanics []Mechanic
 }
 
-func CreateProjectile(initialPosition utils.Vector2, targetDirection utils.Vector2, rangeValue float64, caster string, onHitMechanics []Mechanic) *Projectile {
+func CreateProjectile(
+	initialPosition utils.Vector2,
+	targetDirection utils.Vector2,
+	rangeValue float64,
+	caster string,
+	onHitMechanics []Mechanic,
+) *Projectile {
 	normalizedVector := utils.Normalize(initialPosition, targetDirection)
 	to := normalizedVector.Scale(rangeValue).Add(initialPosition)
 	direction := normalizedVector.Scale(PROJECTILE_SPEED)

@@ -130,7 +130,10 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 	}
 }
 
-func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positionDTO dtos.PositionDTO) {
+func (server *NativeServer) handlePlayerMovement(
+	client *websocket.Conn,
+	positionDTO dtos.PositionDTO,
+) {
 	position := *dtos.GetMapper().PositionDTOToEntity(positionDTO)
 
 	// this should be just one "action", one line of code, it gives access to two different things while the entry point should be single
@@ -138,7 +141,10 @@ func (server *NativeServer) handlePlayerMovement(client *websocket.Conn, positio
 	player.EnqueueMovementAction(position)
 }
 
-func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCastDTO dtos.AbilityCastDTO) {
+func (server *NativeServer) handleAbilityCast(
+	client *websocket.Conn,
+	abilityCastDTO dtos.AbilityCastDTO,
+) {
 	player := server.gameState.GetPlayerByConn(client)
 	castParameters := make(map[entities.Targeting]interface{})
 	for key, value := range abilityCastDTO.AbilityParameters {
@@ -156,7 +162,11 @@ func (server *NativeServer) handleAbilityCast(client *websocket.Conn, abilityCas
 			z, zOk := valueMap["z"].(float64)
 			if !xOk || !zOk {
 				// Handle the error if x or z are not float64
-				fmt.Printf("expected x and z to be float64 but got %T and %T", valueMap["x"], valueMap["z"])
+				fmt.Printf(
+					"expected x and z to be float64 but got %T and %T",
+					valueMap["x"],
+					valueMap["z"],
+				)
 			}
 
 			// Now you can use x and z as float64 values to create the vector
