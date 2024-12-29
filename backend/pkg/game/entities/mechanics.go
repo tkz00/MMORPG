@@ -20,12 +20,16 @@ func RegisterMechanicHandler(mechanicType string, handler MechanicHandler) {
 
 func HealMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
 	if amount, ok := params["amount"].(int); ok {
-		target, err := gs.GetCharacterById(params["targetId"].(string))
+		target, err := gs.GetCharacterById(params["target_id"].(string))
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
 		target.HealthVariation(amount)
+
+		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
+			resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
+		}
 
 		return nil
 	}
@@ -34,12 +38,16 @@ func HealMechanic(caster *Character, gs *GameState, params map[string]interface{
 
 func DamageMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
 	if amount, ok := params["amount"].(int); ok {
-		target, err := gs.GetCharacterById(params["targetId"].(string))
+		target, err := gs.GetCharacterById(params["target_id"].(string))
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
 		target.HealthVariation(-amount)
+
+		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
+			resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
+		}
 
 		return nil
 	}
@@ -85,11 +93,35 @@ func CreateProjectileMechanic(
 	return fmt.Errorf("missing or invalid 'targetCoordinates' parameter")
 }
 
+func resolveMechanics(
+	casterId string,
+	gs *GameState,
+	mechanics []Mechanic,
+) {
+	for _, mechanic := range mechanics {
+		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
+			resolveParameters(
+				mechanic,
+				casterId,
+				gs,
+			)
+			caster, err := gs.GetCharacterById(casterId)
+			if err != nil {
+				fmt.Println(err)
+			}
+			if err := handler(caster, gs, mechanic.Params); err != nil {
+				fmt.Println(err)
+			}
+		} else {
+			fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
+		}
+	}
+}
+
 // For now this designates the target of a mechanic depending on it's targeting strategy
 func resolveParameters(
 	mechanic Mechanic,
 	casterId string,
-	targetId string,
 	gs *GameState,
 ) {
 	params := mechanic.Params
@@ -97,28 +129,26 @@ func resolveParameters(
 	switch mechanic.MechanicType {
 	case "damage":
 		switch params["targeting_strategy"] {
-		case "caster":
-			params["targetId"] = casterId
 		case "character_hit":
-			params["targetId"] = targetId
+		case "caster":
+			params["target_id"] = casterId
 		default:
 			panic("no targeting_strategy for damage mechanic found")
 		}
 	case "heal":
 		switch params["targeting_strategy"] {
-		case "caster":
-			params["targetId"] = casterId
 		case "character_hit":
-			params["targetId"] = targetId
+		case "caster":
+			params["target_id"] = casterId
 		default:
-			panic("no targeting_strategy for damage mechanic found")
+			panic("no targeting_strategy for heal mechanic found")
 		}
 	case "create_projectile":
 		switch params["targeting_strategy"] { // targeting_strategy is a very bad name for this, it should be the shape the projectile(s) spawn, arc or line or whatever
 		case "arc":
 			baseCharacter := &Character{}
 			if params["origin_position"] == "target" {
-				baseCharacter, _ = gs.GetCharacterById(targetId)
+				baseCharacter, _ = gs.GetCharacterById(params["target_id"].(string))
 			} else {
 				baseCharacter, _ = gs.GetCharacterById(casterId)
 			}

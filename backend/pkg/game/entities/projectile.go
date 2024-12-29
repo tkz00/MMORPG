@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"fmt"
 	"tkz00/backend/pkg/utils"
 
 	"github.com/google/uuid"
@@ -97,23 +96,8 @@ func (p Projectile) GetState() string {
 
 func (projectile Projectile) Hit(target *Character, gs *GameState) {
 	for _, mechanic := range projectile.onHitMechanics {
-		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-			mechanic.Params["projectile_last_position"] = projectile.position
-			resolveParameters(
-				mechanic,
-				projectile.caster,
-				target.id,
-				gs,
-			)
-			caster, err := gs.GetCharacterById(projectile.caster)
-			if err != nil {
-				fmt.Println(err)
-			}
-			if err := handler(caster, gs, mechanic.Params); err != nil {
-				fmt.Println(err)
-			}
-		} else {
-			fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
-		}
+		mechanic.Params["target_id"] = target.id
+		mechanic.Params["projectile_last_position"] = projectile.position
 	}
+	resolveMechanics(projectile.caster, gs, projectile.onHitMechanics)
 }

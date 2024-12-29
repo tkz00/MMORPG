@@ -37,7 +37,7 @@ func NewItem(id, name string, mechanics ...Mechanic) *Item {
 func (item *Item) ExecuteMechanics(caster *Character, targetId string, gs *GameState) {
 	for _, mechanic := range item.mechanics {
 		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-			mechanic.Params["targetId"] = targetId
+			mechanic.Params["target_id"] = targetId
 			if err := handler(caster, gs, mechanic.Params); err != nil {
 				fmt.Println(err)
 			}
