@@ -39,13 +39,13 @@ func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
 				MechanicType: "create_projectile",
 				Params: map[string]interface{}{
 					"on_hit_mechanics": []entities.Mechanic{
-						// {
-						// 	MechanicType: "damage",
-						// 	Params: map[string]interface{}{
-						// 		"amount":             40,
-						// 		"targeting_strategy": "character_hit",
-						// 	},
-						// },
+						{
+							MechanicType: "damage",
+							Params: map[string]interface{}{
+								"amount":             40,
+								"targeting_strategy": "character_hit",
+							},
+						},
 						{
 							MechanicType: "heal",
 							Params: map[string]interface{}{

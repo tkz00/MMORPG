@@ -96,8 +96,6 @@ func updateNpcs(gs *entities.GameState, deltaTime float64) {
 
 // AreColliding surely must go in a separate collisions module, I don't know about checkCollisions, but from what I'm seeing it must be refactored
 func checkCollision(gs *entities.GameState, projectile entities.Projectile) bool {
-	projectileHit := false
-
 	for _, player := range gs.Players() {
 		if !player.IsAlive() || player.GetId() == projectile.CasterId() {
 			continue
@@ -105,10 +103,10 @@ func checkCollision(gs *entities.GameState, projectile entities.Projectile) bool
 		if AreColliding(*player, projectile) {
 			// execute projectile mechanics
 			projectile.Hit(player, gs)
-			projectileHit = true
 			if !player.IsAlive() {
 				gs.Players()[projectile.CasterId()].Loot(player.Inventory)
 			}
+			return true
 		}
 	}
 
@@ -122,14 +120,14 @@ func checkCollision(gs *entities.GameState, projectile entities.Projectile) bool
 			if caster, err := gs.GetCharacterById(projectile.CasterId()); err == nil {
 				npc.BecomeAggressive(caster)
 			}
-			projectileHit = true
 			if !npc.IsAlive() {
 				gs.Players()[projectile.CasterId()].Loot(npc.Inventory)
 			}
+			return true
 		}
 	}
 
-	return projectileHit
+	return false
 }
 
 func AreColliding(player entities.Character, projectile entities.Projectile) bool {
