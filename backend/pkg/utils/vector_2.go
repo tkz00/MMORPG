@@ -57,12 +57,17 @@ func Normalize(a, b Vector2) Vector2 {
 	return Vector2{diffX / distanceMagnitude, diffZ / distanceMagnitude}
 }
 
+// CalculateNewPosition calculates the new position after traveling a certain distance at a given angle.
+func CalculateNewPosition(initial Vector2, distance float64, angleRadians float64) Vector2 {
+	newX := initial.x + distance*math.Cos(angleRadians)
+	newZ := initial.z + distance*math.Sin(angleRadians)
+	return Vector2{x: newX, z: newZ}
+}
+
 func RandomCoordinatesInRadius(v Vector2, radius float64) Vector2 {
 	angle := rand.Float64() * 2 * math.Pi
 	r := math.Sqrt(rand.Float64()) * radius
-	x := v.x + r*math.Cos(angle)
-	z := v.z + r*math.Sin(angle)
-	return Vector2{x: x, z: z}
+	return CalculateNewPosition(v, r, angle)
 }
 
 func ClosestPositionInRange(startingPosition Vector2, target Vector2, rangeValue float64) Vector2 {

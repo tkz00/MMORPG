@@ -98,6 +98,8 @@ func (p Projectile) GetState() string {
 func (projectile Projectile) Hit(target *Character, gs *GameState) {
 	for _, mechanic := range projectile.onHitMechanics {
 		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
+			fmt.Println(target.id)
+			mechanic.Params["projectile_last_position"] = projectile.position
 			resolveParameters(
 				mechanic.Params,
 				projectile.caster,

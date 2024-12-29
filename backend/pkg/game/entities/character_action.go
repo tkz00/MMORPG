@@ -80,6 +80,7 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
 				mechanic.Params["target_coordinates"] = targetCoordinates
 				mechanic.Params["range"] = action.ability.rangeValue
+				mechanic.Params["initial_coordinates"] = caster.position
 				if err := handler(caster, gs, mechanic.Params); err != nil {
 					fmt.Println(err)
 				} else {
