@@ -44,7 +44,7 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 		for _, mechanic := range action.ability.mechanics {
 			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
 				resolveParameters(
-					mechanic.Params,
+					mechanic,
 					caster.id,
 					targetId,
 					gs,

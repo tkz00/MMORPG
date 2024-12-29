@@ -87,47 +87,60 @@ func CreateProjectileMechanic(
 
 // For now this designates the target of a mechanic depending on it's targeting strategy
 func resolveParameters(
-	params map[string]interface{},
+	mechanic Mechanic,
 	casterId string,
 	targetId string,
-	gs *GameState, // currently unused but will be in the future
+	gs *GameState,
 ) {
-	if params["origin_position"] == "target" {
-		target, _ := gs.GetCharacterById(targetId)
-		params["initial_coordinates"] = target.position
-	} else {
-		caster, _ := gs.GetCharacterById(casterId)
-		params["initial_coordinates"] = caster.position
-	}
+	params := mechanic.Params
 
-	switch params["targeting_strategy"] {
-	case "caster":
-		params["targetId"] = casterId
-	case "character_hit":
-		params["targetId"] = targetId
-	case "arc":
-		baseCharacter := &Character{}
-		if params["origin_position"] == "target" {
-			target, _ := gs.GetCharacterById(targetId)
-			baseCharacter = target
-		} else {
-			caster, _ := gs.GetCharacterById(casterId)
-			baseCharacter = caster
+	switch mechanic.MechanicType {
+	case "damage":
+		switch params["targeting_strategy"] {
+		case "caster":
+			params["targetId"] = casterId
+		case "character_hit":
+			params["targetId"] = targetId
+		default:
+			panic("no targeting_strategy for damage mechanic found")
 		}
-		// get's the target coordinates for projectiles when they're shot in an arc, depending on the radius of the arc and number of projectiles to spawn, these are equally distributed around the radius
-		for i := 0; i < params["number"].(int); i++ {
-			params[fmt.Sprint("target_coordinates_", i)] = utils.CalculateNewPosition(
-				params["projectile_last_position"].(utils.Vector2),
-				params["range"].(float64),
-				params["radius"].(float64)*float64(i)/float64(params["number"].(int)),
-			)
-			params[fmt.Sprint("initial_coordinates_", i)] = utils.ClosestPositionInRange(
-				params[fmt.Sprint("target_coordinates_", i)].(utils.Vector2),
-				baseCharacter.position,
-				(baseCharacter.GetRadius() + 0.5),
-			)
+	case "heal":
+		switch params["targeting_strategy"] {
+		case "caster":
+			params["targetId"] = casterId
+		case "character_hit":
+			params["targetId"] = targetId
+		default:
+			panic("no targeting_strategy for damage mechanic found")
+		}
+	case "create_projectile":
+		switch params["targeting_strategy"] { // targeting_strategy is a very bad name for this, it should be the shape the projectile(s) spawn, arc or line or whatever
+		case "arc":
+			baseCharacter := &Character{}
+			if params["origin_position"] == "target" {
+				baseCharacter, _ = gs.GetCharacterById(targetId)
+			} else {
+				baseCharacter, _ = gs.GetCharacterById(casterId)
+			}
+
+			params["initial_coordinates"] = baseCharacter.position
+
+			// get's the target coordinates for projectiles when they're shot in an arc, depending on the radius of the arc and number of projectiles to spawn, these are equally distributed around the radius
+			for i := 0; i < params["number"].(int); i++ {
+				params[fmt.Sprint("target_coordinates_", i)] = utils.CalculateNewPosition(
+					params["projectile_last_position"].(utils.Vector2),
+					params["range"].(float64),
+					params["radius"].(float64)*float64(i)/float64(params["number"].(int)),
+				)
+				params[fmt.Sprint("initial_coordinates_", i)] = utils.ClosestPositionInRange(
+					params[fmt.Sprint("target_coordinates_", i)].(utils.Vector2),
+					baseCharacter.position,
+					(baseCharacter.GetRadius() + 0.5), // fix this to be the radius of the character + radius of projectile + epsilon)
+				)
+			}
+		default:
+			panic("no targeting_strategy for create_projectile hit mechanic found")
 		}
 	default:
-		panic("no targeting_strategy for projectile hit mechanic found")
 	}
 }

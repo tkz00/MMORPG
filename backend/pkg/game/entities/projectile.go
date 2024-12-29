@@ -100,7 +100,7 @@ func (projectile Projectile) Hit(target *Character, gs *GameState) {
 		if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
 			mechanic.Params["projectile_last_position"] = projectile.position
 			resolveParameters(
-				mechanic.Params,
+				mechanic,
 				projectile.caster,
 				target.id,
 				gs,
