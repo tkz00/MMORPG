@@ -48,6 +48,14 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 		}
 		target.HealthVariation(-amount)
 
+		if npc, ok := gs.npcs[params["target_id"].(string)]; ok {
+			npc.BecomeAggressive(caster)
+		}
+
+		if !target.IsAlive() {
+			gs.Players()[caster.id].Loot(target.Inventory)
+		}
+
 		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
 			for _, mechanic := range onHitMechanics.([]Mechanic) {
 				mechanic.Params["target_id"] = target.id

@@ -104,9 +104,6 @@ func checkCollision(gs *entities.GameState, projectile entities.Projectile) bool
 		if AreColliding(*player, projectile) {
 			// execute projectile mechanics
 			projectile.Hit(player, gs)
-			if !player.IsAlive() {
-				gs.Players()[projectile.CasterId()].Loot(player.Inventory)
-			}
 			return true
 		}
 	}
@@ -118,12 +115,6 @@ func checkCollision(gs *entities.GameState, projectile entities.Projectile) bool
 		if AreColliding(*npc.Character, projectile) {
 			// execute projectile mechanics
 			projectile.Hit(npc.Character, gs)
-			if caster, err := gs.GetCharacterById(projectile.CasterId()); err == nil {
-				npc.BecomeAggressive(caster)
-			}
-			if !npc.IsAlive() {
-				gs.Players()[projectile.CasterId()].Loot(npc.Inventory)
-			}
 			return true
 		}
 	}
