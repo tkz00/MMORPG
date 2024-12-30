@@ -5,32 +5,38 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
 	"tkz00/backend/pkg/utils"
 )
 
 type GameState struct {
-	playerIds   map[*websocket.Conn]string
-	players     map[string]*Character
-	projectiles map[string]*Projectile
-	spawners    map[string]*Spawner
-	npcs        map[string]*Npc
-	obstacles   [][]utils.Vector2
+	playerIds                map[*websocket.Conn]string
+	players                  map[string]*Character
+	projectiles              map[string]*Projectile
+	spawners                 map[string]*Spawner
+	npcs                     map[string]*Npc
+	obstacles                [][]utils.Vector2
+	runningMechanics         map[string]*Mechanic
+	runningMechanicStartTime map[string]time.Duration
 }
 
 func StartGameState() *GameState {
 	gs := &GameState{
-		playerIds:   make(map[*websocket.Conn]string),
-		players:     make(map[string]*Character),
-		projectiles: make(map[string]*Projectile),
-		spawners:    make(map[string]*Spawner),
-		npcs:        make(map[string]*Npc),
+		playerIds:                make(map[*websocket.Conn]string),
+		players:                  make(map[string]*Character),
+		projectiles:              make(map[string]*Projectile),
+		spawners:                 make(map[string]*Spawner),
+		npcs:                     make(map[string]*Npc),
+		runningMechanics:         make(map[string]*Mechanic),
+		runningMechanicStartTime: make(map[string]time.Duration),
 	}
 
 	RegisterMechanicHandler("heal", HealMechanic)
 	RegisterMechanicHandler("damage", DamageMechanic)
 	RegisterMechanicHandler("create_projectile", CreateProjectileMechanic)
+	RegisterMechanicHandler("delay", DelayMechanic)
 
 	return gs
 }
@@ -137,4 +143,29 @@ func (gs GameState) Spawners() map[string]*Spawner {
 
 func (gs GameState) GetObstacleColliders() [][]utils.Vector2 {
 	return gs.obstacles
+}
+
+func (gs *GameState) DelayMechanics(delayMechanics []Mechanic, delayMs int, casterId string) {
+	for _, mechanic := range delayMechanics {
+		mechanic.Params["caster_id"] = casterId
+		mechanicId := uuid.New().String()
+		gs.runningMechanics[mechanicId] = &mechanic
+		gs.runningMechanicStartTime[mechanicId] = time.Duration(delayMs) * time.Millisecond
+	}
+}
+
+func (gs *GameState) UpdateMechanics(deltaTime float64) {
+	var completedMechanicIds []string
+	for mechanicId, mechanic := range gs.runningMechanics {
+		gs.runningMechanicStartTime[mechanicId] -= time.Duration(deltaTime * float64(time.Second))
+		if gs.runningMechanicStartTime[mechanicId] <= 0 {
+			resolveMechanics(mechanic.Params["caster_id"].(string), gs, []Mechanic{*mechanic})
+			completedMechanicIds = append(completedMechanicIds, mechanicId)
+		}
+	}
+
+	for _, mechanicToDelete := range completedMechanicIds {
+		delete(gs.runningMechanicStartTime, mechanicToDelete)
+		delete(gs.runningMechanics, mechanicToDelete)
+	}
 }

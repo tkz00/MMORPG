@@ -24,6 +24,7 @@ func UpdateState(gs *entities.GameState, deltaTime float64) {
 	updateProjectiles(gs, deltaTime)
 	updateSpawners(gs)
 	updateNpcs(gs, deltaTime)
+	gs.UpdateMechanics(deltaTime)
 }
 
 func updatePlayers(gs *entities.GameState, deltaTime float64) {

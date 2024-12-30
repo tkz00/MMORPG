@@ -28,6 +28,9 @@ func HealMechanic(caster *Character, gs *GameState, params map[string]interface{
 		target.HealthVariation(amount)
 
 		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
+			for _, mechanic := range onHitMechanics.([]Mechanic) {
+				mechanic.Params["target_id"] = target.id
+			}
 			resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
 		}
 
@@ -46,12 +49,26 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 		target.HealthVariation(-amount)
 
 		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
+			for _, mechanic := range onHitMechanics.([]Mechanic) {
+				mechanic.Params["target_id"] = target.id
+			}
 			resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
 		}
 
 		return nil
 	}
 	return fmt.Errorf("missing or invalid 'amount' parameter")
+}
+
+func DelayMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
+	if delayMechanics, ok := params["execute_after_delay_mechanics"]; ok {
+		if delayMs, ok := params["delay_ms"]; ok {
+			gs.DelayMechanics(delayMechanics.([]Mechanic), delayMs.(int), caster.id)
+			return nil
+		}
+		return fmt.Errorf("missing 'delay_ms' parameter")
+	}
+	return fmt.Errorf("missing 'execute_after_delay_mechanics' parameter")
 }
 
 func CreateProjectileMechanic(
@@ -113,7 +130,7 @@ func resolveMechanics(
 				fmt.Println(err)
 			}
 		} else {
-			fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
+			fmt.Printf("no handler found for effect type: %s\n", mechanic.MechanicType)
 		}
 	}
 }
@@ -142,6 +159,18 @@ func resolveParameters(
 			params["target_id"] = casterId
 		default:
 			panic("no targeting_strategy for heal mechanic found")
+		}
+	case "delay":
+		for _, delayedMechanic := range params["execute_after_delay_mechanics"].([]Mechanic) {
+			delayedMechanic.Params["target_id"] = params["target_id"]
+			// switch delayedMechanic.Params["targeting_strategy"] {
+			// case "character_hit":
+			// 	delayedMechanic.Params["target_id"] = params["target_id"]
+			// case "caster":
+			// 	delayedMechanic.Params["target_id"] = casterId
+			// default:
+			// 	panic("no targeting_strategy for heal mechanic found")
+			// }
 		}
 	case "create_projectile":
 		switch params["targeting_strategy"] { // targeting_strategy is a very bad name for this, it should be the shape the projectile(s) spawn, arc or line or whatever

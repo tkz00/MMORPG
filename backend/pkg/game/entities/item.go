@@ -42,7 +42,7 @@ func (item *Item) ExecuteMechanics(caster *Character, targetId string, gs *GameS
 				fmt.Println(err)
 			}
 		} else {
-			fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
+			fmt.Printf("no handler found for effect type: %s\n", mechanic.MechanicType)
 		}
 	}
 }

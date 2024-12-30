@@ -86,8 +86,25 @@ func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
 			entities.Mechanic{
 				MechanicType: "heal",
 				Params: map[string]interface{}{
-					"amount":             40,
+					"amount":             0,
 					"targeting_strategy": "character_hit",
+					"on_hit_mechanics": []entities.Mechanic{
+						{
+							MechanicType: "delay",
+							Params: map[string]interface{}{
+								"delay_ms": 2000,
+								"execute_after_delay_mechanics": []entities.Mechanic{
+									{
+										MechanicType: "damage",
+										Params: map[string]interface{}{
+											"amount":             20,
+											"targeting_strategy": "character_hit",
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		),

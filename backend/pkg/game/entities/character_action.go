@@ -71,7 +71,7 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 					}
 				}
 			} else {
-				fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
+				fmt.Printf("no handler found for effect type: %s\n", mechanic.MechanicType)
 			}
 		}
 	case Coordinates:
@@ -102,7 +102,7 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 					}
 				}
 			} else {
-				fmt.Printf("no handler found for effect type: %s/n", mechanic.MechanicType)
+				fmt.Printf("no handler found for effect type: %s\n", mechanic.MechanicType)
 			}
 		}
 	}
