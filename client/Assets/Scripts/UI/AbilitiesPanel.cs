@@ -22,7 +22,7 @@ public class AbilitiesPanel : MonoBehaviour
 
     public void Init(AbilityDTO[] abilitiesDTOs)
     {
-        foreach(AbilityDTO abilityDTO in abilitiesDTOs)
+        foreach (AbilityDTO abilityDTO in abilitiesDTOs)
         {
             Ability ability = abilities.Find(ability => ability.id == abilityDTO.id);
             AbilityIcon abilityIcon = Instantiate(abilityIconPrefab, abilityIconsContainer).GetComponent<AbilityIcon>();
@@ -36,7 +36,7 @@ public class AbilitiesPanel : MonoBehaviour
     public bool CanCast(string abilityId)
     {
         AbilityIcon abilityIcon = abilityIcons[abilityId];
-        if(abilityIcons[abilityId].AbilityCooldown == 0)
+        if (abilityIcons[abilityId].AbilityCooldown == 0)
         {
             return true;
         }
@@ -87,9 +87,9 @@ public class AbilitiesPanel : MonoBehaviour
 
     public void UpdatePlayerPanel(CharacterDTO playerDTO)
     {
-        foreach(AbilityDTO abilityDTO in playerDTO.abilities)
+        foreach (AbilityDTO abilityDTO in playerDTO.abilities)
         {
-            if(abilityIcons[abilityDTO.id] != null)
+            if (abilityIcons[abilityDTO.id] != null)
             {
                 abilityIcons[abilityDTO.id].UpdateCooldown(abilityDTO.remainingCooldown);
             }
