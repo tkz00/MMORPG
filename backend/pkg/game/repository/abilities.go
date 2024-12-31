@@ -123,5 +123,29 @@ func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
 				},
 			},
 		),
+		"3": entities.NewAbility(
+			"3",
+			"ground slam",
+			2,
+			2000,
+			entities.Coordinates,
+			entities.Attacking,
+			entities.Mechanic{
+				MechanicType: "create_AoE",
+				Params: map[string]interface{}{
+					"radius":      1.0,
+					"duration_ms": 400,
+					"on_hit_mechanics": []entities.Mechanic{
+						{
+							MechanicType: "damage",
+							Params: map[string]interface{}{
+								"amount":             20,
+								"targeting_strategy": "character_hit",
+							},
+						},
+					},
+				},
+			},
+		),
 	}
 }

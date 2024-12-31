@@ -673,6 +673,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 64422d998c9dc4265937786b120f2204, type: 2}
   - {fileID: 11400000, guid: 70484fb3587b14d18a54217bca22d8a5, type: 2}
   - {fileID: 11400000, guid: 5e5687ed2fd664aa18c10ccd168197f8, type: 2}
+  - {fileID: 11400000, guid: d2ba0aaad3eae409d8e818efc17c8fb5, type: 2}
 --- !u!1 &638812565
 GameObject:
   m_ObjectHideFlags: 3
@@ -2103,6 +2104,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 64422d998c9dc4265937786b120f2204, type: 2}
   - {fileID: 11400000, guid: 70484fb3587b14d18a54217bca22d8a5, type: 2}
   - {fileID: 11400000, guid: 5e5687ed2fd664aa18c10ccd168197f8, type: 2}
+  - {fileID: 11400000, guid: d2ba0aaad3eae409d8e818efc17c8fb5, type: 2}
   abilitiesPanel: {fileID: 368664262}
   deathSplash: {fileID: 93601524}
   inventory: {fileID: 982960692}

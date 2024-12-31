@@ -13,6 +13,8 @@ public class MainPlayer : MonoBehaviour
     public InputAction mouseClickAction = new InputAction(binding: "<Mouse>/rightButton");
     public InputAction firstAbilityAction = new InputAction(binding: "<Keyboard>/q");
     public InputAction secondAbilityAction = new InputAction(binding: "<Keyboard>/w");
+    public InputAction thirdAbilityAction = new InputAction(binding: "<Keyboard>/e");
+    public InputAction fourthAbilityAction = new InputAction(binding: "<Keyboard>/r");
 
     private Ability[] abilities = new Ability[4];
 
@@ -41,6 +43,12 @@ public class MainPlayer : MonoBehaviour
 
         secondAbilityAction.Enable();
         secondAbilityAction.performed += context => CastAbility(context, abilities[1]);
+
+        thirdAbilityAction.Enable();
+        thirdAbilityAction.performed += context => CastAbility(context, abilities[2]);
+
+        fourthAbilityAction.Enable();
+        fourthAbilityAction.performed += context => CastAbility(context, abilities[3]);
     }
 
     private void OnDisable()
@@ -53,6 +61,12 @@ public class MainPlayer : MonoBehaviour
 
         secondAbilityAction.Disable();
         secondAbilityAction.performed -= context => CastAbility(context, abilities[1]);
+
+        thirdAbilityAction.Disable();
+        thirdAbilityAction.performed -= context => CastAbility(context, abilities[2]);
+
+        fourthAbilityAction.Disable();
+        fourthAbilityAction.performed -= context => CastAbility(context, abilities[3]);
     }
 
     public void InitAbilities(AbilityDTO[] abilitiesDTOs, List<Ability> availableAbilities)

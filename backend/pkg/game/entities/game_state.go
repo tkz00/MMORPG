@@ -12,31 +12,34 @@ import (
 )
 
 type GameState struct {
-	playerIds                map[*websocket.Conn]string
-	players                  map[string]*Character
-	projectiles              map[string]*Projectile
-	spawners                 map[string]*Spawner
-	npcs                     map[string]*Npc
-	obstacles                [][]utils.Vector2
-	runningMechanics         map[string]*Mechanic
-	runningMechanicStartTime map[string]time.Duration
+	playerIds             map[*websocket.Conn]string
+	players               map[string]*Character
+	projectiles           map[string]*Projectile
+	areaEffects           map[string]*AoE
+	spawners              map[string]*Spawner
+	npcs                  map[string]*Npc
+	obstacles             [][]utils.Vector2
+	runningMechanics      map[string]*Mechanic
+	mechanicRemainingTime map[string]time.Duration
 }
 
 func StartGameState() *GameState {
 	gs := &GameState{
-		playerIds:                make(map[*websocket.Conn]string),
-		players:                  make(map[string]*Character),
-		projectiles:              make(map[string]*Projectile),
-		spawners:                 make(map[string]*Spawner),
-		npcs:                     make(map[string]*Npc),
-		runningMechanics:         make(map[string]*Mechanic),
-		runningMechanicStartTime: make(map[string]time.Duration),
+		playerIds:             make(map[*websocket.Conn]string),
+		players:               make(map[string]*Character),
+		projectiles:           make(map[string]*Projectile),
+		areaEffects:           make(map[string]*AoE),
+		spawners:              make(map[string]*Spawner),
+		npcs:                  make(map[string]*Npc),
+		runningMechanics:      make(map[string]*Mechanic),
+		mechanicRemainingTime: make(map[string]time.Duration),
 	}
 
 	RegisterMechanicHandler("heal", HealMechanic)
 	RegisterMechanicHandler("damage", DamageMechanic)
 	RegisterMechanicHandler("create_projectile", CreateProjectileMechanic)
 	RegisterMechanicHandler("delay", DelayMechanic)
+	RegisterMechanicHandler("create_AoE", AoEMechanic)
 
 	return gs
 }
@@ -100,6 +103,10 @@ func (gs *GameState) Projectiles() map[string]*Projectile {
 	return gs.projectiles
 }
 
+func (gs *GameState) AreaEffects() map[string]*AoE {
+	return gs.areaEffects
+}
+
 func (gs GameState) GetProjectiles() []Projectile {
 	projectilesSlice := make([]Projectile, 0, len(gs.projectiles))
 	for _, projectile := range gs.projectiles {
@@ -150,22 +157,22 @@ func (gs *GameState) DelayMechanics(delayMechanics []Mechanic, delayMs int, cast
 		mechanic.Params["caster_id"] = casterId
 		mechanicId := uuid.New().String()
 		gs.runningMechanics[mechanicId] = &mechanic
-		gs.runningMechanicStartTime[mechanicId] = time.Duration(delayMs) * time.Millisecond
+		gs.mechanicRemainingTime[mechanicId] = time.Duration(delayMs) * time.Millisecond
 	}
 }
 
 func (gs *GameState) UpdateMechanics(deltaTime float64) {
 	var completedMechanicIds []string
 	for mechanicId, mechanic := range gs.runningMechanics {
-		gs.runningMechanicStartTime[mechanicId] -= time.Duration(deltaTime * float64(time.Second))
-		if gs.runningMechanicStartTime[mechanicId] <= 0 {
+		gs.mechanicRemainingTime[mechanicId] -= time.Duration(deltaTime * float64(time.Second))
+		if gs.mechanicRemainingTime[mechanicId] <= 0 {
 			resolveMechanics(mechanic.Params["caster_id"].(string), gs, []Mechanic{*mechanic})
 			completedMechanicIds = append(completedMechanicIds, mechanicId)
 		}
 	}
 
 	for _, mechanicToDelete := range completedMechanicIds {
-		delete(gs.runningMechanicStartTime, mechanicToDelete)
+		delete(gs.mechanicRemainingTime, mechanicToDelete)
 		delete(gs.runningMechanics, mechanicToDelete)
 	}
 }

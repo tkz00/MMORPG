@@ -31,7 +31,7 @@ func NewSpawner(
 		npcTemplate: npcTemplate,
 		lastSpawned: time.Now(),
 		activeNPCs:  []*Npc{},
-		maxNPCs:     3,
+		maxNPCs:     1,
 	}
 }
 

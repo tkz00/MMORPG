@@ -118,6 +118,24 @@ func CreateProjectileMechanic(
 	return fmt.Errorf("missing or invalid 'targetCoordinates' parameter")
 }
 
+func AoEMechanic(
+	caster *Character,
+	gs *GameState,
+	params map[string]interface{},
+) error {
+	aoe := InstantiateAoE(
+		params["target_coordinates"].(utils.Vector2),
+		params["radius"].(float64),
+		params["duration_ms"].(int),
+		caster.id,
+		params["on_hit_mechanics"].([]Mechanic),
+	)
+
+	gs.areaEffects[aoe.id] = aoe
+
+	return nil
+}
+
 func resolveMechanics(
 	casterId string,
 	gs *GameState,

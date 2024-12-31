@@ -22,6 +22,7 @@ func StartGameState() *entities.GameState {
 func UpdateState(gs *entities.GameState, deltaTime float64) {
 	updatePlayers(gs, deltaTime)
 	updateProjectiles(gs, deltaTime)
+	updateAreaEffects(gs, deltaTime)
 	updateSpawners(gs)
 	updateNpcs(gs, deltaTime)
 	gs.UpdateMechanics(deltaTime)
@@ -60,6 +61,20 @@ func updateProjectiles(gs *entities.GameState, deltaTime float64) {
 		if isAtMaxRange {
 			gs.RemoveProjectile(key)
 		}
+	}
+}
+
+func updateAreaEffects(gs *entities.GameState, deltaTime float64) {
+	var AoEsToDelete []string
+	for AoEID, AoE := range gs.AreaEffects() {
+		AoE.Tick(gs, deltaTime)
+
+		if AoE.RemainingDurationMs() <= 0 {
+			AoEsToDelete = append(AoEsToDelete, AoEID)
+		}
+	}
+	for _, id := range AoEsToDelete {
+		delete(gs.AreaEffects(), id)
 	}
 }
 
