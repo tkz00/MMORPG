@@ -11,6 +11,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] GameObject playerPrefab;
 
     [SerializeField] GameObject projectilePrefab;
+    [SerializeField] GameObject aoePrefab;
 
     [SerializeField] GameObject npcPrefab;
 
@@ -34,6 +35,7 @@ public class GameManager : MonoBehaviour
     Dictionary<string, Character> players = new Dictionary<string, Character>();
     Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
     Dictionary<string, Character> npcs = new Dictionary<string, Character>();
+    Dictionary<string, AoE> areaEffects = new Dictionary<string, AoE>();
 
     async void Awake()
     {
@@ -84,12 +86,39 @@ public class GameManager : MonoBehaviour
         UpdatePlayers(gameState.players);
         UpdateProjectiles(gameState.projectiles);
         UpdateNPCs(gameState.npcs);
+        UpdateAreaEffects(gameState);
 
         CharacterDTO mainPlayer = gameState.players.Find(player => player.id == mainPlayerID);
 
         abilitiesPanel.UpdatePlayerPanel(mainPlayer);
 
         inventory.UpdateInventory(mainPlayer.inventory);
+    }
+
+    private void UpdateAreaEffects(GameStateDTO gameState)
+    {
+        foreach (AreaEffectDTO areaEffectDTO in gameState.aoEs)
+        {
+            bool areaEffectExists = this.areaEffects.Any(aoe => aoe.Key == areaEffectDTO.id);
+            if (!areaEffectExists)
+            {
+                GameObject newAoEGO = Instantiate(
+                                    this.aoePrefab,
+                                    new Vector3(areaEffectDTO.position.x, this.aoePrefab.transform.position.y, areaEffectDTO.position.z),
+                                    Quaternion.identity
+                                );
+                areaEffects[areaEffectDTO.id] = newAoEGO.GetComponent<AoE>();
+                newAoEGO.GetComponentInChildren<MeshRenderer>().material.color = Color.red;
+                areaEffects[areaEffectDTO.id].transform.localScale = Vector3.one * (areaEffectDTO.radius * 2);
+            }
+        }
+
+        // Destroy old AoEs
+        foreach (string entitiesToDestroy in gameState.entitiesToDestroy)
+        {
+            Destroy(this.areaEffects[entitiesToDestroy].gameObject);
+            this.areaEffects.Remove(entitiesToDestroy);
+        }
     }
 
     #region Players

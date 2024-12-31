@@ -34,6 +34,22 @@ func InstantiateAoE(
 	}
 }
 
+func (AoE AoE) Id() string {
+	return AoE.id
+}
+
+func (AoE AoE) CasterId() string {
+	return AoE.caster
+}
+
+func (AoE AoE) Position() utils.Vector2 {
+	return AoE.position
+}
+
+func (AoE AoE) Radius() float64 {
+	return AoE.radius
+}
+
 func (AoE *AoE) Tick(gs *GameState, deltaTimeS float64) {
 	for _, player := range gs.players {
 		if player.id != AoE.caster && areColliding(player, AoE) {

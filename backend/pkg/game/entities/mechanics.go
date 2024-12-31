@@ -123,7 +123,7 @@ func AoEMechanic(
 	gs *GameState,
 	params map[string]interface{},
 ) error {
-	aoe := InstantiateAoE(
+	AoE := InstantiateAoE(
 		params["target_coordinates"].(utils.Vector2),
 		params["radius"].(float64),
 		params["duration_ms"].(int),
@@ -131,7 +131,7 @@ func AoEMechanic(
 		params["on_hit_mechanics"].([]Mechanic),
 	)
 
-	gs.areaEffects[aoe.id] = aoe
+	gs.AddAreaEffect(AoE)
 
 	return nil
 }
@@ -189,14 +189,6 @@ func resolveParameters(
 	case "delay":
 		for _, delayedMechanic := range params["execute_after_delay_mechanics"].([]Mechanic) {
 			delayedMechanic.Params["target_id"] = params["target_id"]
-			// switch delayedMechanic.Params["targeting_strategy"] {
-			// case "character_hit":
-			// 	delayedMechanic.Params["target_id"] = params["target_id"]
-			// case "caster":
-			// 	delayedMechanic.Params["target_id"] = casterId
-			// default:
-			// 	panic("no targeting_strategy for heal mechanic found")
-			// }
 		}
 	case "create_projectile":
 		switch params["targeting_strategy"] { // targeting_strategy is a very bad name for this, it should be the shape the projectile(s) spawn, arc or line or whatever

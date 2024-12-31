@@ -2098,6 +2098,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 8385747069691689648, guid: 3476ac8a795794930a1bbb00f3b3fbb4, type: 3}
   projectilePrefab: {fileID: 4053404763821288570, guid: 1dbc52c46d937d34fa297a0c1abc8794, type: 3}
+  aoePrefab: {fileID: 3378848114589933509, guid: 80a48adf4b8f84a969d7c70f01f58054, type: 3}
   npcPrefab: {fileID: 8385747069691689648, guid: 6c3a487a3997440c8a6778c3ee0b45ab, type: 3}
   cinemachineVirtualCamera: {fileID: 1458421495}
   availableAbilities:

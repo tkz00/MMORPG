@@ -107,6 +107,10 @@ func (gs *GameState) AreaEffects() map[string]*AoE {
 	return gs.areaEffects
 }
 
+func (gs *GameState) AddAreaEffect(AoE *AoE) {
+	gs.areaEffects[AoE.id] = AoE
+}
+
 func (gs GameState) GetProjectiles() []Projectile {
 	projectilesSlice := make([]Projectile, 0, len(gs.projectiles))
 	for _, projectile := range gs.projectiles {
