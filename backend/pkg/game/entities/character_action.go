@@ -38,7 +38,8 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 	switch action.ability.targeting {
 	case Target:
 		targetId := action.castParameters[Target].(string)
-		if MoveIfNotInRange(caster, action, gs) {
+		target, _ := gs.GetCharacterById(targetId)
+		if MoveIfNotInRange(caster, target.position, action.ability.rangeValue, gs) {
 			return nil
 		}
 		for _, mechanic := range action.ability.mechanics {
@@ -77,6 +78,11 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 	case Coordinates:
 		targetCoordinates := action.castParameters[Coordinates].(utils.Vector2)
 		for _, mechanic := range action.ability.mechanics {
+			if mechanic.MechanicType == "create_AoE" {
+				if MoveIfNotInRange(caster, targetCoordinates, action.ability.rangeValue, gs) {
+					return nil
+				}
+			}
 			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
 				mechanic.Params["target_coordinates"] = targetCoordinates
 				mechanic.Params["range"] = action.ability.rangeValue
@@ -113,15 +119,19 @@ func (action *AbilityCastAction) IsComplete() bool {
 	return action.isComplete
 }
 
-func MoveIfNotInRange(caster *Character, action *AbilityCastAction, gs *GameState) bool {
-	target, _ := gs.GetCharacterById(action.castParameters[Target].(string))
+func MoveIfNotInRange(
+	caster *Character,
+	targetPosition utils.Vector2,
+	rangeValue float64,
+	gs *GameState,
+) bool {
 	const epsilon = 1e-9
-	if (caster.position.Distance(target.position) - action.ability.rangeValue) > epsilon {
+	if (caster.position.Distance(targetPosition) - rangeValue) > epsilon {
 		moveAction := &MoveAction{
 			TargetPosition: utils.ClosestPositionInRange(
 				caster.position,
-				target.position,
-				action.ability.rangeValue,
+				targetPosition,
+				rangeValue,
 			),
 		}
 		caster.PrependAction(moveAction)
