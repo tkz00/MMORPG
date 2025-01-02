@@ -2,7 +2,6 @@ package repository
 
 import (
 	"tkz00/backend/pkg/game/entities"
-	"tkz00/backend/pkg/utils"
 )
 
 func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Ability {
@@ -28,6 +27,54 @@ func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Abil
 
 func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
 	return map[string]*entities.Ability{
+		// "0": entities.NewAbility(
+		// 	"0",
+		// 	"projectile",
+		// 	12,
+		// 	2000,
+		// 	entities.Coordinates,
+		// 	entities.Attacking,
+		// 	entities.Mechanic{
+		// 		MechanicType: "create_projectile",
+		// 		Params: map[string]interface{}{
+		// 			"on_hit_mechanics": []entities.Mechanic{
+		// 				{
+		// 					MechanicType: "damage",
+		// 					Params: map[string]interface{}{
+		// 						"amount":             40,
+		// 						"targeting_strategy": "character_hit",
+		// 					},
+		// 				},
+		// 				{
+		// 					MechanicType: "heal",
+		// 					Params: map[string]interface{}{
+		// 						"amount":             20,
+		// 						"targeting_strategy": "caster",
+		// 					},
+		// 				},
+		// 				{
+		// 					MechanicType: "create_projectile",
+		// 					Params: map[string]interface{}{
+		// 						"targeting_strategy": "arc",
+		// 						"number":             5,
+		// 						"radius":             utils.DegreesToRadians(360),
+		// 						"range":              5.0,
+		// 						"origin_position":    "target",
+		// 						"on_hit_mechanics": []entities.Mechanic{
+		// 							{
+		// 								MechanicType: "damage",
+		// 								Params: map[string]interface{}{
+		// 									"amount":             20,
+		// 									"targeting_strategy": "character_hit",
+		// 								},
+		// 							},
+		// 						},
+		// 					},
+		// 				},
+		// 			},
+		// 		},
+		// 	},
+		// ),
 		"0": entities.NewAbility(
 			"0",
 			"projectile",
@@ -40,27 +87,10 @@ func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
 				Params: map[string]interface{}{
 					"on_hit_mechanics": []entities.Mechanic{
 						{
-							MechanicType: "damage",
+							MechanicType: "create_AoE",
 							Params: map[string]interface{}{
-								"amount":             40,
-								"targeting_strategy": "character_hit",
-							},
-						},
-						{
-							MechanicType: "heal",
-							Params: map[string]interface{}{
-								"amount":             20,
-								"targeting_strategy": "caster",
-							},
-						},
-						{
-							MechanicType: "create_projectile",
-							Params: map[string]interface{}{
-								"targeting_strategy": "arc",
-								"number":             5,
-								"radius":             utils.DegreesToRadians(360),
-								"range":              5.0,
-								"origin_position":    "target",
+								"radius":      3.0,
+								"duration_ms": 400,
 								"on_hit_mechanics": []entities.Mechanic{
 									{
 										MechanicType: "damage",

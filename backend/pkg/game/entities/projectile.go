@@ -97,7 +97,13 @@ func (p Projectile) GetState() string {
 func (projectile Projectile) Hit(target *Character, gs *GameState) {
 	for _, mechanic := range projectile.onHitMechanics {
 		mechanic.Params["target_id"] = target.id
-		mechanic.Params["projectile_last_position"] = projectile.position
+
+		switch mechanic.MechanicType {
+		case "create_projectile":
+			mechanic.Params["projectile_last_position"] = projectile.position
+		case "create_AoE":
+			mechanic.Params["target_coordinates"] = projectile.position
+		}
 	}
 	resolveMechanics(projectile.caster, gs, projectile.onHitMechanics)
 }
