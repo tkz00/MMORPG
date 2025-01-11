@@ -25,7 +25,7 @@ func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Abil
 	return skeletonEnemiesAbilities
 }
 
-func GetPlayerAbilities(gs *entities.GameState) map[string]*entities.Ability {
+func GetPlayerAbilities() map[string]*entities.Ability {
 	return map[string]*entities.Ability{
 		// "0": entities.NewAbility(
 		// 	"0",
