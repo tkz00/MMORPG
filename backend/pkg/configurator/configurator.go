@@ -1,25 +1,29 @@
 package configurator
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/game/repository"
 
 	"github.com/gin-gonic/gin"
 )
 
+const ABILITIES_FILE_NAME = "abilities.json"
+
 func SetupRouter() *gin.Engine {
 	r := gin.Default()
-	// Register your routes here
+
 	r.GET("/abilities", func(c *gin.Context) {
-		abilities := repository.GetPlayerAbilities()
-		configuratorAbilities := make(map[string]ConfiguratorAbility, len(abilities))
-		for i, ability := range abilities {
-			configuratorAbilities[i] = ConvertToConfiguratorAbility(*ability)
+		abilities, err := loadAbilitiesFromFile(ABILITIES_FILE_NAME)
+		if err != nil {
+			fmt.Printf("Error loading abilities: %v\n", err)
+			return
 		}
 
 		c.JSON(200, gin.H{
-			"abilities": configuratorAbilities,
+			"abilities": abilities,
 		})
 	})
 
@@ -32,9 +36,52 @@ func SetupRouter() *gin.Engine {
 }
 
 func Run() {
+	abilities := repository.GetPlayerAbilities()
+	configuratorAbilities := make(map[string]ConfiguratorAbility, len(abilities))
+	for i, ability := range abilities {
+		configuratorAbilities[i] = ConvertToConfiguratorAbility(*ability)
+	}
+
+	saveAbilitiesToFile(configuratorAbilities, ABILITIES_FILE_NAME)
+
 	r := SetupRouter()
 	fmt.Println("Starting server on port 8080...")
-	r.Run() // Default port
+	r.Run()
+}
+
+func saveAbilitiesToFile(abilities map[string]ConfiguratorAbility, filename string) error {
+	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	if err != nil {
+		return fmt.Errorf("error opening file: %v", err)
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	err = encoder.Encode(abilities)
+	if err != nil {
+		return fmt.Errorf("error encoding abilities to JSON: %v", err)
+	}
+
+	return nil
+}
+
+func loadAbilitiesFromFile(filename string) (map[string]ConfiguratorAbility, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %v", err)
+	}
+	defer file.Close()
+
+	abilities := make(map[string]ConfiguratorAbility)
+
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&abilities)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding abilities from JSON: %v", err)
+	}
+
+	return abilities, nil
 }
 
 // ConfiguratorAbility struct for API response
