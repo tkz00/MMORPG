@@ -2,9 +2,11 @@ package configurator
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
 	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/game/repository"
 
@@ -18,6 +20,7 @@ func SetupRouter() *gin.Engine {
 
 	r.GET("/abilities", GetAbilities)
 	r.GET("/abilities/:id", GetAbility)
+	r.POST("/ability", CreateAbility)
 	r.PATCH("/ability/:id", UpdateAbility)
 	return r
 }
@@ -64,6 +67,66 @@ func GetAbility(c *gin.Context) {
 	c.JSON(http.StatusNotFound, gin.H{"message": "ability not found"})
 }
 
+func CreateAbility(c *gin.Context) {
+	abilities, err := loadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	if err != nil {
+		fmt.Printf("Error loading abilities: %v\n", err)
+		return
+	}
+
+	newAbility := ConfiguratorAbility{}
+	if err := c.BindJSON(&newAbility); err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return
+	}
+
+	if newAbility.Name == "" {
+		c.AbortWithError(http.StatusBadRequest, errors.New("`name` required"))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "`name` required",
+		})
+		return
+	}
+
+	if newAbility.Cooldown == nil {
+		c.AbortWithError(http.StatusBadRequest, errors.New("`cooldown` required"))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "`cooldown` required",
+		})
+		return
+	}
+
+	if newAbility.RangeValue == nil {
+		c.AbortWithError(http.StatusBadRequest, errors.New("`range` required"))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "`range` required",
+		})
+		return
+	}
+
+	if newAbility.Targeting == nil {
+		c.AbortWithError(http.StatusBadRequest, errors.New("`targeting` required"))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "`targeting` required",
+		})
+		return
+	}
+
+	lastId := 0
+	for idStr := range abilities {
+		id, _ := strconv.Atoi(idStr)
+		if id > lastId {
+			lastId = id
+		}
+	}
+
+	lastIdStr := strconv.Itoa(lastId + 1)
+	newAbility.ID = lastIdStr
+	abilities[lastIdStr] = newAbility
+	saveAbilitiesToFile(abilities, ABILITIES_FILE_NAME)
+	c.JSON(http.StatusAccepted, newAbility)
+}
+
 func UpdateAbility(c *gin.Context) {
 	id := c.Param("id")
 	abilities, err := loadAbilitiesFromFile(ABILITIES_FILE_NAME)
@@ -84,11 +147,11 @@ func UpdateAbility(c *gin.Context) {
 			ability.Name = updatedAbility.Name
 		}
 
-		if updatedAbility.Cooldown != 0 {
+		if updatedAbility.Cooldown != nil {
 			ability.Cooldown = updatedAbility.Cooldown
 		}
 
-		if updatedAbility.RangeValue != 0 {
+		if updatedAbility.RangeValue != nil {
 			ability.RangeValue = updatedAbility.RangeValue
 		}
 
@@ -98,7 +161,7 @@ func UpdateAbility(c *gin.Context) {
 
 		abilities[id] = ability
 		saveAbilitiesToFile(abilities, ABILITIES_FILE_NAME)
-		c.JSON(http.StatusAccepted, &ability)
+		c.JSON(http.StatusAccepted, ability)
 		return
 	}
 
@@ -144,8 +207,8 @@ func loadAbilitiesFromFile(filename string) (map[string]ConfiguratorAbility, err
 type ConfiguratorAbility struct {
 	ID         string              `json:"id"`
 	Name       string              `json:"name"`
-	RangeValue float64             `json:"rangeValue"`
-	Cooldown   int64               `json:"cooldown"`
+	RangeValue *float64            `json:"range"`
+	Cooldown   *int64              `json:"cooldown"`
 	Targeting  *entities.Targeting `json:"targeting"`
 	// CharacterState entities.Action     `json:"characterState"`
 	// Mechanics []entities.Mechanic `json:"mechanics"`
@@ -156,11 +219,13 @@ func ConvertToConfiguratorAbility(ability entities.Ability) ConfiguratorAbility 
 	targeting := entities.Targeting(
 		ability.Targeting(),
 	) // I don't know why I have to do this, but it doesn't work otherwise
+	rangeValue := ability.Range()
+	cooldown := ability.Cooldown()
 	return ConfiguratorAbility{
 		ID:         ability.Id(),
 		Name:       ability.Name(),
-		RangeValue: ability.Range(),
-		Cooldown:   ability.Cooldown(),
+		RangeValue: &rangeValue,
+		Cooldown:   &cooldown,
 		Targeting:  &targeting,
 		// CharacterState: ability.characterState,
 		// Mechanics: ability.mechanics,
