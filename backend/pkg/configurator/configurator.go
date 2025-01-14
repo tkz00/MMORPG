@@ -3,6 +3,7 @@ package configurator
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"tkz00/backend/pkg/game/entities"
 	"tkz00/backend/pkg/game/repository"
@@ -22,15 +23,51 @@ func SetupRouter() *gin.Engine {
 			return
 		}
 
-		c.JSON(200, gin.H{
+		c.JSON(http.StatusOK, gin.H{
 			"abilities": abilities,
 		})
 	})
 
 	r.PATCH("/ability/:id", func(c *gin.Context) {
 		id := c.Param("id")
-		fmt.Println(id)
-		c.JSON(200, id)
+		abilities, err := loadAbilitiesFromFile(ABILITIES_FILE_NAME)
+		if err != nil {
+			fmt.Printf("Error loading abilities: %v\n", err)
+			return
+		}
+
+		if ability, ok := abilities[id]; ok {
+			fmt.Println(ability)
+			updatedAbility := ConfiguratorAbility{}
+			if err := c.BindJSON(&updatedAbility); err != nil {
+				c.AbortWithError(http.StatusBadRequest, err)
+				return
+			}
+
+			if updatedAbility.Name != "" {
+				ability.Name = updatedAbility.Name
+			}
+
+			if updatedAbility.Cooldown != 0 {
+				ability.Cooldown = updatedAbility.Cooldown
+			}
+
+			if updatedAbility.RangeValue != 0 {
+				ability.RangeValue = updatedAbility.RangeValue
+			}
+
+			if updatedAbility.Targeting != nil {
+				ability.Targeting = updatedAbility.Targeting
+			}
+
+			abilities[id] = ability
+			saveAbilitiesToFile(abilities, ABILITIES_FILE_NAME)
+			c.JSON(http.StatusAccepted, &ability)
+			return
+		}
+
+		// If ability not found
+		c.JSON(http.StatusNotFound, gin.H{"message": "ability not found"})
 	})
 	return r
 }
@@ -86,23 +123,26 @@ func loadAbilitiesFromFile(filename string) (map[string]ConfiguratorAbility, err
 
 // ConfiguratorAbility struct for API response
 type ConfiguratorAbility struct {
-	ID         string             `json:"id"`
-	Name       string             `json:"name"`
-	RangeValue float64            `json:"rangeValue"`
-	Cooldown   int64              `json:"cooldown"`
-	Targeting  entities.Targeting `json:"targeting"`
+	ID         string              `json:"id"`
+	Name       string              `json:"name"`
+	RangeValue float64             `json:"rangeValue"`
+	Cooldown   int64               `json:"cooldown"`
+	Targeting  *entities.Targeting `json:"targeting"`
 	// CharacterState entities.Action     `json:"characterState"`
 	// Mechanics []entities.Mechanic `json:"mechanics"`
 }
 
 // Convert function
 func ConvertToConfiguratorAbility(ability entities.Ability) ConfiguratorAbility {
+	targeting := entities.Targeting(
+		ability.Targeting(),
+	) // I don't know why I have to do this, but it doesn't work otherwise
 	return ConfiguratorAbility{
 		ID:         ability.Id(),
 		Name:       ability.Name(),
 		RangeValue: ability.Range(),
 		Cooldown:   ability.Cooldown(),
-		Targeting:  ability.Targeting(),
+		Targeting:  &targeting,
 		// CharacterState: ability.characterState,
 		// Mechanics: ability.mechanics,
 	}
