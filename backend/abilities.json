@@ -4,27 +4,31 @@
     "name": "projectile",
     "range": 12,
     "cooldown": 2000,
-    "targeting": 2
+    "targeting": 2,
+    "character_state": 2
   },
   "1": {
     "id": "1",
     "name": "heal",
     "range": 7,
     "cooldown": 3000,
-    "targeting": 0
+    "targeting": 0,
+    "character_state": 3
   },
   "2": {
     "id": "2",
     "name": "life drain",
     "range": 7,
     "cooldown": 3000,
-    "targeting": 0
+    "targeting": 0,
+    "character_state": 3
   },
   "3": {
     "id": "3",
     "name": "ground slam",
     "range": 2,
     "cooldown": 2000,
-    "targeting": 2
+    "targeting": 2,
+    "character_state": 2
   }
 }

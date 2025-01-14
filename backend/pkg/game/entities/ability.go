@@ -56,3 +56,7 @@ func (ability Ability) Cooldown() int64 {
 func (ability Ability) Targeting() Targeting {
 	return ability.targeting
 }
+
+func (ability Ability) CharacterState() Action {
+	return ability.characterState
+}

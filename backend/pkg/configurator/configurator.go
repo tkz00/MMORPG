@@ -112,6 +112,14 @@ func CreateAbility(c *gin.Context) {
 		return
 	}
 
+	if newAbility.CharacterState == nil {
+		c.AbortWithError(http.StatusBadRequest, errors.New("`character_state` required"))
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "`character_state` required",
+		})
+		return
+	}
+
 	lastId := 0
 	for idStr := range abilities {
 		id, _ := strconv.Atoi(idStr)
@@ -157,6 +165,10 @@ func UpdateAbility(c *gin.Context) {
 
 		if updatedAbility.Targeting != nil {
 			ability.Targeting = updatedAbility.Targeting
+		}
+
+		if updatedAbility.CharacterState != nil {
+			ability.CharacterState = updatedAbility.CharacterState
 		}
 
 		abilities[id] = ability
@@ -205,12 +217,12 @@ func loadAbilitiesFromFile(filename string) (map[string]ConfiguratorAbility, err
 
 // ConfiguratorAbility struct for API response
 type ConfiguratorAbility struct {
-	ID         string              `json:"id"`
-	Name       string              `json:"name"`
-	RangeValue *float64            `json:"range"`
-	Cooldown   *int64              `json:"cooldown"`
-	Targeting  *entities.Targeting `json:"targeting"`
-	// CharacterState entities.Action     `json:"characterState"`
+	ID             string              `json:"id"`
+	Name           string              `json:"name"`
+	RangeValue     *float64            `json:"range"`
+	Cooldown       *int64              `json:"cooldown"`
+	Targeting      *entities.Targeting `json:"targeting"`
+	CharacterState *entities.Action    `json:"character_state"`
 	// Mechanics []entities.Mechanic `json:"mechanics"`
 }
 
@@ -221,13 +233,14 @@ func ConvertToConfiguratorAbility(ability entities.Ability) ConfiguratorAbility 
 	) // I don't know why I have to do this, but it doesn't work otherwise
 	rangeValue := ability.Range()
 	cooldown := ability.Cooldown()
+	characterState := ability.CharacterState()
 	return ConfiguratorAbility{
-		ID:         ability.Id(),
-		Name:       ability.Name(),
-		RangeValue: &rangeValue,
-		Cooldown:   &cooldown,
-		Targeting:  &targeting,
-		// CharacterState: ability.characterState,
+		ID:             ability.Id(),
+		Name:           ability.Name(),
+		RangeValue:     &rangeValue,
+		Cooldown:       &cooldown,
+		Targeting:      &targeting,
+		CharacterState: &characterState,
 		// Mechanics: ability.mechanics,
 	}
 }
