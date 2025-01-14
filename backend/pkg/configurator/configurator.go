@@ -17,7 +17,7 @@ func SetupRouter() *gin.Engine {
 	r := gin.Default()
 
 	r.GET("/abilities", GetAbilities)
-
+	r.GET("/abilities/:id", GetAbility)
 	r.PATCH("/ability/:id", UpdateAbility)
 	return r
 }
@@ -46,6 +46,22 @@ func GetAbilities(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"abilities": abilities,
 	})
+}
+
+func GetAbility(c *gin.Context) {
+	id := c.Param("id")
+	abilities, err := loadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	if err != nil {
+		fmt.Printf("Error loading abilities: %v\n", err)
+		return
+	}
+
+	if ability, ok := abilities[id]; ok {
+		c.JSON(http.StatusOK, ability)
+		return
+	}
+
+	c.JSON(http.StatusNotFound, gin.H{"message": "ability not found"})
 }
 
 func UpdateAbility(c *gin.Context) {
@@ -86,7 +102,6 @@ func UpdateAbility(c *gin.Context) {
 		return
 	}
 
-	// If ability not found
 	c.JSON(http.StatusNotFound, gin.H{"message": "ability not found"})
 }
 
