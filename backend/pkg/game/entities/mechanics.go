@@ -6,8 +6,8 @@ import (
 )
 
 type Mechanic struct {
-	MechanicType string                 // Type of effect (e.g., "heal", "unlock")
-	Params       map[string]interface{} // Dynamic parameters for the effect (e.g., healing amount, target)
+	MechanicType string                 `json:"mechanic_type"` // Type of effect (e.g., "heal", "unlock")
+	Params       map[string]interface{} `json:"params"`        // Dynamic parameters for the effect (e.g., healing amount, target)
 }
 
 type MechanicHandler func(caster *Character, gs *GameState, params map[string]interface{}) error

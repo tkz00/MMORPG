@@ -5,7 +5,32 @@
     "range": 12,
     "cooldown": 2000,
     "targeting": 2,
-    "character_state": 2
+    "character_state": 2,
+    "mechanics": [
+      {
+        "mechanic_type": "create_projectile",
+        "params": {
+          "on_hit_mechanics": [
+            {
+              "mechanic_type": "create_AoE",
+              "params": {
+                "duration_ms": 400,
+                "on_hit_mechanics": [
+                  {
+                    "mechanic_type": "damage",
+                    "params": {
+                      "amount": 20,
+                      "targeting_strategy": "character_hit"
+                    }
+                  }
+                ],
+                "radius": 3
+              }
+            }
+          ]
+        }
+      }
+    ]
   },
   "1": {
     "id": "1",
@@ -13,7 +38,16 @@
     "range": 7,
     "cooldown": 3000,
     "targeting": 0,
-    "character_state": 3
+    "character_state": 3,
+    "mechanics": [
+      {
+        "mechanic_type": "heal",
+        "params": {
+          "amount": 20,
+          "targeting_strategy": "character_hit"
+        }
+      }
+    ]
   },
   "2": {
     "id": "2",
@@ -21,7 +55,33 @@
     "range": 7,
     "cooldown": 3000,
     "targeting": 0,
-    "character_state": 3
+    "character_state": 3,
+    "mechanics": [
+      {
+        "mechanic_type": "damage",
+        "params": {
+          "amount": 20,
+          "on_hit_mechanics": [
+            {
+              "mechanic_type": "delay",
+              "params": {
+                "delay_ms": 1000,
+                "execute_after_delay_mechanics": [
+                  {
+                    "mechanic_type": "heal",
+                    "params": {
+                      "amount": 10,
+                      "targeting_strategy": "caster"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "targeting_strategy": "character_hit"
+        }
+      }
+    ]
   },
   "3": {
     "id": "3",
@@ -29,6 +89,24 @@
     "range": 2,
     "cooldown": 2000,
     "targeting": 2,
-    "character_state": 2
+    "character_state": 2,
+    "mechanics": [
+      {
+        "mechanic_type": "create_AoE",
+        "params": {
+          "duration_ms": 400,
+          "on_hit_mechanics": [
+            {
+              "mechanic_type": "damage",
+              "params": {
+                "amount": 20,
+                "targeting_strategy": "character_hit"
+              }
+            }
+          ],
+          "radius": 1
+        }
+      }
+    ]
   }
 }

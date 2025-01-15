@@ -60,3 +60,7 @@ func (ability Ability) Targeting() Targeting {
 func (ability Ability) CharacterState() Action {
 	return ability.characterState
 }
+
+func (ability Ability) Mechanics() []Mechanic {
+	return ability.mechanics
+}

@@ -223,7 +223,7 @@ type ConfiguratorAbility struct {
 	Cooldown       *int64              `json:"cooldown"`
 	Targeting      *entities.Targeting `json:"targeting"`
 	CharacterState *entities.Action    `json:"character_state"`
-	// Mechanics []entities.Mechanic `json:"mechanics"`
+	Mechanics      []entities.Mechanic `json:"mechanics"`
 }
 
 // Convert function
@@ -241,6 +241,6 @@ func ConvertToConfiguratorAbility(ability entities.Ability) ConfiguratorAbility 
 		Cooldown:       &cooldown,
 		Targeting:      &targeting,
 		CharacterState: &characterState,
-		// Mechanics: ability.mechanics,
+		Mechanics:      ability.Mechanics(),
 	}
 }
