@@ -7,9 +7,9 @@ using UnityEngine;
 public class AbilitiesEditorWindow : EditorWindow
 {
     private string responseText = string.Empty;
-    private List<AbilityDTO> abilitiesList = new List<AbilityDTO>();
+    private List<Configurator.AbilityDTO> abilitiesList = new List<Configurator.AbilityDTO>();
     private Vector2 scrollPosition;
-    private AbilityDTO selectedAbility = null; // Tracks the selected ability
+    private Configurator.AbilityDTO selectedAbility = null; // Tracks the selected ability
 
     [MenuItem("Window/Abilities Editor Window")]
     public static void ShowWindow()
@@ -101,7 +101,7 @@ public class AbilitiesEditorWindow : EditorWindow
             if (mechanic.mechanicType == "create_projectile")
             {
                 GUILayout.Label("Projectile On Hit Mechanics:", EditorStyles.boldLabel);
-                var projectileParams = mechanic.@params as AbilityDTO.CreateProjectileParams;
+                var projectileParams = mechanic.@params as Configurator.AbilityDTO.CreateProjectileParams;
                 foreach (var projectileOnHitMechanic in projectileParams.onHitMechanics)
                 {
                     GUILayout.Label($"{projectileOnHitMechanic.mechanicType}");
@@ -109,10 +109,16 @@ public class AbilitiesEditorWindow : EditorWindow
                     if (projectileOnHitMechanic.mechanicType == "create_AoE")
                     {
                         GUILayout.Label("AoE On Hit Mechanics:", EditorStyles.boldLabel);
-                        var aoEParams = projectileOnHitMechanic.@params as AbilityDTO.CreateAoEParams;
+                        var aoEParams = projectileOnHitMechanic.@params as Configurator.AbilityDTO.CreateAoEParams;
                         foreach (var aoEOnHitMechanic in aoEParams.onHitMechanics)
                         {
                             GUILayout.Label($"{aoEOnHitMechanic.mechanicType}");
+
+                            if (aoEOnHitMechanic.mechanicType == "damage")
+                            {
+                                var damageParams = aoEOnHitMechanic.@params as Configurator.AbilityDTO.DamageParams;
+                                GUILayout.Label($"Damage: {damageParams.amount}");
+                            }
                         }
                         // GUILayout.Label($"{aoEParams.radius}");
                         // GUILayout.Label($"{aoEParams.durationMs}");
@@ -139,11 +145,11 @@ public class AbilitiesEditorWindow : EditorWindow
                 try
                 {
                     // Deserialize JSON and extract abilities
-                    var abilitiesDictionary = JsonConvert.DeserializeObject<Dictionary<string, AbilityDTO>>(
+                    var abilitiesDictionary = JsonConvert.DeserializeObject<Dictionary<string, Configurator.AbilityDTO>>(
                         JsonConvert.DeserializeObject<dynamic>(jsonResponse).abilities.ToString()
                     );
 
-                    abilitiesList = new List<AbilityDTO>(abilitiesDictionary.Values);
+                    abilitiesList = new List<Configurator.AbilityDTO>(abilitiesDictionary.Values);
                     responseText = string.Empty;
                 }
                 catch (Exception ex)
