@@ -92,14 +92,37 @@ public class AbilitiesEditorWindow : EditorWindow
         GUILayout.Label("Mechanics:", EditorStyles.boldLabel);
 
         // Display mechanics in a scrollable area
-        // scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(200));
-        // foreach (var mechanic in selectedAbility.mechanics)
-        // {
-        //     GUILayout.Label($"Mechanic Type: {mechanic.mechanic_type}");
-        //     GUILayout.Label($"Params: {JsonConvert.SerializeObject(mechanic.@params, Formatting.Indented)}");
-        //     GUILayout.Space(10);
-        // }
-        // GUILayout.EndScrollView();
+        scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(200));
+        foreach (var mechanic in selectedAbility.mechanics)
+        {
+            GUILayout.Label($"Mechanic Type: {mechanic.mechanicType}");
+            // GUILayout.Label($"Params: {JsonConvert.SerializeObject(mechanic.@params, Formatting.Indented)}");
+
+            if (mechanic.mechanicType == "create_projectile")
+            {
+                GUILayout.Label("Projectile On Hit Mechanics:", EditorStyles.boldLabel);
+                var projectileParams = mechanic.@params as AbilityDTO.CreateProjectileParams;
+                foreach (var projectileOnHitMechanic in projectileParams.onHitMechanics)
+                {
+                    GUILayout.Label($"{projectileOnHitMechanic.mechanicType}");
+
+                    if (projectileOnHitMechanic.mechanicType == "create_AoE")
+                    {
+                        GUILayout.Label("AoE On Hit Mechanics:", EditorStyles.boldLabel);
+                        var aoEParams = projectileOnHitMechanic.@params as AbilityDTO.CreateAoEParams;
+                        foreach (var aoEOnHitMechanic in aoEParams.onHitMechanics)
+                        {
+                            GUILayout.Label($"{aoEOnHitMechanic.mechanicType}");
+                        }
+                        // GUILayout.Label($"{aoEParams.radius}");
+                        // GUILayout.Label($"{aoEParams.durationMs}");
+                    }
+                }
+            }
+
+            GUILayout.Space(10);
+        }
+        GUILayout.EndScrollView();
     }
 
     private void FetchAbilities()
