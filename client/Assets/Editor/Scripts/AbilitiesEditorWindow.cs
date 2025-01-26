@@ -1,15 +1,26 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Networking;
 
 public class AbilitiesEditorWindow : EditorWindow
 {
+    const string BACKEND_URL = "http://0.0.0.0:8080";
+
     private string responseText = string.Empty;
     private List<Configurator.AbilityDTO> abilitiesList = new List<Configurator.AbilityDTO>();
     private Vector2 scrollPosition;
     private Configurator.AbilityDTO selectedAbility = null; // Tracks the selected ability
+
+    #region Editable fields
+    string abilityName; // Very wrong but this acts as a flag for if the editable fields have been initialized
+    int abilityCooldown;
+    float abilityRange;
+    #endregion
 
     [MenuItem("Window/Abilities Editor Window")]
     public static void ShowWindow()
@@ -69,12 +80,19 @@ public class AbilitiesEditorWindow : EditorWindow
         }
     }
 
-    private void DrawDetailView()
+    private async Task DrawDetailView()
     {
+        if (abilityName == null) // Initialize editable fields only once
+        {
+            InitializeEditableFields();
+        }
+
         // Back button to return to the list view
         if (GUILayout.Button("Back to List", GUILayout.Height(30)))
         {
             selectedAbility = null; // Clear selected ability to return to the list view
+            abilityName = null; // Reset editable fields
+            FetchAbilities();
             return;
         }
 
@@ -82,9 +100,9 @@ public class AbilitiesEditorWindow : EditorWindow
         GUILayout.Label($"Details for: {selectedAbility.name}", EditorStyles.boldLabel);
 
         GUILayout.Label($"ID: {selectedAbility.id}");
-        GUILayout.Label($"Name: {selectedAbility.name}");
-        GUILayout.Label($"Range: {selectedAbility.range}");
-        GUILayout.Label($"Cooldown: {selectedAbility.cooldown}");
+        abilityName = EditorGUILayout.TextField("Name", abilityName);
+        abilityRange = EditorGUILayout.FloatField("Range", abilityRange);
+        abilityCooldown = EditorGUILayout.IntField("Cooldown", abilityCooldown);
         GUILayout.Label($"Targeting: {selectedAbility.targeting}");
         GUILayout.Label($"Character State: {selectedAbility.characterAction}");
 
@@ -96,7 +114,6 @@ public class AbilitiesEditorWindow : EditorWindow
         foreach (var mechanic in selectedAbility.mechanics)
         {
             GUILayout.Label($"Mechanic Type: {mechanic.mechanicType}");
-            // GUILayout.Label($"Params: {JsonConvert.SerializeObject(mechanic.@params, Formatting.Indented)}");
 
             if (mechanic.mechanicType == "create_projectile")
             {
@@ -129,16 +146,26 @@ public class AbilitiesEditorWindow : EditorWindow
             GUILayout.Space(10);
         }
         GUILayout.EndScrollView();
+
+        if (GUILayout.Button("Save Changes"))
+        {
+            await PatchAbility();
+        }
+    }
+
+    private void InitializeEditableFields()
+    {
+        abilityName = selectedAbility.name;
+        abilityCooldown = selectedAbility.cooldown;
+        abilityRange = selectedAbility.range;
     }
 
     private void FetchAbilities()
     {
-        string url = "http://0.0.0.0:8080/abilities";
-
-        var request = UnityEngine.Networking.UnityWebRequest.Get(url);
+        var request = UnityWebRequest.Get(BACKEND_URL + "/abilities");
         request.SendWebRequest().completed += (asyncOperation) =>
         {
-            if (request.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+            if (request.result == UnityWebRequest.Result.Success)
             {
                 string jsonResponse = request.downloadHandler.text;
 
@@ -165,4 +192,78 @@ public class AbilitiesEditorWindow : EditorWindow
             Repaint(); // Update the editor window to reflect changes
         };
     }
+
+    async Task PatchAbility()
+    {
+        // Create a dictionary to hold only the modified fields
+        var modifiedFields = new Dictionary<string, object>();
+
+        // Compare fields and add only modified ones to the dictionary
+        if (abilityName != selectedAbility.name)
+        {
+            modifiedFields["name"] = abilityName;
+        }
+        if (abilityCooldown != selectedAbility.cooldown)
+        {
+            modifiedFields["cooldown"] = abilityCooldown;
+        }
+        if (abilityRange != selectedAbility.range)
+        {
+            modifiedFields["range"] = abilityRange;
+        }
+
+        // If no fields were modified, exit early
+        if (modifiedFields.Count == 0)
+        {
+            Debug.Log("No changes detected. Skipping PATCH request.");
+            return;
+        }
+
+        // Serialize the modified fields to JSON
+        string jsonPayload = JsonConvert.SerializeObject(modifiedFields);
+
+        using (UnityWebRequest request = new UnityWebRequest($"{BACKEND_URL}/ability/{selectedAbility.id}", "PATCH"))
+        {
+            // Attach JSON payload
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonPayload);
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+
+            // Download handler to handle response
+            request.downloadHandler = new DownloadHandlerBuffer();
+
+            // Set headers
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            // Send the request and await response
+            await SendWebRequestAsync(request);
+
+            // Handle response
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log($"PATCH successful: {request.downloadHandler.text}");
+                selectedAbility = JsonConvert.DeserializeObject<Configurator.AbilityDTO>(request.downloadHandler.text);
+
+            }
+            else
+            {
+                Debug.LogError($"PATCH failed: {request.error}");
+            }
+        }
+    }
+
+    async Task SendWebRequestAsync(UnityWebRequest request)
+    {
+        var operation = request.SendWebRequest();
+
+        while (!operation.isDone)
+        {
+            await Task.Yield(); // Yield execution to avoid blocking the main thread
+        }
+
+        if (request.result != UnityWebRequest.Result.Success)
+        {
+            Debug.LogError($"HTTP Error: {request.responseCode}, Message: {request.error}");
+        }
+    }
+
 }
