@@ -132,8 +132,30 @@ public class AbilitiesEditorWindow : EditorWindow
             // GUILayout.Label($"Mechanic Type: {mechanic.mechanicType}");
             // Display mechanic type dropdown
             int selectedIndex = Mathf.Max(0, Array.IndexOf(MechanicTypes, mechanics[i].mechanicType));
-            selectedIndex = EditorGUILayout.Popup("Mechanic Type", selectedIndex, MechanicTypes);
-            mechanics[i].mechanicType = MechanicTypes[selectedIndex];
+            int newSelectedIndex = EditorGUILayout.Popup("Mechanic Type", selectedIndex, MechanicTypes);
+
+            if (newSelectedIndex != selectedIndex)
+            {
+                mechanics[i].mechanicType = MechanicTypes[newSelectedIndex];
+                switch (mechanics[i].mechanicType)
+                {
+                    case "create_projectile":
+                        mechanics[i].@params = new Configurator.AbilityDTO.CreateProjectileParams();
+                        break;
+                    case "create_AoE":
+                        mechanics[i].@params = new Configurator.AbilityDTO.CreateAoEParams();
+                        break;
+                    case "damage":
+                        mechanics[i].@params = new Configurator.AbilityDTO.DamageParams();
+                        break;
+                    case "delay":
+                        mechanics[i].@params = new Configurator.AbilityDTO.DelayParams();
+                        break;
+                    default:
+                        GUILayout.Label($"Error, mechanic {mechanic.mechanicType} not found");
+                        break;
+                }
+            }
 
             // Add/Remove buttons
             if (GUILayout.Button("+"))
@@ -144,25 +166,42 @@ public class AbilitiesEditorWindow : EditorWindow
             }
             EditorGUILayout.EndHorizontal();
 
-            if (mechanic.mechanicType == "create_projectile")
-            {
-                GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
-                var projectileParams = mechanic.@params as Configurator.AbilityDTO.CreateProjectileParams;
-                projectileParams.onHitMechanics = DisplayMechanics(projectileParams.onHitMechanics);
-                mechanic.@params = projectileParams;
-            }
-            else if (mechanic.mechanicType == "create_AoE")
-            {
-                GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
-                var aoEParams = mechanic.@params as Configurator.AbilityDTO.CreateAoEParams;
-                aoEParams.onHitMechanics = DisplayMechanics(aoEParams.onHitMechanics);
-                mechanic.@params = aoEParams;
-            }
+            DisplayMechanic(mechanic);
 
             EditorGUILayout.EndVertical();
         }
 
         return mechanics;
+    }
+
+    void DisplayMechanic(Configurator.AbilityDTO.MechanicDTO mechanic)
+    {
+        switch (mechanic.mechanicType)
+        {
+            case "create_projectile":
+                GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
+                var projectileParams = mechanic.@params as Configurator.AbilityDTO.CreateProjectileParams;
+                projectileParams.onHitMechanics = DisplayMechanics(projectileParams.onHitMechanics);
+                mechanic.@params = projectileParams;
+                break;
+            case "create_AoE":
+                GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
+                var aoEParams = mechanic.@params as Configurator.AbilityDTO.CreateAoEParams;
+                aoEParams.onHitMechanics = DisplayMechanics(aoEParams.onHitMechanics);
+                mechanic.@params = aoEParams;
+                break;
+            case "damage":
+                var damageParams = mechanic.@params as Configurator.AbilityDTO.DamageParams;
+                damageParams.amount = EditorGUILayout.IntField("Amount", damageParams.amount);
+                break;
+            case "delay":
+                var delayParams = mechanic.@params as Configurator.AbilityDTO.DelayParams;
+                delayParams.delayMs = EditorGUILayout.IntField("Delay", delayParams.delayMs);
+                break;
+            default:
+                GUILayout.Label($"Error, mechanic {mechanic.mechanicType} not found");
+                break;
+        }
     }
 
     private void InitializeEditableFields()
