@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -16,10 +17,13 @@ public class AbilitiesEditorWindow : EditorWindow
     private Vector2 scrollPosition;
     private Configurator.AbilityDTO selectedAbility = null; // Tracks the selected ability
 
+    private static readonly string[] MechanicTypes = { "create_projectile", "create_AoE", "delay", "damage" };
+
     #region Editable fields
     string abilityName; // Very wrong but this acts as a flag for if the editable fields have been initialized
     int abilityCooldown;
     float abilityRange;
+    Configurator.AbilityDTO.MechanicDTO[] abilityMechanics;
     #endregion
 
     [MenuItem("Window/Abilities Editor Window")]
@@ -106,46 +110,8 @@ public class AbilitiesEditorWindow : EditorWindow
         GUILayout.Label($"Targeting: {selectedAbility.targeting}");
         GUILayout.Label($"Character State: {selectedAbility.characterAction}");
 
-        GUILayout.Space(10);
         GUILayout.Label("Mechanics:", EditorStyles.boldLabel);
-
-        // Display mechanics in a scrollable area
-        scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(200));
-        foreach (var mechanic in selectedAbility.mechanics)
-        {
-            GUILayout.Label($"Mechanic Type: {mechanic.mechanicType}");
-
-            if (mechanic.mechanicType == "create_projectile")
-            {
-                GUILayout.Label("Projectile On Hit Mechanics:", EditorStyles.boldLabel);
-                var projectileParams = mechanic.@params as Configurator.AbilityDTO.CreateProjectileParams;
-                foreach (var projectileOnHitMechanic in projectileParams.onHitMechanics)
-                {
-                    GUILayout.Label($"{projectileOnHitMechanic.mechanicType}");
-
-                    if (projectileOnHitMechanic.mechanicType == "create_AoE")
-                    {
-                        GUILayout.Label("AoE On Hit Mechanics:", EditorStyles.boldLabel);
-                        var aoEParams = projectileOnHitMechanic.@params as Configurator.AbilityDTO.CreateAoEParams;
-                        foreach (var aoEOnHitMechanic in aoEParams.onHitMechanics)
-                        {
-                            GUILayout.Label($"{aoEOnHitMechanic.mechanicType}");
-
-                            if (aoEOnHitMechanic.mechanicType == "damage")
-                            {
-                                var damageParams = aoEOnHitMechanic.@params as Configurator.AbilityDTO.DamageParams;
-                                GUILayout.Label($"Damage: {damageParams.amount}");
-                            }
-                        }
-                        // GUILayout.Label($"{aoEParams.radius}");
-                        // GUILayout.Label($"{aoEParams.durationMs}");
-                    }
-                }
-            }
-
-            GUILayout.Space(10);
-        }
-        GUILayout.EndScrollView();
+        abilityMechanics = DisplayMechanics(abilityMechanics);
 
         if (GUILayout.Button("Save Changes"))
         {
@@ -153,11 +119,63 @@ public class AbilitiesEditorWindow : EditorWindow
         }
     }
 
+    Configurator.AbilityDTO.MechanicDTO[] DisplayMechanics(Configurator.AbilityDTO.MechanicDTO[] mechanics)
+    {
+        GUILayout.Space(10);
+
+        for (int i = 0; i < mechanics.Count(); i++)
+        {
+            Configurator.AbilityDTO.MechanicDTO mechanic = mechanics[i];
+            EditorGUILayout.BeginVertical("box");
+
+            EditorGUILayout.BeginHorizontal();
+            // GUILayout.Label($"Mechanic Type: {mechanic.mechanicType}");
+            // Display mechanic type dropdown
+            int selectedIndex = Mathf.Max(0, Array.IndexOf(MechanicTypes, mechanics[i].mechanicType));
+            selectedIndex = EditorGUILayout.Popup("Mechanic Type", selectedIndex, MechanicTypes);
+            mechanics[i].mechanicType = MechanicTypes[selectedIndex];
+
+            // Add/Remove buttons
+            if (GUILayout.Button("+"))
+            {
+            }
+            if (GUILayout.Button("-"))
+            {
+            }
+            EditorGUILayout.EndHorizontal();
+
+            if (mechanic.mechanicType == "create_projectile")
+            {
+                GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
+                var projectileParams = mechanic.@params as Configurator.AbilityDTO.CreateProjectileParams;
+                projectileParams.onHitMechanics = DisplayMechanics(projectileParams.onHitMechanics);
+                mechanic.@params = projectileParams;
+            }
+            else if (mechanic.mechanicType == "create_AoE")
+            {
+                GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
+                var aoEParams = mechanic.@params as Configurator.AbilityDTO.CreateAoEParams;
+                aoEParams.onHitMechanics = DisplayMechanics(aoEParams.onHitMechanics);
+                mechanic.@params = aoEParams;
+            }
+
+            EditorGUILayout.EndVertical();
+        }
+
+        return mechanics;
+    }
+
     private void InitializeEditableFields()
     {
         abilityName = selectedAbility.name;
         abilityCooldown = selectedAbility.cooldown;
         abilityRange = selectedAbility.range;
+
+        abilityMechanics = new Configurator.AbilityDTO.MechanicDTO[selectedAbility.mechanics.Length];
+        for (int i = 0; i < selectedAbility.mechanics.Length; i++)
+        {
+            abilityMechanics[i] = selectedAbility.mechanics[i].DeepCopy();
+        }
     }
 
     private void FetchAbilities()
@@ -212,6 +230,13 @@ public class AbilitiesEditorWindow : EditorWindow
             modifiedFields["range"] = abilityRange;
         }
 
+        string serializedAbilityMechanics = JsonConvert.SerializeObject(abilityMechanics);
+        string serializedOriginalMechanics = JsonConvert.SerializeObject(selectedAbility.mechanics);
+        if (serializedAbilityMechanics != serializedOriginalMechanics)
+        {
+            modifiedFields["mechanics"] = abilityMechanics;
+        }
+
         // If no fields were modified, exit early
         if (modifiedFields.Count == 0)
         {
@@ -221,6 +246,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
         // Serialize the modified fields to JSON
         string jsonPayload = JsonConvert.SerializeObject(modifiedFields);
+        Debug.Log(jsonPayload);
 
         using (UnityWebRequest request = new UnityWebRequest($"{BACKEND_URL}/ability/{selectedAbility.id}", "PATCH"))
         {

@@ -18,13 +18,38 @@ namespace Configurator
         {
             [JsonProperty("mechanic_type")] public string mechanicType;
             public Params @params;
+
+            public MechanicDTO DeepCopy()
+            {
+                return new MechanicDTO
+                {
+                    mechanicType = this.mechanicType,
+                    @params = this.@params.DeepCopy()
+                };
+            }
         }
 
-        public abstract class Params { }
+        public abstract class Params
+        {
+            public abstract Params DeepCopy();
+        }
 
         public class CreateProjectileParams : Params
         {
             [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
+
+            public override Params DeepCopy()
+            {
+                MechanicDTO[] onHitMechanicsCopy = new MechanicDTO[this.onHitMechanics.Length];
+                for (int i = 0; i < this.onHitMechanics.Length; i++)
+                {
+                    onHitMechanicsCopy[i] = this.onHitMechanics[i].DeepCopy();
+                }
+                return new CreateProjectileParams
+                {
+                    onHitMechanics = onHitMechanicsCopy
+                };
+            }
         }
 
         public class CreateAoEParams : Params
@@ -32,12 +57,51 @@ namespace Configurator
             [JsonProperty("duration_ms")] public int durationMs;
             public float radius;
             [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
+
+            public override Params DeepCopy()
+            {
+                MechanicDTO[] onHitMechanicsCopy = new MechanicDTO[this.onHitMechanics.Length];
+                for (int i = 0; i < this.onHitMechanics.Length; i++)
+                {
+                    onHitMechanicsCopy[i] = this.onHitMechanics[i].DeepCopy();
+                }
+                return new CreateAoEParams
+                {
+                    durationMs = this.durationMs,
+                    radius = this.radius,
+                    onHitMechanics = onHitMechanicsCopy
+                };
+            }
         }
 
         public class DamageParams : Params
         {
             public int amount;
             [JsonProperty("targeting_strategy")] public string targetingStrategy;
+
+            public override Params DeepCopy()
+            {
+                return new DamageParams
+                {
+                    amount = this.amount,
+                    targetingStrategy = this.targetingStrategy
+                };
+            }
+        }
+
+        public class DelayParams : Params
+        {
+            [JsonProperty("delay_ms")] public int delayMs;
+            [JsonProperty("execute_after_delay_mechanics")] public MechanicDTO[] executeAfterDelayMechanics;
+
+            public override Params DeepCopy()
+            {
+                return new DelayParams
+                {
+                    delayMs = this.delayMs,
+                    executeAfterDelayMechanics = this.executeAfterDelayMechanics
+                };
+            }
         }
     }
 
@@ -64,6 +128,7 @@ namespace Configurator
                 "create_projectile" => jsonObject["params"]?.ToObject<AbilityDTO.CreateProjectileParams>(serializer),
                 "create_AoE" => jsonObject["params"]?.ToObject<AbilityDTO.CreateAoEParams>(serializer),
                 "damage" => jsonObject["params"]?.ToObject<AbilityDTO.DamageParams>(serializer),
+                "delay" => jsonObject["params"]?.ToObject<AbilityDTO.DelayParams>(serializer),
                 _ => throw new JsonSerializationException($"Unknown mechanic_type: {mechanicType}")
             };
 

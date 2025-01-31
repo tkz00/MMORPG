@@ -120,7 +120,7 @@ func CreateAbility(c *gin.Context) {
 		return
 	}
 
-	lastId := 0
+	lastId := -1
 	for idStr := range abilities {
 		id, _ := strconv.Atoi(idStr)
 		if id > lastId {
@@ -144,12 +144,13 @@ func UpdateAbility(c *gin.Context) {
 	}
 
 	if ability, ok := abilities[id]; ok {
-		fmt.Println(ability)
 		updatedAbility := ConfiguratorAbility{}
 		if err := c.BindJSON(&updatedAbility); err != nil {
 			c.AbortWithError(http.StatusBadRequest, err)
 			return
 		}
+
+		fmt.Println(updatedAbility)
 
 		if updatedAbility.Name != "" {
 			ability.Name = updatedAbility.Name
@@ -169,6 +170,10 @@ func UpdateAbility(c *gin.Context) {
 
 		if updatedAbility.CharacterState != nil {
 			ability.CharacterState = updatedAbility.CharacterState
+		}
+
+		if len(updatedAbility.Mechanics) > 0 {
+			ability.Mechanics = updatedAbility.Mechanics
 		}
 
 		abilities[id] = ability
