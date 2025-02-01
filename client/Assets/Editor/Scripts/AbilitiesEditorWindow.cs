@@ -129,7 +129,6 @@ public class AbilitiesEditorWindow : EditorWindow
             EditorGUILayout.BeginVertical("box");
 
             EditorGUILayout.BeginHorizontal();
-            // GUILayout.Label($"Mechanic Type: {mechanic.mechanicType}");
             // Display mechanic type dropdown
             int selectedIndex = Mathf.Max(0, Array.IndexOf(MechanicTypes, mechanics[i].mechanicType));
             int newSelectedIndex = EditorGUILayout.Popup("Mechanic Type", selectedIndex, MechanicTypes);
