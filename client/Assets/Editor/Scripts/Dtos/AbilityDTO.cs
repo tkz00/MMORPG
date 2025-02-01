@@ -38,6 +38,11 @@ namespace Configurator
         {
             [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
 
+            public CreateProjectileParams()
+            {
+                onHitMechanics = new MechanicDTO[0];
+            }
+
             public override Params DeepCopy()
             {
                 MechanicDTO[] onHitMechanicsCopy = new MechanicDTO[this.onHitMechanics.Length];
@@ -57,6 +62,13 @@ namespace Configurator
             [JsonProperty("duration_ms")] public int durationMs;
             public float radius;
             [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
+
+            public CreateAoEParams()
+            {
+                durationMs = 100;
+                radius = 1;
+                onHitMechanics = new MechanicDTO[0];
+            }
 
             public override Params DeepCopy()
             {
@@ -79,6 +91,12 @@ namespace Configurator
             public int amount;
             [JsonProperty("targeting_strategy")] public string targetingStrategy;
 
+            public DamageParams()
+            {
+                amount = 10;
+                targetingStrategy = "TO DO";
+            }
+
             public override Params DeepCopy()
             {
                 return new DamageParams
@@ -94,6 +112,11 @@ namespace Configurator
             [JsonProperty("delay_ms")] public int delayMs;
             [JsonProperty("execute_after_delay_mechanics")] public MechanicDTO[] executeAfterDelayMechanics;
 
+            public DelayParams()
+            {
+                delayMs = 100;
+                executeAfterDelayMechanics = new MechanicDTO[0]; ;
+            }
             public override Params DeepCopy()
             {
                 return new DelayParams

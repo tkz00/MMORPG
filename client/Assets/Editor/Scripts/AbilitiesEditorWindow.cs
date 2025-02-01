@@ -133,6 +133,12 @@ public class AbilitiesEditorWindow : EditorWindow
             // Display mechanic type dropdown
             int selectedIndex = Mathf.Max(0, Array.IndexOf(MechanicTypes, mechanics[i].mechanicType));
             int newSelectedIndex = EditorGUILayout.Popup("Mechanic Type", selectedIndex, MechanicTypes);
+            if (GUILayout.Button("-", GUILayout.Width(20), GUILayout.Height(20)))
+            {
+                var auxList = new List<Configurator.AbilityDTO.MechanicDTO>(mechanics);
+                auxList.RemoveAt(i);
+                mechanics = auxList.ToArray();
+            }
 
             if (newSelectedIndex != selectedIndex)
             {
@@ -157,18 +163,23 @@ public class AbilitiesEditorWindow : EditorWindow
                 }
             }
 
-            // Add/Remove buttons
-            if (GUILayout.Button("+"))
-            {
-            }
-            if (GUILayout.Button("-"))
-            {
-            }
             EditorGUILayout.EndHorizontal();
 
             DisplayMechanic(mechanic);
 
             EditorGUILayout.EndVertical();
+        }
+
+        if (GUILayout.Button("+", GUILayout.Width(20), GUILayout.Height(20)))
+        {
+            var auxList = new List<Configurator.AbilityDTO.MechanicDTO>(mechanics)
+                {
+                    new Configurator.AbilityDTO.MechanicDTO{
+                        mechanicType = "create_projectile",
+                        @params = new Configurator.AbilityDTO.CreateProjectileParams(),
+                    }
+                };
+            mechanics = auxList.ToArray();
         }
 
         return mechanics;
