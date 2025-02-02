@@ -19,13 +19,13 @@ func RegisterMechanicHandler(mechanicType string, handler MechanicHandler) {
 }
 
 func HealMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
-	if amount, ok := params["amount"].(int); ok {
+	if amount, ok := params["amount"].(float64); ok {
 		target, err := gs.GetCharacterById(params["target_id"].(string))
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
-		target.HealthVariation(amount)
+		target.HealthVariation(int(amount))
 
 		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
 			for _, mechanic := range onHitMechanics.([]Mechanic) {
@@ -40,13 +40,13 @@ func HealMechanic(caster *Character, gs *GameState, params map[string]interface{
 }
 
 func DamageMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
-	if amount, ok := params["amount"].(int); ok {
+	if amount, ok := params["amount"].(float64); ok {
 		target, err := gs.GetCharacterById(params["target_id"].(string))
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
-		target.HealthVariation(-amount)
+		target.HealthVariation(-int(amount))
 
 		if npc, ok := gs.npcs[params["target_id"].(string)]; ok {
 			npc.BecomeAggressive(caster)
@@ -126,7 +126,7 @@ func AoEMechanic(
 	AoE := InstantiateAoE(
 		params["target_coordinates"].(utils.Vector2),
 		params["radius"].(float64),
-		params["duration_ms"].(int),
+		int(params["duration_ms"].(float64)),
 		caster.id,
 		params["on_hit_mechanics"].([]Mechanic),
 	)

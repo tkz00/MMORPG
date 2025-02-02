@@ -8,7 +8,6 @@ import (
 	"os"
 	"strconv"
 	"tkz00/backend/pkg/game/entities"
-	"tkz00/backend/pkg/game/repository"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,13 +25,13 @@ func SetupRouter() *gin.Engine {
 }
 
 func Run() {
-	abilities := repository.GetPlayerAbilities()
+	abilities := GetSeedsAbilities()
 	configuratorAbilities := make(map[string]ConfiguratorAbility, len(abilities))
 	for i, ability := range abilities {
 		configuratorAbilities[i] = ConvertToConfiguratorAbility(*ability)
 	}
 
-	saveAbilitiesToFile(configuratorAbilities, ABILITIES_FILE_NAME)
+	SaveAbilitiesToFile(configuratorAbilities, ABILITIES_FILE_NAME)
 
 	r := SetupRouter()
 	fmt.Println("Starting server on port 8080...")
@@ -40,7 +39,7 @@ func Run() {
 }
 
 func GetAbilities(c *gin.Context) {
-	abilities, err := loadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 		return
@@ -53,7 +52,7 @@ func GetAbilities(c *gin.Context) {
 
 func GetAbility(c *gin.Context) {
 	id := c.Param("id")
-	abilities, err := loadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 		return
@@ -68,7 +67,7 @@ func GetAbility(c *gin.Context) {
 }
 
 func CreateAbility(c *gin.Context) {
-	abilities, err := loadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 		return
@@ -131,13 +130,13 @@ func CreateAbility(c *gin.Context) {
 	lastIdStr := strconv.Itoa(lastId + 1)
 	newAbility.ID = lastIdStr
 	abilities[lastIdStr] = newAbility
-	saveAbilitiesToFile(abilities, ABILITIES_FILE_NAME)
+	SaveAbilitiesToFile(abilities, ABILITIES_FILE_NAME)
 	c.JSON(http.StatusAccepted, newAbility)
 }
 
 func UpdateAbility(c *gin.Context) {
 	id := c.Param("id")
-	abilities, err := loadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 		return
@@ -177,7 +176,7 @@ func UpdateAbility(c *gin.Context) {
 		}
 
 		abilities[id] = ability
-		saveAbilitiesToFile(abilities, ABILITIES_FILE_NAME)
+		SaveAbilitiesToFile(abilities, ABILITIES_FILE_NAME)
 		c.JSON(http.StatusAccepted, ability)
 		return
 	}
@@ -185,7 +184,7 @@ func UpdateAbility(c *gin.Context) {
 	c.JSON(http.StatusNotFound, gin.H{"message": "ability not found"})
 }
 
-func saveAbilitiesToFile(abilities map[string]ConfiguratorAbility, filename string) error {
+func SaveAbilitiesToFile(abilities map[string]ConfiguratorAbility, filename string) error {
 	file, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return fmt.Errorf("error opening file: %v", err)
@@ -202,7 +201,7 @@ func saveAbilitiesToFile(abilities map[string]ConfiguratorAbility, filename stri
 	return nil
 }
 
-func loadAbilitiesFromFile(filename string) (map[string]ConfiguratorAbility, error) {
+func LoadAbilitiesFromFile(filename string) (map[string]ConfiguratorAbility, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, fmt.Errorf("error opening file: %v", err)

@@ -1,181 +1,97 @@
 package repository
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
+	"tkz00/backend/pkg/configurator"
 	"tkz00/backend/pkg/game/entities"
 )
 
-func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Ability {
-	skeletonEnemiesAbilities := map[string]*entities.Ability{
-		"0": entities.NewAbility(
-			"0",
-			"sword slash",
-			2,
-			4000,
-			entities.Target,
-			entities.Attacking,
-			entities.Mechanic{
-				MechanicType: "damage",
-				Params: map[string]interface{}{
-					"amount":             19,
-					"targeting_strategy": "character_hit",
-				},
-			},
-		),
+const ABILITIES_FILE_NAME = "abilities.json"
+
+func LoadAbilitiesFromFile(filename string) (map[string]*entities.Ability, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %v", err)
 	}
-	return skeletonEnemiesAbilities
+	defer file.Close()
+
+	configuratorAbilities := make(map[string]configurator.ConfiguratorAbility)
+
+	decoder := json.NewDecoder(file)
+	err = decoder.Decode(&configuratorAbilities)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding abilities from JSON: %v", err)
+	}
+
+	abilities := make(map[string]*entities.Ability, len(configuratorAbilities))
+	for i, configuratorAbilities := range configuratorAbilities {
+		abilities[i] = ConvertFromConfiguratorAbility(configuratorAbilities)
+	}
+
+	return abilities, nil
+}
+
+func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Ability {
+	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	if err != nil {
+		fmt.Printf("Error loading abilities: %v\n", err)
+	}
+
+	return map[string]*entities.Ability{
+		"0": abilities["0"],
+	}
 }
 
 func GetPlayerAbilities() map[string]*entities.Ability {
+	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	if err != nil {
+		fmt.Printf("Error loading abilities: %v\n", err)
+	}
+
 	return map[string]*entities.Ability{
-		// "0": entities.NewAbility(
-		// 	"0",
-		// 	"projectile",
-		// 	12,
-		// 	2000,
-		// 	entities.Coordinates,
-		// 	entities.Attacking,
-		// 	entities.Mechanic{
-		// 		MechanicType: "create_projectile",
-		// 		Params: map[string]interface{}{
-		// 			"on_hit_mechanics": []entities.Mechanic{
-		// 				{
-		// 					MechanicType: "damage",
-		// 					Params: map[string]interface{}{
-		// 						"amount":             40,
-		// 						"targeting_strategy": "character_hit",
-		// 					},
-		// 				},
-		// 				{
-		// 					MechanicType: "heal",
-		// 					Params: map[string]interface{}{
-		// 						"amount":             20,
-		// 						"targeting_strategy": "caster",
-		// 					},
-		// 				},
-		// 				{
-		// 					MechanicType: "create_projectile",
-		// 					Params: map[string]interface{}{
-		// 						"targeting_strategy": "arc",
-		// 						"number":             5,
-		// 						"radius":             utils.DegreesToRadians(360),
-		// 						"range":              5.0,
-		// 						"origin_position":    "target",
-		// 						"on_hit_mechanics": []entities.Mechanic{
-		// 							{
-		// 								MechanicType: "damage",
-		// 								Params: map[string]interface{}{
-		// 									"amount":             20,
-		// 									"targeting_strategy": "character_hit",
-		// 								},
-		// 							},
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// ),
-		"0": entities.NewAbility(
-			"0",
-			"projectile",
-			12,
-			2000,
-			entities.Coordinates,
-			entities.Attacking,
-			entities.Mechanic{
-				MechanicType: "create_projectile",
-				Params: map[string]interface{}{
-					"on_hit_mechanics": []entities.Mechanic{
-						{
-							MechanicType: "create_AoE",
-							Params: map[string]interface{}{
-								"radius":      3.0,
-								"duration_ms": 400,
-								"on_hit_mechanics": []entities.Mechanic{
-									{
-										MechanicType: "damage",
-										Params: map[string]interface{}{
-											"amount":             20,
-											"targeting_strategy": "character_hit",
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		),
-		"1": entities.NewAbility(
-			"1",
-			"heal",
-			7,
-			3000,
-			entities.Target,
-			entities.CastingHeal,
-			entities.Mechanic{
-				MechanicType: "heal",
-				Params: map[string]interface{}{
-					"amount":             20,
-					"targeting_strategy": "character_hit",
-				},
-			},
-		),
-		"2": entities.NewAbility(
-			"2",
-			"life drain",
-			7,
-			3000,
-			entities.Target,
-			entities.CastingHeal,
-			entities.Mechanic{
-				MechanicType: "damage",
-				Params: map[string]interface{}{
-					"amount":             20,
-					"targeting_strategy": "character_hit",
-					"on_hit_mechanics": []entities.Mechanic{
-						{
-							MechanicType: "delay",
-							Params: map[string]interface{}{
-								"delay_ms": 1000,
-								"execute_after_delay_mechanics": []entities.Mechanic{
-									{
-										MechanicType: "heal",
-										Params: map[string]interface{}{
-											"amount":             10,
-											"targeting_strategy": "caster",
-										},
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		),
-		"3": entities.NewAbility(
-			"3",
-			"ground slam",
-			2,
-			2000,
-			entities.Coordinates,
-			entities.Attacking,
-			entities.Mechanic{
-				MechanicType: "create_AoE",
-				Params: map[string]interface{}{
-					"radius":      1.0,
-					"duration_ms": 400,
-					"on_hit_mechanics": []entities.Mechanic{
-						{
-							MechanicType: "damage",
-							Params: map[string]interface{}{
-								"amount":             20,
-								"targeting_strategy": "character_hit",
-							},
-						},
-					},
-				},
-			},
-		),
+		"1": abilities["1"],
+		// "2": abilities["2"],
+		// "3": abilities["3"],
+		// "4": abilities["4"],
+	}
+}
+
+func ConvertFromConfiguratorAbility(ability configurator.ConfiguratorAbility) *entities.Ability {
+	// Recursively convert map[string]interface{} to Mechanic structs
+	for _, mechanic := range ability.Mechanics {
+		parseMechanics(mechanic.Params)
+	}
+
+	return entities.NewAbility(
+		ability.ID,
+		ability.Name,
+		*ability.RangeValue,
+		*ability.Cooldown,
+		*ability.Targeting,
+		*ability.CharacterState,
+		ability.Mechanics...,
+	)
+}
+
+// Recursive function to convert params maps to nested Mechanics
+func parseMechanics(params map[string]interface{}) {
+	if rawMechanics, ok := params["on_hit_mechanics"]; ok {
+		if mechanicList, ok := rawMechanics.([]interface{}); ok {
+			var mechanics []entities.Mechanic
+			for _, m := range mechanicList {
+				if mechMap, ok := m.(map[string]interface{}); ok {
+					mechanic := entities.Mechanic{
+						MechanicType: mechMap["mechanic_type"].(string),
+						Params:       mechMap["params"].(map[string]interface{}),
+					}
+					// Recursively parse nested mechanics
+					parseMechanics(mechanic.Params)
+					mechanics = append(mechanics, mechanic)
+				}
+			}
+			params["on_hit_mechanics"] = mechanics
+		}
 	}
 }
