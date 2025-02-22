@@ -100,53 +100,53 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 				},
 			},
 		),
-		// "2": entities.NewAbility(
-		// 	"2",
-		// 	"heal",
-		// 	7,
-		// 	3000,
-		// 	entities.Target,
-		// 	entities.CastingHeal,
-		// 	entities.Mechanic{
-		// 		MechanicType: "heal",
-		// 		Params: map[string]interface{}{
-		// 			"amount":             20,
-		// 			"targeting_strategy": "character_hit",
-		// 		},
-		// 	},
-		// ),
-		// "3": entities.NewAbility(
-		// 	"3",
-		// 	"life drain",
-		// 	7,
-		// 	3000,
-		// 	entities.Target,
-		// 	entities.CastingHeal,
-		// 	entities.Mechanic{
-		// 		MechanicType: "damage",
-		// 		Params: map[string]interface{}{
-		// 			"amount":             20,
-		// 			"targeting_strategy": "character_hit",
-		// 			"on_hit_mechanics": []entities.Mechanic{
-		// 				{
-		// 					MechanicType: "delay",
-		// 					Params: map[string]interface{}{
-		// 						"delay_ms": 1000,
-		// 						"execute_after_delay_mechanics": []entities.Mechanic{
-		// 							{
-		// 								MechanicType: "heal",
-		// 								Params: map[string]interface{}{
-		// 									"amount":             10,
-		// 									"targeting_strategy": "caster",
-		// 								},
-		// 							},
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// ),
+		"2": entities.NewAbility(
+			"2",
+			"heal",
+			7,
+			3000,
+			entities.Target,
+			entities.CastingHeal,
+			entities.Mechanic{
+				MechanicType: "damage",
+				Params: map[string]interface{}{
+					"amount":             -20,
+					"targeting_strategy": "character_hit",
+				},
+			},
+		),
+		"3": entities.NewAbility(
+			"3",
+			"life drain",
+			7,
+			3000,
+			entities.Target,
+			entities.CastingHeal,
+			entities.Mechanic{
+				MechanicType: "damage",
+				Params: map[string]interface{}{
+					"amount":             20,
+					"targeting_strategy": "character_hit",
+					"on_hit_mechanics": []entities.Mechanic{
+						{
+							MechanicType: "delay",
+							Params: map[string]interface{}{
+								"delay_ms": 1000,
+								"execute_after_delay_mechanics": []entities.Mechanic{
+									{
+										MechanicType: "damage",
+										Params: map[string]interface{}{
+											"amount":             -10,
+											"targeting_strategy": "caster",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		),
 		// "4": entities.NewAbility(
 		// 	"4",
 		// 	"ground slam",

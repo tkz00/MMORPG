@@ -90,19 +90,27 @@ namespace Configurator
         {
             public int amount;
             [JsonProperty("targeting_strategy")] public string targetingStrategy;
+            [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
 
             public DamageParams()
             {
                 amount = 10;
                 targetingStrategy = "TO DO";
+                onHitMechanics = new MechanicDTO[0];
             }
 
             public override Params DeepCopy()
             {
+                MechanicDTO[] onHitMechanicsCopy = new MechanicDTO[this.onHitMechanics.Length];
+                for (int i = 0; i < this.onHitMechanics.Length; i++)
+                {
+                    onHitMechanicsCopy[i] = this.onHitMechanics[i].DeepCopy();
+                }
                 return new DamageParams
                 {
                     amount = this.amount,
-                    targetingStrategy = this.targetingStrategy
+                    targetingStrategy = this.targetingStrategy,
+                    onHitMechanics = onHitMechanicsCopy
                 };
             }
         }

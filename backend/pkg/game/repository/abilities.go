@@ -52,8 +52,8 @@ func GetPlayerAbilities() map[string]*entities.Ability {
 
 	return map[string]*entities.Ability{
 		"1": abilities["1"],
-		// "2": abilities["2"],
-		// "3": abilities["3"],
+		"2": abilities["2"],
+		"3": abilities["3"],
 		// "4": abilities["4"],
 	}
 }
@@ -92,6 +92,22 @@ func parseMechanics(params map[string]interface{}) {
 				}
 			}
 			params["on_hit_mechanics"] = mechanics
+		}
+	} else if rawMechanics, ok := params["execute_after_delay_mechanics"]; ok {
+		if mechanicList, ok := rawMechanics.([]interface{}); ok {
+			var mechanics []entities.Mechanic
+			for _, m := range mechanicList {
+				if mechMap, ok := m.(map[string]interface{}); ok {
+					mechanic := entities.Mechanic{
+						MechanicType: mechMap["mechanic_type"].(string),
+						Params:       mechMap["params"].(map[string]interface{}),
+					}
+					// Recursively parse nested mechanics
+					parseMechanics(mechanic.Params)
+					mechanics = append(mechanics, mechanic)
+				}
+			}
+			params["execute_after_delay_mechanics"] = mechanics
 		}
 	}
 }

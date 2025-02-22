@@ -149,8 +149,6 @@ func UpdateAbility(c *gin.Context) {
 			return
 		}
 
-		fmt.Println(updatedAbility)
-
 		if updatedAbility.Name != "" {
 			ability.Name = updatedAbility.Name
 		}

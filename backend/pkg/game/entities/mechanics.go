@@ -71,7 +71,7 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 func DelayMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
 	if delayMechanics, ok := params["execute_after_delay_mechanics"]; ok {
 		if delayMs, ok := params["delay_ms"]; ok {
-			gs.DelayMechanics(delayMechanics.([]Mechanic), delayMs.(int), caster.id)
+			gs.DelayMechanics(delayMechanics.([]Mechanic), int(delayMs.(float64)), caster.id)
 			return nil
 		}
 		return fmt.Errorf("missing 'delay_ms' parameter")

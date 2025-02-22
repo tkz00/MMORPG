@@ -201,12 +201,17 @@ public class AbilitiesEditorWindow : EditorWindow
                 mechanic.@params = aoEParams;
                 break;
             case "damage":
+                GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
                 var damageParams = mechanic.@params as Configurator.AbilityDTO.DamageParams;
                 damageParams.amount = EditorGUILayout.IntField("Amount", damageParams.amount);
+                damageParams.onHitMechanics = DisplayMechanics(damageParams.onHitMechanics);
+                mechanic.@params = damageParams;
                 break;
             case "delay":
                 var delayParams = mechanic.@params as Configurator.AbilityDTO.DelayParams;
                 delayParams.delayMs = EditorGUILayout.IntField("Delay", delayParams.delayMs);
+                delayParams.executeAfterDelayMechanics = DisplayMechanics(delayParams.executeAfterDelayMechanics);
+                mechanic.@params = delayParams;
                 break;
             default:
                 GUILayout.Label($"Error, mechanic {mechanic.mechanicType} not found");
