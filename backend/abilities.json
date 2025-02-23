@@ -77,18 +77,17 @@
       {
         "mechanic_type": "damage",
         "params": {
-          "amount": 50,
+          "amount": 20,
           "on_hit_mechanics": [
             {
               "mechanic_type": "delay",
               "params": {
-                "delay_ms": 5000,
+                "delay_ms": 1000,
                 "execute_after_delay_mechanics": [
                   {
                     "mechanic_type": "damage",
                     "params": {
-                      "amount": -50,
-                      "on_hit_mechanics": [],
+                      "amount": -10,
                       "targeting_strategy": "caster"
                     }
                   }
@@ -97,6 +96,32 @@
             }
           ],
           "targeting_strategy": "character_hit"
+        }
+      }
+    ]
+  },
+  "4": {
+    "id": "4",
+    "name": "ground slam",
+    "range": 2,
+    "cooldown": 2000,
+    "targeting": 2,
+    "character_state": 2,
+    "mechanics": [
+      {
+        "mechanic_type": "create_AoE",
+        "params": {
+          "duration_ms": 400,
+          "on_hit_mechanics": [
+            {
+              "mechanic_type": "damage",
+              "params": {
+                "amount": 20,
+                "targeting_strategy": "character_hit"
+              }
+            }
+          ],
+          "radius": 1
         }
       }
     ]

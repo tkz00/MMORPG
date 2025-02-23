@@ -147,29 +147,29 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 				},
 			},
 		),
-		// "4": entities.NewAbility(
-		// 	"4",
-		// 	"ground slam",
-		// 	2,
-		// 	2000,
-		// 	entities.Coordinates,
-		// 	entities.Attacking,
-		// 	entities.Mechanic{
-		// 		MechanicType: "create_AoE",
-		// 		Params: map[string]interface{}{
-		// 			"radius":      1.0,
-		// 			"duration_ms": 400,
-		// 			"on_hit_mechanics": []entities.Mechanic{
-		// 				{
-		// 					MechanicType: "damage",
-		// 					Params: map[string]interface{}{
-		// 						"amount":             20,
-		// 						"targeting_strategy": "character_hit",
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// ),
+		"4": entities.NewAbility(
+			"4",
+			"ground slam",
+			2,
+			2000,
+			entities.Coordinates,
+			entities.Attacking,
+			entities.Mechanic{
+				MechanicType: "create_AoE",
+				Params: map[string]interface{}{
+					"radius":      1.0,
+					"duration_ms": 400,
+					"on_hit_mechanics": []entities.Mechanic{
+						{
+							MechanicType: "damage",
+							Params: map[string]interface{}{
+								"amount":             20,
+								"targeting_strategy": "character_hit",
+							},
+						},
+					},
+				},
+			},
+		),
 	}
 }

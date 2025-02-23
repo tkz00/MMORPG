@@ -54,7 +54,7 @@ func GetPlayerAbilities() map[string]*entities.Ability {
 		"1": abilities["1"],
 		"2": abilities["2"],
 		"3": abilities["3"],
-		// "4": abilities["4"],
+		"4": abilities["4"],
 	}
 }
 
