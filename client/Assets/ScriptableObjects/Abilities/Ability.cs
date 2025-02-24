@@ -14,7 +14,7 @@ public abstract class Ability : ScriptableObject
 
 public enum AbilityParameters // WTF is this name, change
 {
-    TargetId,
-    NoTarget,
-    TargetPosition,
+    TargetId = 0,
+    NoTarget = 1,
+    TargetPosition = 2,
 }

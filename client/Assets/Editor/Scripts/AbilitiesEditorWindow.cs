@@ -23,6 +23,7 @@ public class AbilitiesEditorWindow : EditorWindow
     string abilityName; // Very wrong but this acts as a flag for if the editable fields have been initialized
     int abilityCooldown;
     float abilityRange;
+    AbilityParameters abilityTargeting;
     Configurator.AbilityDTO.MechanicDTO[] abilityMechanics;
     #endregion
 
@@ -107,7 +108,11 @@ public class AbilitiesEditorWindow : EditorWindow
         abilityName = EditorGUILayout.TextField("Name", abilityName);
         abilityRange = EditorGUILayout.FloatField("Range", abilityRange);
         abilityCooldown = EditorGUILayout.IntField("Cooldown", abilityCooldown);
+
+        // reverse next two lines commenting to enable targeting editing
         GUILayout.Label($"Targeting: {selectedAbility.targeting}");
+        // abilityTargeting = (AbilityParameters)EditorGUILayout.Popup("Targeting", (int)abilityTargeting, Enum.GetNames(typeof(AbilityParameters)));
+
         GUILayout.Label($"Character State: {selectedAbility.characterAction}");
 
         GUILayout.Label("Mechanics:", EditorStyles.boldLabel);
@@ -224,6 +229,7 @@ public class AbilitiesEditorWindow : EditorWindow
         abilityName = selectedAbility.name;
         abilityCooldown = selectedAbility.cooldown;
         abilityRange = selectedAbility.range;
+        abilityTargeting = selectedAbility.targeting;
 
         abilityMechanics = new Configurator.AbilityDTO.MechanicDTO[selectedAbility.mechanics.Length];
         for (int i = 0; i < selectedAbility.mechanics.Length; i++)
@@ -272,24 +278,18 @@ public class AbilitiesEditorWindow : EditorWindow
 
         // Compare fields and add only modified ones to the dictionary
         if (abilityName != selectedAbility.name)
-        {
             modifiedFields["name"] = abilityName;
-        }
         if (abilityCooldown != selectedAbility.cooldown)
-        {
             modifiedFields["cooldown"] = abilityCooldown;
-        }
         if (abilityRange != selectedAbility.range)
-        {
             modifiedFields["range"] = abilityRange;
-        }
+        if (abilityTargeting != selectedAbility.targeting)
+            modifiedFields["targeting"] = abilityTargeting;
 
         string serializedAbilityMechanics = JsonConvert.SerializeObject(abilityMechanics);
         string serializedOriginalMechanics = JsonConvert.SerializeObject(selectedAbility.mechanics);
         if (serializedAbilityMechanics != serializedOriginalMechanics)
-        {
             modifiedFields["mechanics"] = abilityMechanics;
-        }
 
         // If no fields were modified, exit early
         if (modifiedFields.Count == 0)
@@ -322,13 +322,40 @@ public class AbilitiesEditorWindow : EditorWindow
             {
                 Debug.Log($"PATCH successful: {request.downloadHandler.text}");
                 selectedAbility = JsonConvert.DeserializeObject<Configurator.AbilityDTO>(request.downloadHandler.text);
-
+                UpdateAbilityScriptableObject(selectedAbility);
             }
             else
             {
                 Debug.LogError($"PATCH failed: {request.error}");
             }
         }
+    }
+
+    void UpdateAbilityScriptableObject(Configurator.AbilityDTO selectedAbility)
+    {
+        Ability abilitySO = ScriptableObjectFinder.FindScriptableObjectByID<Ability>(selectedAbility.id, "Assets/ScriptableObjects/Abilities");
+        if (abilitySO == null)
+        {
+            Debug.LogError($"Ability scriptable object not found for ability id: {selectedAbility.id}");
+            return;
+        }
+
+        abilitySO.name = selectedAbility.name;
+        switch (selectedAbility.targeting)
+        {
+            case AbilityParameters.TargetId:
+                abilitySO.targetLayer = LayerMask.GetMask("Players");
+                break;
+            case AbilityParameters.NoTarget:
+                abilitySO.targetLayer = ~0;
+                break;
+            case AbilityParameters.TargetPosition:
+                abilitySO.targetLayer = LayerMask.GetMask("Ground");
+                break;
+        }
+
+        EditorUtility.SetDirty(abilitySO);
+        AssetDatabase.SaveAssets();
     }
 
     async Task SendWebRequestAsync(UnityWebRequest request)
@@ -346,4 +373,33 @@ public class AbilitiesEditorWindow : EditorWindow
         }
     }
 
+}
+
+public static class ScriptableObjectFinder
+{
+    public static T FindScriptableObjectByID<T>(string id, string folder) where T : ScriptableObject
+    {
+        // Search for all assets of type T
+        string[] guids = AssetDatabase.FindAssets($"t:{typeof(T).Name}", new[] { folder });
+
+        foreach (string guid in guids)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guid);
+            T so = AssetDatabase.LoadAssetAtPath<T>(path);
+
+            // Assuming your ScriptableObject has a public 'ID' field
+            var idField = typeof(T).GetField("id");
+            if (idField != null)
+            {
+                string soID = idField.GetValue(so) as string;
+                if (soID == id)
+                {
+                    return so;
+                }
+            }
+        }
+
+        Debug.LogWarning($"ScriptableObject with ID {id} not found.");
+        return null;
+    }
 }
