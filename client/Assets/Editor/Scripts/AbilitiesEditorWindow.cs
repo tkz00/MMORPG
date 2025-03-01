@@ -364,14 +364,40 @@ public class AbilitiesEditorWindow : EditorWindow
         abilitySO.name = selectedAbility.name;
         abilitySO.icon = oldAbilitySO.icon;
 
-        string oldAbilityPath = AssetDatabase.GetAssetPath(oldAbilitySO);
-        AssetDatabase.DeleteAsset(oldAbilityPath);
-
         string name = AssetDatabase.GenerateUniqueAssetPath($"Assets/ScriptableObjects/Abilities/{abilitySO.name}.asset");
         AssetDatabase.CreateAsset(abilitySO, name);
         AssetDatabase.SaveAssets();
 
+        ReplaceAbilitiesReferences(abilitySO, oldAbilitySO);
+
+        string oldAbilityPath = AssetDatabase.GetAssetPath(oldAbilitySO);
+        AssetDatabase.DeleteAsset(oldAbilityPath);
+
         EditorUtility.FocusProjectWindow();
+    }
+
+    void ReplaceAbilitiesReferences(Ability abilitySO, Ability oldAbilitySO)
+    {
+        string prefabPath = $"Assets/Prefabs/AbilitiesContainer.prefab";
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"Prefab not found at path: {prefabPath}");
+            return;
+        }
+        AbilitiesContainer abilitiesContainer = prefab.GetComponent<AbilitiesContainer>();
+        if (abilitiesContainer != null)
+        {
+            abilitiesContainer.availableAbilities.Remove(oldAbilitySO);
+            abilitiesContainer.availableAbilities.Add(abilitySO);
+            EditorUtility.SetDirty(prefab);
+            AssetDatabase.SaveAssets();
+        }
+        else
+        {
+            Debug.LogWarning($"Component 'AbilitiesContainer' not found on prefab at {prefabPath}");
+        }
+
     }
 
     async Task SendWebRequestAsync(UnityWebRequest request)

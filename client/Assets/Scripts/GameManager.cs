@@ -23,7 +23,8 @@ public class GameManager : MonoBehaviour
     public static string MainPlayerID { get { return mainPlayerID; } }
     private AbilityDTO[] mainPlayerAbilities; // Naughty naughty (in Borat's voice)
 
-    [SerializeField] public List<Ability> availableAbilities;
+    // [SerializeField] public static List<Ability> availableAbilities;
+    [SerializeField] AbilitiesContainer abilitiesContainer;
 
     [SerializeField] public AbilitiesPanel abilitiesPanel;
 
@@ -209,7 +210,7 @@ public class GameManager : MonoBehaviour
         {
             MainPlayer mainPlayer = newPlayerGO.AddComponent<MainPlayer>();
             mainPlayer.abilitiesPanel = abilitiesPanel;
-            mainPlayer.InitAbilities(mainPlayerAbilities, availableAbilities);
+            mainPlayer.InitAbilities(mainPlayerAbilities, abilitiesContainer.GetAvailableAbilities());
             this.cinemachineVirtualCamera.Follow = newPlayerGO.transform;
             Color playerColor = Color.green;
             player.SetHealthBarColor(playerColor);
