@@ -108,10 +108,7 @@ public class AbilitiesEditorWindow : EditorWindow
         abilityName = EditorGUILayout.TextField("Name", abilityName);
         abilityRange = EditorGUILayout.FloatField("Range", abilityRange);
         abilityCooldown = EditorGUILayout.IntField("Cooldown", abilityCooldown);
-
-        // reverse next two lines commenting to enable targeting editing
-        GUILayout.Label($"Targeting: {selectedAbility.targeting}");
-        // abilityTargeting = (AbilityParameters)EditorGUILayout.Popup("Targeting", (int)abilityTargeting, Enum.GetNames(typeof(AbilityParameters)));
+        abilityTargeting = (AbilityParameters)EditorGUILayout.Popup("Targeting", (int)abilityTargeting, Enum.GetNames(typeof(AbilityParameters)));
 
         GUILayout.Label($"Character State: {selectedAbility.characterAction}");
 
@@ -120,7 +117,10 @@ public class AbilitiesEditorWindow : EditorWindow
 
         if (GUILayout.Button("Save Changes"))
         {
-            await PatchAbility();
+            if (await PatchAbility())
+            {
+                UpdateAbilityScriptableObject(selectedAbility);
+            }
         }
     }
 
@@ -271,7 +271,7 @@ public class AbilitiesEditorWindow : EditorWindow
         };
     }
 
-    async Task PatchAbility()
+    async Task<bool> PatchAbility()
     {
         // Create a dictionary to hold only the modified fields
         var modifiedFields = new Dictionary<string, object>();
@@ -295,7 +295,7 @@ public class AbilitiesEditorWindow : EditorWindow
         if (modifiedFields.Count == 0)
         {
             Debug.Log("No changes detected. Skipping PATCH request.");
-            return;
+            return false;
         }
 
         // Serialize the modified fields to JSON
@@ -322,40 +322,56 @@ public class AbilitiesEditorWindow : EditorWindow
             {
                 Debug.Log($"PATCH successful: {request.downloadHandler.text}");
                 selectedAbility = JsonConvert.DeserializeObject<Configurator.AbilityDTO>(request.downloadHandler.text);
-                UpdateAbilityScriptableObject(selectedAbility);
+                return true;
             }
             else
             {
                 Debug.LogError($"PATCH failed: {request.error}");
             }
+
+            return false;
         }
     }
 
     void UpdateAbilityScriptableObject(Configurator.AbilityDTO selectedAbility)
     {
-        Ability abilitySO = ScriptableObjectFinder.FindScriptableObjectByID<Ability>(selectedAbility.id, "Assets/ScriptableObjects/Abilities");
-        if (abilitySO == null)
+        Ability oldAbilitySO = ScriptableObjectFinder.FindScriptableObjectByID<Ability>(selectedAbility.id, "Assets/ScriptableObjects/Abilities");
+        if (oldAbilitySO == null)
         {
             Debug.LogError($"Ability scriptable object not found for ability id: {selectedAbility.id}");
             return;
         }
 
-        abilitySO.name = selectedAbility.name;
+        Ability abilitySO = null;
+
         switch (selectedAbility.targeting)
         {
             case AbilityParameters.TargetId:
+                abilitySO = CreateInstance<TargetedAbility>();
                 abilitySO.targetLayer = LayerMask.GetMask("Players");
                 break;
-            case AbilityParameters.NoTarget:
-                abilitySO.targetLayer = ~0;
-                break;
             case AbilityParameters.TargetPosition:
+                abilitySO = CreateInstance<DirectionalAbility>();
                 abilitySO.targetLayer = LayerMask.GetMask("Ground");
                 break;
+            default:
+                Debug.LogWarning("Unexpected targeting type.");
+                break;
+
         }
 
-        EditorUtility.SetDirty(abilitySO);
+        abilitySO.id = selectedAbility.id;
+        abilitySO.name = selectedAbility.name;
+        abilitySO.icon = oldAbilitySO.icon;
+
+        string oldAbilityPath = AssetDatabase.GetAssetPath(oldAbilitySO);
+        AssetDatabase.DeleteAsset(oldAbilityPath);
+
+        string name = AssetDatabase.GenerateUniqueAssetPath($"Assets/ScriptableObjects/Abilities/{abilitySO.name}.asset");
+        AssetDatabase.CreateAsset(abilitySO, name);
         AssetDatabase.SaveAssets();
+
+        EditorUtility.FocusProjectWindow();
     }
 
     async Task SendWebRequestAsync(UnityWebRequest request)
