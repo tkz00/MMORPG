@@ -50,12 +50,15 @@ func GetPlayerAbilities() map[string]*entities.Ability {
 		fmt.Printf("Error loading abilities: %v\n", err)
 	}
 
-	return map[string]*entities.Ability{
-		"1": abilities["1"],
-		"2": abilities["2"],
-		"3": abilities["3"],
-		"4": abilities["4"],
+	playerAbilities := make(map[string]*entities.Ability)
+
+	for i, ability := range abilities {
+		if i != "0" { // for now 0 is the only enemy ability
+			playerAbilities[i] = ability
+		}
 	}
+
+	return playerAbilities
 }
 
 func ConvertFromConfiguratorAbility(ability configurator.ConfiguratorAbility) *entities.Ability {

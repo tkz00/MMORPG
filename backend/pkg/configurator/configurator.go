@@ -21,6 +21,7 @@ func SetupRouter() *gin.Engine {
 	r.GET("/abilities/:id", GetAbility)
 	r.POST("/ability", CreateAbility)
 	r.PATCH("/ability/:id", UpdateAbility)
+	r.DELETE("/ability/:id", DeleteAbility)
 	return r
 }
 
@@ -176,6 +177,24 @@ func UpdateAbility(c *gin.Context) {
 		abilities[id] = ability
 		SaveAbilitiesToFile(abilities, ABILITIES_FILE_NAME)
 		c.JSON(http.StatusAccepted, ability)
+		return
+	}
+
+	c.JSON(http.StatusNotFound, gin.H{"message": "ability not found"})
+}
+
+func DeleteAbility(c *gin.Context) {
+	id := c.Param("id")
+	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	if err != nil {
+		fmt.Printf("Error loading abilities: %v\n", err)
+		return
+	}
+
+	if _, ok := abilities[id]; ok {
+		delete(abilities, id)
+		SaveAbilitiesToFile(abilities, ABILITIES_FILE_NAME)
+		c.JSON(http.StatusOK, "")
 		return
 	}
 

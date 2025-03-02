@@ -27,6 +27,8 @@ public class AbilitiesEditorWindow : EditorWindow
     Configurator.AbilityDTO.MechanicDTO[] abilityMechanics;
     #endregion
 
+    Configurator.AbilityDTO abilityToDelete = null;
+
     [MenuItem("Window/Abilities Editor Window")]
     public static void ShowWindow()
     {
@@ -45,6 +47,13 @@ public class AbilitiesEditorWindow : EditorWindow
         else
         {
             DrawDetailView(); // Show detail view for the selected ability
+        }
+
+        // Handle deletion outside of OnGUI
+        if (abilityToDelete != null)
+        {
+            DeleteAbility(abilityToDelete);
+            abilityToDelete = null; // Reset after handling
         }
     }
 
@@ -75,10 +84,16 @@ public class AbilitiesEditorWindow : EditorWindow
 
             foreach (var ability in abilitiesList)
             {
+                EditorGUILayout.BeginHorizontal();
                 if (GUILayout.Button(ability.name, GUILayout.Height(25)))
                 {
                     selectedAbility = ability; // Set selected ability to show detail view
                 }
+                if (GUILayout.Button("Delete", GUILayout.Width(50), GUILayout.Height(25)))
+                {
+                    abilityToDelete = ability; // Mark for deletion outside OnGUI
+                }
+                EditorGUILayout.EndHorizontal();
             }
 
             GUILayout.EndScrollView();
@@ -271,6 +286,8 @@ public class AbilitiesEditorWindow : EditorWindow
         };
     }
 
+    #region Modify ability
+
     async Task<bool> PatchAbility()
     {
         // Create a dictionary to hold only the modified fields
@@ -300,7 +317,6 @@ public class AbilitiesEditorWindow : EditorWindow
 
         // Serialize the modified fields to JSON
         string jsonPayload = JsonConvert.SerializeObject(modifiedFields);
-        Debug.Log(jsonPayload);
 
         using (UnityWebRequest request = new UnityWebRequest($"{BACKEND_URL}/ability/{selectedAbility.id}", "PATCH"))
         {
@@ -376,6 +392,57 @@ public class AbilitiesEditorWindow : EditorWindow
         EditorUtility.FocusProjectWindow();
     }
 
+    #endregion
+
+    #region Delete Ability
+
+    async Task<bool> DeleteAbility(Configurator.AbilityDTO ability)
+    {
+        using (UnityWebRequest request = new UnityWebRequest($"{BACKEND_URL}/ability/{ability.id}", "DELETE"))
+        {
+            // Download handler to handle response
+            request.downloadHandler = new DownloadHandlerBuffer();
+
+            // Set headers
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            // Send the request and await response
+            await SendWebRequestAsync(request);
+
+            // Handle response
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log($"DELETE successful: {request.downloadHandler.text}");
+                abilitiesList.Remove(ability);
+                DeleteAbilityScriptableObject(ability.id);
+                return true;
+            }
+            else
+            {
+                Debug.LogError($"DELETE failed: {request.error}");
+            }
+
+            return false;
+        }
+    }
+
+    void DeleteAbilityScriptableObject(string abilityId)
+    {
+        Ability abilitySO = ScriptableObjectFinder.FindScriptableObjectByID<Ability>(selectedAbility.id, "Assets/ScriptableObjects/Abilities");
+        if (abilitySO == null)
+        {
+            Debug.LogError($"Ability scriptable object not found for ability id: {selectedAbility.id}");
+            return;
+        }
+
+        RemoveAbilitiesReferences(abilitySO);
+
+        string oldAbilityPath = AssetDatabase.GetAssetPath(abilitySO);
+        AssetDatabase.DeleteAsset(oldAbilityPath);
+    }
+
+    #endregion
+
     void ReplaceAbilitiesReferences(Ability abilitySO, Ability oldAbilitySO)
     {
         string prefabPath = $"Assets/Prefabs/AbilitiesContainer.prefab";
@@ -397,7 +464,28 @@ public class AbilitiesEditorWindow : EditorWindow
         {
             Debug.LogWarning($"Component 'AbilitiesContainer' not found on prefab at {prefabPath}");
         }
+    }
 
+    void RemoveAbilitiesReferences(Ability abilitySO)
+    {
+        string prefabPath = $"Assets/Prefabs/AbilitiesContainer.prefab";
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"Prefab not found at path: {prefabPath}");
+            return;
+        }
+        AbilitiesContainer abilitiesContainer = prefab.GetComponent<AbilitiesContainer>();
+        if (abilitiesContainer != null)
+        {
+            abilitiesContainer.availableAbilities.Remove(abilitySO);
+            EditorUtility.SetDirty(prefab);
+            AssetDatabase.SaveAssets();
+        }
+        else
+        {
+            Debug.LogWarning($"Component 'AbilitiesContainer' not found on prefab at {prefabPath}");
+        }
     }
 
     async Task SendWebRequestAsync(UnityWebRequest request)
@@ -429,7 +517,6 @@ public static class ScriptableObjectFinder
             string path = AssetDatabase.GUIDToAssetPath(guid);
             T so = AssetDatabase.LoadAssetAtPath<T>(path);
 
-            // Assuming your ScriptableObject has a public 'ID' field
             var idField = typeof(T).GetField("id");
             if (idField != null)
             {
