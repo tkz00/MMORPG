@@ -218,6 +218,32 @@ func resolveParameters(
 		default:
 			panic("no targeting_strategy for create_projectile hit mechanic found")
 		}
+	case "create_AoE":
+		if params["target_coordinates"] == nil && params["target_id"] != nil {
+			targetCharacter, _ := gs.GetCharacterById(params["target_id"].(string))
+			params["target_coordinates"] = targetCharacter.position
+		}
 	default:
 	}
+}
+
+func deepCopyMap(original map[string]interface{}) map[string]interface{} {
+	newMap := make(map[string]interface{}, len(original))
+	for k, v := range original {
+		// Handle nested maps
+		if nestedMap, ok := v.(map[string]interface{}); ok {
+			newMap[k] = deepCopyMap(nestedMap) // Recursively copy
+		} else {
+			newMap[k] = v // Copy other values as-is
+		}
+	}
+	return newMap
+}
+
+func (m *Mechanic) Clone() Mechanic {
+	newMechanic := *m
+	if m.Params != nil {
+		newMechanic.Params = deepCopyMap(m.Params) // Use deep copy for maps
+	}
+	return newMechanic
 }

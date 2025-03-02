@@ -249,7 +249,7 @@ func (caster *Character) EnqueueAbilityCastAction(
 	ability := caster.abilities[abilityId]
 	caster.ClearActionsQueue()
 	castAbilityAction := &AbilityCastAction{
-		ability:        *ability,
+		ability:        *ability.Clone(),
 		castParameters: abilityCastParameters,
 	}
 	caster.EnqueueAction(castAbilityAction)
