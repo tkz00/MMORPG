@@ -22,6 +22,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
     #region Editable fields
     string abilityName; // Very wrong but this acts as a flag for if the editable fields have been initialized
+    Sprite abilityIcon;
     int abilityCooldown;
     float abilityRange;
     AbilityParameters abilityTargeting;
@@ -134,6 +135,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
         GUILayout.Label($"ID: {selectedAbility.id}");
         abilityName = EditorGUILayout.TextField("Name", abilityName);
+        abilityIcon = EditorGUILayout.ObjectField(abilityIcon, typeof(Sprite), false, GUILayout.Width(64f), GUILayout.Height(64f)) as Sprite;
         abilityRange = EditorGUILayout.FloatField("Range", abilityRange);
         abilityCooldown = EditorGUILayout.IntField("Cooldown", abilityCooldown);
         abilityTargeting = (AbilityParameters)EditorGUILayout.Popup("Targeting", (int)abilityTargeting, Enum.GetNames(typeof(AbilityParameters)));
@@ -141,6 +143,12 @@ public class AbilitiesEditorWindow : EditorWindow
 
         GUILayout.Label("Mechanics:", EditorStyles.boldLabel);
         abilityMechanics = DisplayMechanics(abilityMechanics);
+
+        if (abilityIcon == null)
+        {
+            GUILayout.Label("An icon is required", EditorStyles.boldLabel);
+            return;
+        }
 
         if (isEditing)
         {
@@ -150,6 +158,7 @@ public class AbilitiesEditorWindow : EditorWindow
                 {
                     UpdateAbilityScriptableObject(selectedAbility);
                 }
+                UpdateAbilityIcon(selectedAbility.id);
             }
         }
         else
@@ -275,6 +284,12 @@ public class AbilitiesEditorWindow : EditorWindow
         abilityTargeting = selectedAbility.targeting;
         characterState = selectedAbility.characterAction;
 
+        if (isEditing)
+        {
+            Ability abilitySO = ScriptableObjectFinder.FindScriptableObjectByID<Ability>(selectedAbility.id, "Assets/ScriptableObjects/Abilities");
+            abilityIcon = abilitySO.icon;
+        }
+
         abilityMechanics = new Configurator.AbilityDTO.MechanicDTO[selectedAbility.mechanics.Length];
         for (int i = 0; i < selectedAbility.mechanics.Length; i++)
         {
@@ -386,7 +401,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
         abilitySO.id = selectedAbility.id;
         abilitySO.name = selectedAbility.name;
-        // abilitySO.icon = oldAbilitySO.icon;
+        abilitySO.icon = abilityIcon;
 
         string name = AssetDatabase.GenerateUniqueAssetPath($"Assets/ScriptableObjects/Abilities/{abilitySO.name}.asset");
         AssetDatabase.CreateAsset(abilitySO, name);
@@ -491,7 +506,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
         abilitySO.id = selectedAbility.id;
         abilitySO.name = selectedAbility.name;
-        abilitySO.icon = oldAbilitySO.icon;
+        abilitySO.icon = abilityIcon;
 
         string name = AssetDatabase.GenerateUniqueAssetPath($"Assets/ScriptableObjects/Abilities/{abilitySO.name}.asset");
         AssetDatabase.CreateAsset(abilitySO, name);
@@ -502,6 +517,20 @@ public class AbilitiesEditorWindow : EditorWindow
         string oldAbilityPath = AssetDatabase.GetAssetPath(oldAbilitySO);
         AssetDatabase.DeleteAsset(oldAbilityPath);
 
+        EditorUtility.FocusProjectWindow();
+    }
+
+    void UpdateAbilityIcon(string abilityId)
+    {
+        Ability abilitySO = ScriptableObjectFinder.FindScriptableObjectByID<Ability>(abilityId, "Assets/ScriptableObjects/Abilities");
+        if (abilitySO == null)
+        {
+            Debug.LogError($"Ability scriptable object not found for ability id: {abilityId}");
+            return;
+        }
+        abilitySO.icon = abilityIcon;
+        EditorUtility.SetDirty(abilitySO);
+        AssetDatabase.SaveAssets();
         EditorUtility.FocusProjectWindow();
     }
 
