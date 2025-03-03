@@ -63,7 +63,7 @@ func (spawner *Spawner) GetNewNPCs() []*Npc {
 				NewItem(
 					"1",
 					"small health potion",
-					Mechanic{MechanicType: "heal", Params: map[string]interface{}{"amount": 40}},
+					Mechanic{MechanicType: "heal", Params: map[string]interface{}{"amount": 40.0}},
 				),
 				1,
 			)
