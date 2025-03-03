@@ -12,21 +12,24 @@ public class AbilitiesEditorWindow : EditorWindow
 {
     const string BACKEND_URL = "http://0.0.0.0:8080";
 
-    private string responseText = string.Empty;
-    private List<Configurator.AbilityDTO> abilitiesList = new List<Configurator.AbilityDTO>();
-    private Vector2 scrollPosition;
-    private Configurator.AbilityDTO selectedAbility = null; // Tracks the selected ability
+    string responseText = string.Empty;
+    List<Configurator.AbilityDTO> abilitiesList = new List<Configurator.AbilityDTO>();
+    Vector2 scrollPosition;
+    Configurator.AbilityDTO selectedAbility = null; // Tracks the selected ability
 
-    private static readonly string[] MechanicTypes = { "create_projectile", "create_AoE", "delay", "damage" };
+    static readonly string[] TargetingStrategies = { "caster", "character_hit" };
+    static readonly string[] MechanicTypes = { "create_projectile", "create_AoE", "delay", "damage" };
 
     #region Editable fields
     string abilityName; // Very wrong but this acts as a flag for if the editable fields have been initialized
     int abilityCooldown;
     float abilityRange;
     AbilityParameters abilityTargeting;
+    CharacterAction characterState;
     Configurator.AbilityDTO.MechanicDTO[] abilityMechanics;
     #endregion
 
+    bool isEditing = false;
     Configurator.AbilityDTO abilityToDelete = null;
 
     [MenuItem("Window/Abilities Editor Window")]
@@ -85,8 +88,9 @@ public class AbilitiesEditorWindow : EditorWindow
             foreach (var ability in abilitiesList)
             {
                 EditorGUILayout.BeginHorizontal();
-                if (GUILayout.Button(ability.name, GUILayout.Height(25)))
+                if (GUILayout.Button(ability.name, GUILayout.ExpandWidth(true), GUILayout.Height(25)))
                 {
+                    isEditing = true;
                     selectedAbility = ability; // Set selected ability to show detail view
                 }
                 if (GUILayout.Button("Delete", GUILayout.Width(50), GUILayout.Height(25)))
@@ -95,6 +99,15 @@ public class AbilitiesEditorWindow : EditorWindow
                 }
                 EditorGUILayout.EndHorizontal();
             }
+
+            EditorGUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(30)))
+            {
+                isEditing = false;
+                selectedAbility = new() { mechanics = new Configurator.AbilityDTO.MechanicDTO[0] };
+            }
+            EditorGUILayout.EndHorizontal();
 
             GUILayout.EndScrollView();
         }
@@ -124,17 +137,29 @@ public class AbilitiesEditorWindow : EditorWindow
         abilityRange = EditorGUILayout.FloatField("Range", abilityRange);
         abilityCooldown = EditorGUILayout.IntField("Cooldown", abilityCooldown);
         abilityTargeting = (AbilityParameters)EditorGUILayout.Popup("Targeting", (int)abilityTargeting, Enum.GetNames(typeof(AbilityParameters)));
-
-        GUILayout.Label($"Character State: {selectedAbility.characterAction}");
+        characterState = (CharacterAction)EditorGUILayout.Popup("Character State", (int)characterState, Enum.GetNames(typeof(CharacterAction)));
 
         GUILayout.Label("Mechanics:", EditorStyles.boldLabel);
         abilityMechanics = DisplayMechanics(abilityMechanics);
 
-        if (GUILayout.Button("Save Changes"))
+        if (isEditing)
         {
-            if (await PatchAbility())
+            if (GUILayout.Button("Save Changes"))
             {
-                UpdateAbilityScriptableObject(selectedAbility);
+                if (await PatchAbility())
+                {
+                    UpdateAbilityScriptableObject(selectedAbility);
+                }
+            }
+        }
+        else
+        {
+            if (GUILayout.Button("Create Ability"))
+            {
+                if (await CreateAbility())
+                {
+                    CreateAbilityScriptableObject(selectedAbility);
+                }
             }
         }
     }
@@ -221,9 +246,12 @@ public class AbilitiesEditorWindow : EditorWindow
                 mechanic.@params = aoEParams;
                 break;
             case "damage":
-                GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
                 var damageParams = mechanic.@params as Configurator.AbilityDTO.DamageParams;
                 damageParams.amount = EditorGUILayout.IntField("Amount", damageParams.amount);
+                int targetingStrategySelectedIndex = Mathf.Max(0, Array.IndexOf(TargetingStrategies, damageParams.targetingStrategy));
+                int newTargetingStrategySelectedIndex = EditorGUILayout.Popup("Targeting Strategy", targetingStrategySelectedIndex, TargetingStrategies);
+                damageParams.targetingStrategy = TargetingStrategies[newTargetingStrategySelectedIndex];
+                GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
                 damageParams.onHitMechanics = DisplayMechanics(damageParams.onHitMechanics);
                 mechanic.@params = damageParams;
                 break;
@@ -245,6 +273,7 @@ public class AbilitiesEditorWindow : EditorWindow
         abilityCooldown = selectedAbility.cooldown;
         abilityRange = selectedAbility.range;
         abilityTargeting = selectedAbility.targeting;
+        characterState = selectedAbility.characterAction;
 
         abilityMechanics = new Configurator.AbilityDTO.MechanicDTO[selectedAbility.mechanics.Length];
         for (int i = 0; i < selectedAbility.mechanics.Length; i++)
@@ -286,6 +315,88 @@ public class AbilitiesEditorWindow : EditorWindow
         };
     }
 
+    #region Create Ability
+
+    async Task<bool> CreateAbility()
+    {
+        // Create a dictionary to hold only the modified fields
+        var abilityFields = new Dictionary<string, object>
+        {
+            ["name"] = abilityName,
+            ["cooldown"] = abilityCooldown,
+            ["range"] = abilityRange,
+            ["targeting"] = abilityTargeting,
+            ["character_state"] = characterState,
+            ["mechanics"] = abilityMechanics
+        };
+
+        // Serialize the modified fields to JSON
+        string jsonPayload = JsonConvert.SerializeObject(abilityFields);
+
+        using (UnityWebRequest request = new UnityWebRequest($"{BACKEND_URL}/ability/{selectedAbility.id}", "POST"))
+        {
+            // Attach JSON payload
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(jsonPayload);
+            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+
+            // Download handler to handle response
+            request.downloadHandler = new DownloadHandlerBuffer();
+
+            // Set headers
+            request.SetRequestHeader("Content-Type", "application/json");
+
+            // Send the request and await response
+            await SendWebRequestAsync(request);
+
+            // Handle response
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                Debug.Log($"POST successful: {request.downloadHandler.text}");
+                selectedAbility = JsonConvert.DeserializeObject<Configurator.AbilityDTO>(request.downloadHandler.text);
+                return true;
+            }
+            else
+            {
+                Debug.LogError($"POST failed: {request.error}");
+            }
+
+            return false;
+        }
+    }
+
+    void CreateAbilityScriptableObject(Configurator.AbilityDTO selectedAbility)
+    {
+        Ability abilitySO = null;
+
+        switch (selectedAbility.targeting)
+        {
+            case AbilityParameters.TargetId:
+                abilitySO = CreateInstance<TargetedAbility>();
+                abilitySO.targetLayer = LayerMask.GetMask("Players");
+                break;
+            case AbilityParameters.TargetPosition:
+                abilitySO = CreateInstance<DirectionalAbility>();
+                abilitySO.targetLayer = LayerMask.GetMask("Ground");
+                break;
+            default:
+                Debug.LogWarning("Unexpected targeting type.");
+                break;
+
+        }
+
+        abilitySO.id = selectedAbility.id;
+        abilitySO.name = selectedAbility.name;
+        // abilitySO.icon = oldAbilitySO.icon;
+
+        string name = AssetDatabase.GenerateUniqueAssetPath($"Assets/ScriptableObjects/Abilities/{abilitySO.name}.asset");
+        AssetDatabase.CreateAsset(abilitySO, name);
+        AssetDatabase.SaveAssets();
+        AddAbilitiesReferences(abilitySO);
+        EditorUtility.FocusProjectWindow();
+    }
+
+    #endregion
+
     #region Modify ability
 
     async Task<bool> PatchAbility()
@@ -302,6 +413,8 @@ public class AbilitiesEditorWindow : EditorWindow
             modifiedFields["range"] = abilityRange;
         if (abilityTargeting != selectedAbility.targeting)
             modifiedFields["targeting"] = abilityTargeting;
+        if (characterState != selectedAbility.characterAction)
+            modifiedFields["character_state"] = characterState;
 
         string serializedAbilityMechanics = JsonConvert.SerializeObject(abilityMechanics);
         string serializedOriginalMechanics = JsonConvert.SerializeObject(selectedAbility.mechanics);
@@ -428,10 +541,10 @@ public class AbilitiesEditorWindow : EditorWindow
 
     void DeleteAbilityScriptableObject(string abilityId)
     {
-        Ability abilitySO = ScriptableObjectFinder.FindScriptableObjectByID<Ability>(selectedAbility.id, "Assets/ScriptableObjects/Abilities");
+        Ability abilitySO = ScriptableObjectFinder.FindScriptableObjectByID<Ability>(abilityId, "Assets/ScriptableObjects/Abilities");
         if (abilitySO == null)
         {
-            Debug.LogError($"Ability scriptable object not found for ability id: {selectedAbility.id}");
+            Debug.LogError($"Ability scriptable object not found for ability id: {abilityId}");
             return;
         }
 
@@ -442,6 +555,28 @@ public class AbilitiesEditorWindow : EditorWindow
     }
 
     #endregion
+
+    void AddAbilitiesReferences(Ability abilitySO)
+    {
+        string prefabPath = $"Assets/Prefabs/AbilitiesContainer.prefab";
+        GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
+        if (prefab == null)
+        {
+            Debug.LogError($"Prefab not found at path: {prefabPath}");
+            return;
+        }
+        AbilitiesContainer abilitiesContainer = prefab.GetComponent<AbilitiesContainer>();
+        if (abilitiesContainer != null)
+        {
+            abilitiesContainer.availableAbilities.Add(abilitySO);
+            EditorUtility.SetDirty(prefab);
+            AssetDatabase.SaveAssets();
+        }
+        else
+        {
+            Debug.LogWarning($"Component 'AbilitiesContainer' not found on prefab at {prefabPath}");
+        }
+    }
 
     void ReplaceAbilitiesReferences(Ability abilitySO, Ability oldAbilitySO)
     {
