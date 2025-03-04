@@ -84,8 +84,8 @@ func CreateProjectileMechanic(
 	gs *GameState,
 	params map[string]interface{},
 ) error {
-	if numberOfProjectiles, ok := params["number"].(int); ok {
-		for i := 0; i < numberOfProjectiles; i++ {
+	if numberOfProjectiles, ok := params["number"].(float64); ok {
+		for i := 0; i < int(numberOfProjectiles); i++ {
 			if targetPosition, ok := params[fmt.Sprint("target_coordinates_", i)].(utils.Vector2); ok {
 				onHitMechanics, _ := params["on_hit_mechanics"].([]Mechanic)
 				newProjectile := CreateProjectile(
@@ -202,12 +202,13 @@ func resolveParameters(
 
 			params["initial_coordinates"] = baseCharacter.position
 
-			// get's the target coordinates for projectiles when they're shot in an arc, depending on the radius of the arc and number of projectiles to spawn, these are equally distributed around the radius
-			for i := 0; i < params["number"].(int); i++ {
+			// gets the target coordinates for projectiles when they're shot in an arc, depending on the radius of the arc and number of projectiles to spawn, these are equally distributed around the radius
+			for i := range int(params["number"].(float64)) {
 				params[fmt.Sprint("target_coordinates_", i)] = utils.CalculateNewPosition(
-					params["projectile_last_position"].(utils.Vector2),
+					// params["projectile_last_position"].(utils.Vector2),
+					params["initial_coordinates"].(utils.Vector2),
 					params["range"].(float64),
-					params["radius"].(float64)*float64(i)/float64(params["number"].(int)),
+					params["radius"].(float64)*float64(i)/params["number"].(float64),
 				)
 				params[fmt.Sprint("initial_coordinates_", i)] = utils.ClosestPositionInRange(
 					params[fmt.Sprint("target_coordinates_", i)].(utils.Vector2),
