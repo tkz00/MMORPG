@@ -31,6 +31,9 @@ public class AbilitiesEditorWindow : EditorWindow
     #endregion
 
     bool isEditing = false;
+    bool isSaving = false;
+    bool isCreating = false;
+
     Configurator.AbilityDTO abilityToDelete = null;
 
     [MenuItem("Window/Abilities Editor Window")]
@@ -58,6 +61,18 @@ public class AbilitiesEditorWindow : EditorWindow
         {
             DeleteAbility(abilityToDelete);
             abilityToDelete = null; // Reset after handling
+        }
+
+        if (isSaving)
+        {
+            PatchAbility();
+            isSaving = false;
+        }
+
+        if (isCreating)
+        {
+            CreateAbility();
+            isCreating = false;
         }
     }
 
@@ -114,7 +129,7 @@ public class AbilitiesEditorWindow : EditorWindow
         }
     }
 
-    private async Task DrawDetailView()
+    void DrawDetailView()
     {
         if (abilityName == null) // Initialize editable fields only once
         {
@@ -154,21 +169,14 @@ public class AbilitiesEditorWindow : EditorWindow
         {
             if (GUILayout.Button("Save Changes"))
             {
-                if (await PatchAbility())
-                {
-                    UpdateAbilityScriptableObject(selectedAbility);
-                }
-                UpdateAbilityIcon(selectedAbility.id);
+                isSaving = true;
             }
         }
         else
         {
             if (GUILayout.Button("Create Ability"))
             {
-                if (await CreateAbility())
-                {
-                    CreateAbilityScriptableObject(selectedAbility);
-                }
+                isCreating = true;
             }
         }
     }
@@ -332,7 +340,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
     #region Create Ability
 
-    async Task<bool> CreateAbility()
+    async void CreateAbility()
     {
         // Create a dictionary to hold only the modified fields
         var abilityFields = new Dictionary<string, object>
@@ -368,14 +376,12 @@ public class AbilitiesEditorWindow : EditorWindow
             {
                 Debug.Log($"POST successful: {request.downloadHandler.text}");
                 selectedAbility = JsonConvert.DeserializeObject<Configurator.AbilityDTO>(request.downloadHandler.text);
-                return true;
+                CreateAbilityScriptableObject(selectedAbility);
             }
             else
             {
                 Debug.LogError($"POST failed: {request.error}");
             }
-
-            return false;
         }
     }
 
@@ -414,7 +420,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
     #region Modify ability
 
-    async Task<bool> PatchAbility()
+    async void PatchAbility()
     {
         // Create a dictionary to hold only the modified fields
         var modifiedFields = new Dictionary<string, object>();
@@ -440,7 +446,6 @@ public class AbilitiesEditorWindow : EditorWindow
         if (modifiedFields.Count == 0)
         {
             Debug.Log("No changes detected. Skipping PATCH request.");
-            return false;
         }
 
         // Serialize the modified fields to JSON
@@ -466,14 +471,13 @@ public class AbilitiesEditorWindow : EditorWindow
             {
                 Debug.Log($"PATCH successful: {request.downloadHandler.text}");
                 selectedAbility = JsonConvert.DeserializeObject<Configurator.AbilityDTO>(request.downloadHandler.text);
-                return true;
+                UpdateAbilityScriptableObject(selectedAbility);
+                UpdateAbilityIcon(selectedAbility.id);
             }
             else
             {
                 Debug.LogError($"PATCH failed: {request.error}");
             }
-
-            return false;
         }
     }
 
@@ -538,7 +542,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
     #region Delete Ability
 
-    async Task<bool> DeleteAbility(Configurator.AbilityDTO ability)
+    async void DeleteAbility(Configurator.AbilityDTO ability)
     {
         using (UnityWebRequest request = new UnityWebRequest($"{BACKEND_URL}/ability/{ability.id}", "DELETE"))
         {
@@ -557,14 +561,11 @@ public class AbilitiesEditorWindow : EditorWindow
                 Debug.Log($"DELETE successful: {request.downloadHandler.text}");
                 abilitiesList.Remove(ability);
                 DeleteAbilityScriptableObject(ability.id);
-                return true;
             }
             else
             {
                 Debug.LogError($"DELETE failed: {request.error}");
             }
-
-            return false;
         }
     }
 
