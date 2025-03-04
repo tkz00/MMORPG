@@ -25,7 +25,7 @@ func SetupRouter() *gin.Engine {
 	return r
 }
 
-func Run() {
+func RunSeeds() {
 	abilities := GetSeedsAbilities()
 	configuratorAbilities := make(map[string]ConfiguratorAbility, len(abilities))
 	for i, ability := range abilities {
@@ -33,7 +33,9 @@ func Run() {
 	}
 
 	SaveAbilitiesToFile(configuratorAbilities, ABILITIES_FILE_NAME)
+}
 
+func Run() {
 	r := SetupRouter()
 	fmt.Println("Starting server on port 8080...")
 	r.Run()
