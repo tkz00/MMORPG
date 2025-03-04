@@ -60,12 +60,12 @@ namespace Configurator
         public class CreateAoEParams : Params
         {
             [JsonProperty("duration_ms")] public int durationMs;
-            public float radius;
+            [JsonProperty("radius")] public float radius;
             [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
 
             public CreateAoEParams()
             {
-                durationMs = 100;
+                durationMs = 400;
                 radius = 1;
                 onHitMechanics = new MechanicDTO[0];
             }

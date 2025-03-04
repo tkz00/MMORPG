@@ -568,8 +568,11 @@ public class AbilityMechanicManager
 
     static void DisplayAoEParams(Configurator.AbilityDTO.MechanicDTO mechanic)
     {
-        GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
         var aoEParams = mechanic.@params as Configurator.AbilityDTO.CreateAoEParams;
+        aoEParams.durationMs = EditorGUILayout.IntField("Duration (ms)", aoEParams.durationMs);
+        aoEParams.radius = EditorGUILayout.FloatField("Radius", aoEParams.radius);
+
+        GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
         aoEParams.onHitMechanics = DisplayMechanics(aoEParams.onHitMechanics);
         mechanic.@params = aoEParams;
     }
