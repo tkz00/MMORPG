@@ -409,7 +409,7 @@ public class AbilityUIManager
         characterState = (CharacterAction)EditorGUILayout.Popup("Character State", (int)characterState, Enum.GetNames(typeof(CharacterAction)));
 
         GUILayout.Label("Mechanics:", EditorStyles.boldLabel);
-        abilityMechanics = AbilityMechanicManager.DisplayMechanics(abilityMechanics);
+        abilityMechanics = AbilityMechanicManager.DisplayMechanics(abilityMechanics, false);
     }
 
     public Dictionary<string, object> GetAbilityFields()
@@ -468,14 +468,14 @@ public class AbilityMechanicManager
     static readonly string[] TargetingStrategies = { "caster", "character_hit" };
     static readonly string[] MechanicTypes = { "create_projectile", "create_AoE", "delay", "damage" };
 
-    public static Configurator.AbilityDTO.MechanicDTO[] DisplayMechanics(Configurator.AbilityDTO.MechanicDTO[] mechanics)
+    public static Configurator.AbilityDTO.MechanicDTO[] DisplayMechanics(Configurator.AbilityDTO.MechanicDTO[] mechanics, bool isNested)
     {
         GUILayout.Space(10);
 
         var mechanicsList = new List<Configurator.AbilityDTO.MechanicDTO>(mechanics);
         for (int i = mechanicsList.Count - 1; i >= 0; i--)
         {
-            var mechanic = DisplayMechanic(mechanicsList[i], i, mechanicsList);
+            var mechanic = DisplayMechanic(mechanicsList[i], isNested);
             if (mechanic == null)
             {
                 mechanicsList.RemoveAt(i);
@@ -486,21 +486,26 @@ public class AbilityMechanicManager
         {
             mechanicsList.Add(new Configurator.AbilityDTO.MechanicDTO
             {
-                mechanicType = "create_projectile",
-                @params = new Configurator.AbilityDTO.CreateProjectileParams()
+                mechanicType = "damage",
+                @params = new Configurator.AbilityDTO.DamageParams()
             });
         }
 
         return mechanicsList.ToArray();
     }
 
-    static Configurator.AbilityDTO.MechanicDTO DisplayMechanic(Configurator.AbilityDTO.MechanicDTO mechanic, int index, List<Configurator.AbilityDTO.MechanicDTO> mechanics)
+    static Configurator.AbilityDTO.MechanicDTO DisplayMechanic(Configurator.AbilityDTO.MechanicDTO mechanic, bool isNested)
     {
+        // Done until projectile configuration is mature enough to support it as nested mechanics
+        string[] filteredMechanicTypes = MechanicTypes;
+        if (isNested)
+            filteredMechanicTypes = filteredMechanicTypes.Where(m => m != "create_projectile").ToArray();
+
         EditorGUILayout.BeginVertical("box");
 
         EditorGUILayout.BeginHorizontal();
-        int selectedIndex = Mathf.Max(0, Array.IndexOf(MechanicTypes, mechanic.mechanicType));
-        int newSelectedIndex = EditorGUILayout.Popup("Mechanic Type", selectedIndex, MechanicTypes);
+        int selectedIndex = Mathf.Max(0, Array.IndexOf(filteredMechanicTypes, mechanic.mechanicType));
+        int newSelectedIndex = EditorGUILayout.Popup("Mechanic Type", selectedIndex, filteredMechanicTypes);
 
         if (GUILayout.Button("-", GUILayout.Width(20), GUILayout.Height(20)))
         {
@@ -511,7 +516,7 @@ public class AbilityMechanicManager
 
         if (newSelectedIndex != selectedIndex)
         {
-            mechanic.mechanicType = MechanicTypes[newSelectedIndex];
+            mechanic.mechanicType = filteredMechanicTypes[newSelectedIndex];
             mechanic.@params = CreateMechanicParams(mechanic.mechanicType);
         }
 
@@ -560,9 +565,15 @@ public class AbilityMechanicManager
 
     static void DisplayProjectileParams(Configurator.AbilityDTO.MechanicDTO mechanic)
     {
-        GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
         var projectileParams = mechanic.@params as Configurator.AbilityDTO.CreateProjectileParams;
-        projectileParams.onHitMechanics = DisplayMechanics(projectileParams.onHitMechanics);
+
+        // Commented until projectile configuration is mature enough to support it as nested mechanics
+        // int targetingStrategySelectedIndex = Mathf.Max(0, Array.IndexOf(TargetingStrategies, projectileParams.targetingStrategy));
+        // int newTargetingStrategySelectedIndex = EditorGUILayout.Popup("Targeting Strategy", targetingStrategySelectedIndex, TargetingStrategies);
+        // projectileParams.targetingStrategy = TargetingStrategies[newTargetingStrategySelectedIndex];
+
+        GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
+        projectileParams.onHitMechanics = DisplayMechanics(projectileParams.onHitMechanics, true);
         mechanic.@params = projectileParams;
     }
 
@@ -573,7 +584,7 @@ public class AbilityMechanicManager
         aoEParams.radius = EditorGUILayout.FloatField("Radius", aoEParams.radius);
 
         GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
-        aoEParams.onHitMechanics = DisplayMechanics(aoEParams.onHitMechanics);
+        aoEParams.onHitMechanics = DisplayMechanics(aoEParams.onHitMechanics, true);
         mechanic.@params = aoEParams;
     }
 
@@ -587,7 +598,7 @@ public class AbilityMechanicManager
         damageParams.targetingStrategy = TargetingStrategies[newTargetingStrategySelectedIndex];
 
         GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
-        damageParams.onHitMechanics = DisplayMechanics(damageParams.onHitMechanics);
+        damageParams.onHitMechanics = DisplayMechanics(damageParams.onHitMechanics, true);
         mechanic.@params = damageParams;
     }
 
@@ -595,7 +606,7 @@ public class AbilityMechanicManager
     {
         var delayParams = mechanic.@params as Configurator.AbilityDTO.DelayParams;
         delayParams.delayMs = EditorGUILayout.IntField("Delay", delayParams.delayMs);
-        delayParams.executeAfterDelayMechanics = DisplayMechanics(delayParams.executeAfterDelayMechanics);
+        delayParams.executeAfterDelayMechanics = DisplayMechanics(delayParams.executeAfterDelayMechanics, true);
         mechanic.@params = delayParams;
     }
 }

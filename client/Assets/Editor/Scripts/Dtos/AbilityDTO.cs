@@ -34,13 +34,22 @@ namespace Configurator
             public abstract Params DeepCopy();
         }
 
+        // Commented things are commented until projectile configuration is mature enough to support it as nested mechanics
         public class CreateProjectileParams : Params
         {
             [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
+            // [JsonProperty("targeting_strategy")] public string targetingStrategy;
+            // [JsonProperty("radius")] public float radius;
+            // [JsonProperty("number")] public int number;
+            // [JsonProperty("range")] public float range;
 
             public CreateProjectileParams()
             {
                 onHitMechanics = new MechanicDTO[0];
+                // targetingStrategy = "arc";
+                // radius = 0;
+                // number = 1;
+                // range = 8;
             }
 
             public override Params DeepCopy()
@@ -52,7 +61,8 @@ namespace Configurator
                 }
                 return new CreateProjectileParams
                 {
-                    onHitMechanics = onHitMechanicsCopy
+                    onHitMechanics = onHitMechanicsCopy,
+                    // targetingStrategy = this.targetingStrategy,
                 };
             }
         }
