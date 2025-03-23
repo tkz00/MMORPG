@@ -58,9 +58,10 @@ func Normalize(a, b Vector2) Vector2 {
 }
 
 // CalculateNewPosition calculates the new position after traveling a certain distance at a given angle.
-func CalculateNewPosition(initial Vector2, distance float64, angleRadians float64) Vector2 {
-	newX := initial.x + distance*math.Cos(angleRadians)
-	newZ := initial.z + distance*math.Sin(angleRadians)
+func CalculateNewPosition(initial Vector2, distance float64, angleDeg float64) Vector2 {
+	angleRad := angleDeg * (math.Pi / 180.0)
+	newX := initial.x + distance*math.Cos(angleRad)
+	newZ := initial.z + distance*math.Sin(angleRad)
 	return Vector2{x: newX, z: newZ}
 }
 

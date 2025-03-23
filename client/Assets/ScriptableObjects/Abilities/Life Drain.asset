@@ -10,9 +10,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c61f9d9222c574bf19d68016c62738a0, type: 3}
-  m_Name: LifeDrain
+  m_Name: Life Drain
   m_EditorClassIdentifier: 
-  id: 2
+  id: 3
   name: Life Drain
   icon: {fileID: 21300000, guid: c1d35b40e3fb0f9438f23087432d9765, type: 3}
   targetLayer:

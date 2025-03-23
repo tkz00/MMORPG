@@ -56,3 +56,25 @@ func (ability Ability) Cooldown() int64 {
 func (ability Ability) Targeting() Targeting {
 	return ability.targeting
 }
+
+func (ability Ability) CharacterState() Action {
+	return ability.characterState
+}
+
+func (ability Ability) Mechanics() []Mechanic {
+	return ability.mechanics
+}
+
+func (a *Ability) Clone() *Ability {
+	newAbility := *a // Start with a shallow copy
+
+	// Deep copy the mechanics slice
+	if a.mechanics != nil {
+		newAbility.mechanics = make([]Mechanic, len(a.mechanics))
+		for i, mechanic := range a.mechanics {
+			newAbility.mechanics[i] = mechanic.Clone() // Use the deep copy method
+		}
+	}
+
+	return &newAbility
+}

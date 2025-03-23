@@ -6,8 +6,8 @@ import (
 )
 
 type Mechanic struct {
-	MechanicType string                 // Type of effect (e.g., "heal", "unlock")
-	Params       map[string]interface{} // Dynamic parameters for the effect (e.g., healing amount, target)
+	MechanicType string                 `json:"mechanic_type"` // Type of effect (e.g., "heal", "unlock")
+	Params       map[string]interface{} `json:"params"`        // Dynamic parameters for the effect (e.g., healing amount, target)
 }
 
 type MechanicHandler func(caster *Character, gs *GameState, params map[string]interface{}) error
@@ -19,13 +19,13 @@ func RegisterMechanicHandler(mechanicType string, handler MechanicHandler) {
 }
 
 func HealMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
-	if amount, ok := params["amount"].(int); ok {
+	if amount, ok := params["amount"].(float64); ok {
 		target, err := gs.GetCharacterById(params["target_id"].(string))
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
-		target.HealthVariation(amount)
+		target.HealthVariation(int(amount))
 
 		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
 			for _, mechanic := range onHitMechanics.([]Mechanic) {
@@ -40,13 +40,13 @@ func HealMechanic(caster *Character, gs *GameState, params map[string]interface{
 }
 
 func DamageMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
-	if amount, ok := params["amount"].(int); ok {
+	if amount, ok := params["amount"].(float64); ok {
 		target, err := gs.GetCharacterById(params["target_id"].(string))
 		if err != nil {
 			fmt.Println(err)
 			return err
 		}
-		target.HealthVariation(-amount)
+		target.HealthVariation(-int(amount))
 
 		if npc, ok := gs.npcs[params["target_id"].(string)]; ok {
 			npc.BecomeAggressive(caster)
@@ -71,7 +71,7 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 func DelayMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
 	if delayMechanics, ok := params["execute_after_delay_mechanics"]; ok {
 		if delayMs, ok := params["delay_ms"]; ok {
-			gs.DelayMechanics(delayMechanics.([]Mechanic), delayMs.(int), caster.id)
+			gs.DelayMechanics(delayMechanics.([]Mechanic), int(delayMs.(float64)), caster.id)
 			return nil
 		}
 		return fmt.Errorf("missing 'delay_ms' parameter")
@@ -84,8 +84,8 @@ func CreateProjectileMechanic(
 	gs *GameState,
 	params map[string]interface{},
 ) error {
-	if numberOfProjectiles, ok := params["number"].(int); ok {
-		for i := 0; i < numberOfProjectiles; i++ {
+	if numberOfProjectiles, ok := params["number"].(float64); ok {
+		for i := 0; i < int(numberOfProjectiles); i++ {
 			if targetPosition, ok := params[fmt.Sprint("target_coordinates_", i)].(utils.Vector2); ok {
 				onHitMechanics, _ := params["on_hit_mechanics"].([]Mechanic)
 				newProjectile := CreateProjectile(
@@ -126,7 +126,7 @@ func AoEMechanic(
 	AoE := InstantiateAoE(
 		params["target_coordinates"].(utils.Vector2),
 		params["radius"].(float64),
-		params["duration_ms"].(int),
+		int(params["duration_ms"].(float64)),
 		caster.id,
 		params["on_hit_mechanics"].([]Mechanic),
 	)
@@ -202,12 +202,13 @@ func resolveParameters(
 
 			params["initial_coordinates"] = baseCharacter.position
 
-			// get's the target coordinates for projectiles when they're shot in an arc, depending on the radius of the arc and number of projectiles to spawn, these are equally distributed around the radius
-			for i := 0; i < params["number"].(int); i++ {
+			// gets the target coordinates for projectiles when they're shot in an arc, depending on the radius of the arc and number of projectiles to spawn, these are equally distributed around the radius
+			for i := range int(params["number"].(float64)) {
 				params[fmt.Sprint("target_coordinates_", i)] = utils.CalculateNewPosition(
-					params["projectile_last_position"].(utils.Vector2),
+					// params["projectile_last_position"].(utils.Vector2),
+					params["initial_coordinates"].(utils.Vector2),
 					params["range"].(float64),
-					params["radius"].(float64)*float64(i)/float64(params["number"].(int)),
+					params["radius"].(float64)*float64(i)/params["number"].(float64),
 				)
 				params[fmt.Sprint("initial_coordinates_", i)] = utils.ClosestPositionInRange(
 					params[fmt.Sprint("target_coordinates_", i)].(utils.Vector2),
@@ -218,6 +219,32 @@ func resolveParameters(
 		default:
 			panic("no targeting_strategy for create_projectile hit mechanic found")
 		}
+	case "create_AoE":
+		if params["target_coordinates"] == nil && params["target_id"] != nil {
+			targetCharacter, _ := gs.GetCharacterById(params["target_id"].(string))
+			params["target_coordinates"] = targetCharacter.position
+		}
 	default:
 	}
+}
+
+func deepCopyMap(original map[string]interface{}) map[string]interface{} {
+	newMap := make(map[string]interface{}, len(original))
+	for k, v := range original {
+		// Handle nested maps
+		if nestedMap, ok := v.(map[string]interface{}); ok {
+			newMap[k] = deepCopyMap(nestedMap) // Recursively copy
+		} else {
+			newMap[k] = v // Copy other values as-is
+		}
+	}
+	return newMap
+}
+
+func (m *Mechanic) Clone() Mechanic {
+	newMechanic := *m
+	if m.Params != nil {
+		newMechanic.Params = deepCopyMap(m.Params) // Use deep copy for maps
+	}
+	return newMechanic
 }

@@ -13,10 +13,10 @@ public class AbilitiesPanel : MonoBehaviour
     [SerializeField]
     Transform abilityIconsContainer;
 
-    Dictionary<string, AbilityIcon> abilityIcons = new Dictionary<string, AbilityIcon>();
-
     [SerializeField]
-    List<Ability> abilities;
+    AbilitiesContainer abilitiesContainer;
+
+    Dictionary<string, AbilityIcon> abilityIcons = new Dictionary<string, AbilityIcon>();
 
     const float CAST_ABILITY_ICON_ANIMATION_DURATION = 0.1f;
 
@@ -24,7 +24,7 @@ public class AbilitiesPanel : MonoBehaviour
     {
         foreach (AbilityDTO abilityDTO in abilitiesDTOs)
         {
-            Ability ability = abilities.Find(ability => ability.id == abilityDTO.id);
+            Ability ability = abilitiesContainer.GetAvailableAbilities().Find(ability => ability.id == abilityDTO.id);
             AbilityIcon abilityIcon = Instantiate(abilityIconPrefab, abilityIconsContainer).GetComponent<AbilityIcon>();
             abilityIcon.SetAbility(ability);
             abilityIcons.Add(ability.id, abilityIcon);

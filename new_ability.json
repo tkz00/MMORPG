@@ -1,0 +1,8 @@
+{
+    "id": "4",
+    "name": "new_ability",
+    "range": 10,
+    "cooldown": 2500,
+    "targeting": 1,
+    "character_state": 1
+}

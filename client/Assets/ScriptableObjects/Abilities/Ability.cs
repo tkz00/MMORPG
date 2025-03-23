@@ -12,8 +12,9 @@ public abstract class Ability : ScriptableObject
     public LayerMask GetLayerMask() => targetLayer;
 }
 
-public enum AbilityParameters
+public enum AbilityParameters // WTF is this name, change
 {
-    TargetPosition,
-    TargetId
+    TargetId = 0,
+    NoTarget = 1,
+    TargetPosition = 2,
 }

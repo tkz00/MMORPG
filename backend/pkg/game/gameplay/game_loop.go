@@ -148,7 +148,7 @@ func AreColliding(player entities.Character, projectile entities.Projectile) boo
 func AddPlayer(gs *entities.GameState, conn *websocket.Conn) entities.Character {
 	id := uuid.New()
 	playerId := id.String()
-	abilities := repository.GetPlayerAbilities(gs)
+	abilities := repository.GetPlayerAbilities()
 	player := entities.CreateCharacter(playerId, 0, 0, abilities)
 	gs.AddPlayer(conn, player)
 	return *player

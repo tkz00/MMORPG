@@ -669,11 +669,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   abilityIconPrefab: {fileID: 228988813937077183, guid: f2968f87668504e91945759609166a4c, type: 3}
   abilityIconsContainer: {fileID: 368664258}
-  abilities:
-  - {fileID: 11400000, guid: 64422d998c9dc4265937786b120f2204, type: 2}
-  - {fileID: 11400000, guid: 70484fb3587b14d18a54217bca22d8a5, type: 2}
-  - {fileID: 11400000, guid: 5e5687ed2fd664aa18c10ccd168197f8, type: 2}
-  - {fileID: 11400000, guid: d2ba0aaad3eae409d8e818efc17c8fb5, type: 2}
+  abilitiesContainer: {fileID: 5516363475914375135, guid: 05bca4cf3ddb049bb842ce24c06daacc, type: 3}
 --- !u!1 &638812565
 GameObject:
   m_ObjectHideFlags: 3
@@ -2101,11 +2097,7 @@ MonoBehaviour:
   aoePrefab: {fileID: 3378848114589933509, guid: 80a48adf4b8f84a969d7c70f01f58054, type: 3}
   npcPrefab: {fileID: 8385747069691689648, guid: 6c3a487a3997440c8a6778c3ee0b45ab, type: 3}
   cinemachineVirtualCamera: {fileID: 1458421495}
-  availableAbilities:
-  - {fileID: 11400000, guid: 64422d998c9dc4265937786b120f2204, type: 2}
-  - {fileID: 11400000, guid: 70484fb3587b14d18a54217bca22d8a5, type: 2}
-  - {fileID: 11400000, guid: 5e5687ed2fd664aa18c10ccd168197f8, type: 2}
-  - {fileID: 11400000, guid: d2ba0aaad3eae409d8e818efc17c8fb5, type: 2}
+  abilitiesContainer: {fileID: 5516363475914375135, guid: 05bca4cf3ddb049bb842ce24c06daacc, type: 3}
   abilitiesPanel: {fileID: 368664262}
   deathSplash: {fileID: 93601524}
   inventory: {fileID: 982960692}
