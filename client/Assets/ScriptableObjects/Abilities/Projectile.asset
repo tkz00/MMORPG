@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Projectile
   m_EditorClassIdentifier: 
   id: 1
-  name: projectile
+  name: Projectile
   icon: {fileID: 21300000, guid: 9f69b220176e6964fbd87f5f158d45e3, type: 3}
   targetLayer:
     serializedVersion: 2

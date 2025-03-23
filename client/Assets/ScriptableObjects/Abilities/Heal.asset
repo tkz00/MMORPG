@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Heal
   m_EditorClassIdentifier: 
   id: 2
-  name: heal
+  name: Heal
   icon: {fileID: 21300000, guid: 511b7df189d509e4bbb3271bf1df0df5, type: 3}
   targetLayer:
     serializedVersion: 2

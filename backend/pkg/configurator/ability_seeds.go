@@ -8,7 +8,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 	return map[string]*entities.Ability{
 		"0": entities.NewAbility(
 			"0",
-			"sword slash",
+			"Sword Slash",
 			2,
 			4000,
 			entities.Target,
@@ -71,7 +71,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 		// ),
 		"1": entities.NewAbility(
 			"1",
-			"projectile",
+			"Projectile",
 			12,
 			2000,
 			entities.Coordinates,
@@ -102,7 +102,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 		),
 		"2": entities.NewAbility(
 			"2",
-			"heal",
+			"Heal",
 			7,
 			3000,
 			entities.Target,
@@ -117,7 +117,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 		),
 		"3": entities.NewAbility(
 			"3",
-			"life drain",
+			"Life Drain",
 			7,
 			3000,
 			entities.Target,
@@ -149,7 +149,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 		),
 		"4": entities.NewAbility(
 			"4",
-			"ground slam",
+			"Ground Slam",
 			2,
 			2000,
 			entities.Coordinates,

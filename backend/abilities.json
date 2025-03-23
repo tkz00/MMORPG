@@ -1,7 +1,7 @@
 {
   "0": {
     "id": "0",
-    "name": "sword slash",
+    "name": "Sword Slash",
     "range": 2,
     "cooldown": 4000,
     "targeting": 0,
@@ -18,7 +18,7 @@
   },
   "1": {
     "id": "1",
-    "name": "projectile",
+    "name": "Projectile",
     "range": 12,
     "cooldown": 2000,
     "targeting": 2,
@@ -51,7 +51,7 @@
   },
   "2": {
     "id": "2",
-    "name": "heal",
+    "name": "Heal",
     "range": 7,
     "cooldown": 3000,
     "targeting": 0,
@@ -68,7 +68,7 @@
   },
   "3": {
     "id": "3",
-    "name": "life drain",
+    "name": "Life Drain",
     "range": 7,
     "cooldown": 3000,
     "targeting": 0,
@@ -102,7 +102,7 @@
   },
   "4": {
     "id": "4",
-    "name": "ground slam",
+    "name": "Ground Slam",
     "range": 2,
     "cooldown": 2000,
     "targeting": 2,

@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c61f9d9222c574bf19d68016c62738a0, type: 3}
-  m_Name: LifeDrain
+  m_Name: Life Drain
   m_EditorClassIdentifier: 
   id: 3
   name: Life Drain
