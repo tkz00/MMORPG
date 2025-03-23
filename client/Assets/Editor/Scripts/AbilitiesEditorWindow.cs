@@ -637,15 +637,15 @@ public class AbilityScriptableObjectManager
             return;
         }
 
+        string oldAbilityPath = AssetDatabase.GetAssetPath(oldAbilitySO);
+        AssetDatabase.DeleteAsset(oldAbilityPath);
+
         var abilitySO = CreateAbilitySO(ability, icon);
         string name = AssetDatabase.GenerateUniqueAssetPath($"{abilitiesFolder}/{abilitySO.name}.asset");
         AssetDatabase.CreateAsset(abilitySO, name);
         AssetDatabase.SaveAssets();
 
         ReplaceAbilitiesReferences(abilitySO, oldAbilitySO);
-
-        string oldAbilityPath = AssetDatabase.GetAssetPath(oldAbilitySO);
-        AssetDatabase.DeleteAsset(oldAbilityPath);
 
         EditorUtility.FocusProjectWindow();
     }
