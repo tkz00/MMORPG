@@ -137,7 +137,7 @@ public class AbilitiesEditorWindow : EditorWindow
         if (GUILayout.Button("+", GUILayout.Width(30), GUILayout.Height(30)))
         {
             isEditing = false;
-            selectedAbility = new() { mechanics = new Configurator.AbilityDTO.MechanicDTO[0] };
+            selectedAbility = new();
         }
         EditorGUILayout.EndHorizontal();
     }
@@ -345,7 +345,7 @@ public class AbilityUIManager
     float abilityRange;
     AbilityParameters abilityTargeting;
     CharacterAction characterState;
-    Configurator.AbilityDTO.MechanicDTO[] abilityMechanics;
+    List<Configurator.AbilityDTO.MechanicDTO> abilityMechanics;
 
     public AbilityUIManager(AbilityScriptableObjectManager soManager)
     {
@@ -368,10 +368,10 @@ public class AbilityUIManager
             pendingIcon = Icon;
         }
 
-        abilityMechanics = new Configurator.AbilityDTO.MechanicDTO[ability.mechanics.Length];
-        for (int i = 0; i < ability.mechanics.Length; i++)
+        abilityMechanics = new();
+        foreach (Configurator.AbilityDTO.MechanicDTO mechanic in ability.mechanics)
         {
-            abilityMechanics[i] = ability.mechanics[i].DeepCopy();
+            abilityMechanics.Add(mechanic.DeepCopy());
         }
 
         IsInitialized = true;
@@ -468,30 +468,26 @@ public class AbilityMechanicManager
     static readonly string[] TargetingStrategies = { "caster", "character_hit" };
     static readonly string[] MechanicTypes = { "create_projectile", "create_AoE", "delay", "damage" };
 
-    public static Configurator.AbilityDTO.MechanicDTO[] DisplayMechanics(Configurator.AbilityDTO.MechanicDTO[] mechanics, bool isNested)
+    public static List<Configurator.AbilityDTO.MechanicDTO> DisplayMechanics(List<Configurator.AbilityDTO.MechanicDTO> mechanics, bool isNested)
     {
         GUILayout.Space(10);
 
-        var mechanicsList = new List<Configurator.AbilityDTO.MechanicDTO>(mechanics);
-        for (int i = mechanicsList.Count - 1; i >= 0; i--)
+        mechanics.RemoveAll(mechanic =>
         {
-            var mechanic = DisplayMechanic(mechanicsList[i], isNested);
-            if (mechanic == null)
-            {
-                mechanicsList.RemoveAt(i);
-            }
-        }
+            var mechanicCopy = DisplayMechanic(mechanic, isNested);
+            return mechanicCopy == null;
+        });
 
         if (GUILayout.Button("+", GUILayout.Width(20), GUILayout.Height(20)))
         {
-            mechanicsList.Add(new Configurator.AbilityDTO.MechanicDTO
+            mechanics.Add(new Configurator.AbilityDTO.MechanicDTO
             {
                 mechanicType = "damage",
                 @params = new Configurator.AbilityDTO.DamageParams()
             });
         }
 
-        return mechanicsList.ToArray();
+        return mechanics;
     }
 
     static Configurator.AbilityDTO.MechanicDTO DisplayMechanic(Configurator.AbilityDTO.MechanicDTO mechanic, bool isNested)

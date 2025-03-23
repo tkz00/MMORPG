@@ -25,6 +25,7 @@ func LoadAbilitiesFromFile(filename string) (map[string]*entities.Ability, error
 		return nil, fmt.Errorf("error decoding abilities from JSON: %v", err)
 	}
 
+	// The convertion from ConfiguratorAbility to Ability is needed since I can't deserialize into unexported fields (the ones Ability has), so I deserialize into ConfiguratorAbility which has exported fields and then convert to Ability. It's probably not the best way, I've read about custom marshaling and unmarshaling, but for now this wors.
 	abilities := make(map[string]*entities.Ability, len(configuratorAbilities))
 	for i, configuratorAbilities := range configuratorAbilities {
 		abilities[i] = ConvertFromConfiguratorAbility(configuratorAbilities)

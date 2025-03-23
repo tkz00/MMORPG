@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 
 namespace Configurator
@@ -11,7 +12,7 @@ namespace Configurator
         public float range;
         public AbilityParameters targeting;
         [JsonProperty("character_state")] public CharacterAction characterAction;
-        public MechanicDTO[] mechanics;
+        public List<MechanicDTO> mechanics = new();
 
         [JsonConverter(typeof(MechanicDTOConverter))]
         public class MechanicDTO
@@ -37,7 +38,7 @@ namespace Configurator
         // Commented things are commented until projectile configuration is mature enough to support it as nested mechanics
         public class CreateProjectileParams : Params
         {
-            [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
+            [JsonProperty("on_hit_mechanics")] public List<MechanicDTO> onHitMechanics;
             // [JsonProperty("targeting_strategy")] public string targetingStrategy;
             // [JsonProperty("radius")] public float radius;
             // [JsonProperty("number")] public int number;
@@ -45,7 +46,7 @@ namespace Configurator
 
             public CreateProjectileParams()
             {
-                onHitMechanics = new MechanicDTO[0];
+                onHitMechanics = new List<MechanicDTO>();
                 // targetingStrategy = "arc";
                 // radius = 0;
                 // number = 1;
@@ -54,10 +55,10 @@ namespace Configurator
 
             public override Params DeepCopy()
             {
-                MechanicDTO[] onHitMechanicsCopy = new MechanicDTO[this.onHitMechanics.Length];
-                for (int i = 0; i < this.onHitMechanics.Length; i++)
+                List<MechanicDTO> onHitMechanicsCopy = new List<MechanicDTO>();
+                foreach (MechanicDTO mechanicDTO in this.onHitMechanics)
                 {
-                    onHitMechanicsCopy[i] = this.onHitMechanics[i].DeepCopy();
+                    onHitMechanicsCopy.Add(mechanicDTO.DeepCopy());
                 }
                 return new CreateProjectileParams
                 {
@@ -71,21 +72,21 @@ namespace Configurator
         {
             [JsonProperty("duration_ms")] public int durationMs;
             [JsonProperty("radius")] public float radius;
-            [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
+            [JsonProperty("on_hit_mechanics")] public List<MechanicDTO> onHitMechanics;
 
             public CreateAoEParams()
             {
                 durationMs = 400;
                 radius = 1;
-                onHitMechanics = new MechanicDTO[0];
+                onHitMechanics = new List<MechanicDTO>();
             }
 
             public override Params DeepCopy()
             {
-                MechanicDTO[] onHitMechanicsCopy = new MechanicDTO[this.onHitMechanics.Length];
-                for (int i = 0; i < this.onHitMechanics.Length; i++)
+                List<MechanicDTO> onHitMechanicsCopy = new List<MechanicDTO>();
+                foreach (MechanicDTO mechanicDTO in this.onHitMechanics)
                 {
-                    onHitMechanicsCopy[i] = this.onHitMechanics[i].DeepCopy();
+                    onHitMechanicsCopy.Add(mechanicDTO.DeepCopy());
                 }
                 return new CreateAoEParams
                 {
@@ -100,21 +101,21 @@ namespace Configurator
         {
             public int amount;
             [JsonProperty("targeting_strategy")] public string targetingStrategy;
-            [JsonProperty("on_hit_mechanics")] public MechanicDTO[] onHitMechanics;
+            [JsonProperty("on_hit_mechanics")] public List<MechanicDTO> onHitMechanics;
 
             public DamageParams()
             {
                 amount = 10;
                 targetingStrategy = "TO DO";
-                onHitMechanics = new MechanicDTO[0];
+                onHitMechanics = new List<MechanicDTO>();
             }
 
             public override Params DeepCopy()
             {
-                MechanicDTO[] onHitMechanicsCopy = new MechanicDTO[this.onHitMechanics.Length];
-                for (int i = 0; i < this.onHitMechanics.Length; i++)
+                List<MechanicDTO> onHitMechanicsCopy = new List<MechanicDTO>();
+                foreach (MechanicDTO mechanicDTO in this.onHitMechanics)
                 {
-                    onHitMechanicsCopy[i] = this.onHitMechanics[i].DeepCopy();
+                    onHitMechanicsCopy.Add(mechanicDTO.DeepCopy());
                 }
                 return new DamageParams
                 {
@@ -128,15 +129,20 @@ namespace Configurator
         public class DelayParams : Params
         {
             [JsonProperty("delay_ms")] public int delayMs;
-            [JsonProperty("execute_after_delay_mechanics")] public MechanicDTO[] executeAfterDelayMechanics;
+            [JsonProperty("execute_after_delay_mechanics")] public List<MechanicDTO> executeAfterDelayMechanics;
 
             public DelayParams()
             {
                 delayMs = 100;
-                executeAfterDelayMechanics = new MechanicDTO[0]; ;
+                executeAfterDelayMechanics = new List<MechanicDTO>();
             }
             public override Params DeepCopy()
             {
+                List<MechanicDTO> executeAfterDelayMechanicsCopy = new List<MechanicDTO>();
+                foreach (MechanicDTO mechanicDTO in this.executeAfterDelayMechanics)
+                {
+                    executeAfterDelayMechanicsCopy.Add(mechanicDTO.DeepCopy());
+                }
                 return new DelayParams
                 {
                     delayMs = this.delayMs,
