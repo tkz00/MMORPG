@@ -1,0 +1,30 @@
+name: Go Format Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gofmt:
+    name: Check Go Formatting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'  # Change to your Go version if needed
+
+      - name: Check formatting with gofmt
+        run: |
+          fmt_output=$(gofmt -l ./backend)
+          if [ -n "$fmt_output" ]; then
+            echo "❌ The following files are not properly formatted:"
+            echo "$fmt_output"
+            exit 1
+          else
+            echo "✅ All files are properly formatted."
+          fi
