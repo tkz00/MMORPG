@@ -66,7 +66,79 @@ How to run:
 
 ### Ability System
 
+Accessible through `Window > Abilities Editor Window` in the Unity editor.
+
+![List of abilities in the abilities configurator](docs/ability_list_configurator.png "List of abilities in the abilities configurator")
+
+This window shows all currently defined abilities in your version of the game. Some come preloaded. You can edit, duplicate, or create new ones.
+
+The first ability, `Sword Slash`, is used by the placeholder NPCs — those skeletons you can hit. Right now, if you edit or delete that ability, the game will break. The rest of the abilities are automatically assigned to the player, but note: **you can’t have more than 4 abilities assigned to the player** (5 in total if you count the enemy one). If you exceed that, the game also breaks. Click on any ability to edit it.
+
+![Ability detail in the abilities configurator](docs/ability_detail_configurator.png "Ability detail in the abilities configurator")
+
+In the ability editor, you can tweak basics like:
+
+- Name
+- UI icon
+- Cooldown
+- Range
+- Character state (as for now it's just the animation the character plays on the client when casting the skill).
+- Targeting, this defines if the skill need another character as an objective or it it can be caster to any coordinate of the map.
+
+But the core of the system is in the **mechanics**. These are the effects each ability applies to the game state — like dealing damage, healing, creating projectiles, or delaying another effect. Every ability is made up of one or more of these mechanics, and they can be reordered. Some even trigger other mechanics.
+
+Mechanics aren’t exclusive to abilities either. For example, health potions dropped by enemies use the same "health variation" mechanic that healing or damaging abilities use.
+
+---
+
+Currently implemented mechanics:
+
+- **Health Variation** (damage/heal)
+- **Projectile Creation**
+- **Area-of-Effect Creation (AoE)**
+- **Delay** (wait before triggering next mechanic)
+
+You can see how these are defined and registered in the backend, in the `mechanics.go` and `game_state.go` files.
+
+There are a bunch of other mechanics I’d like to add eventually — but that’s a rabbit hole I’m avoiding for now. Same with projectiles: there are tons of possible variations, but I’m keeping it simple at this stage to focus on other parts of the framework.
+
 ### Networking
+
+When the game starts, each player is automatically connected to the server.
+
+The flow is pretty straightforward:
+
+- The client sends input (like movement or casting an ability) to the backend.
+- The backend updates the character's intended action.
+- Every 50ms (as defined in `native_server.go`), the server processes a **tick**:
+  - All characters attempt to execute their current actions.
+  - Completed actions are removed; others are retained.
+  - The updated game state is sent back to all connected clients.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Server
+
+    Client->>Server: Sends input (e.g. cast ability)
+    Note over Server: Every 50ms (tick)
+    Server->>Server: Process player actions
+    Server->>Client: Send updated game state
+```
+
+#### Sending Only What Changed (Diffs)
+
+Right now, the full game state is sent to all clients on every tick. This works for now, but it's not very efficient — especially as the number of players or objects grows.
+
+We’ve already implemented **diff-based updates** for some systems (like the inventory), and the goal is to expand this to the rest of the game state.
+
+**Why use diffs?**
+
+- 🔽 **Reduces bandwidth**: Only sends what actually changed.
+- ⚡ **Faster syncing**: Less data = less time to transmit and process.
+- 📈 **Scales better**: More players and more world objects without crushing the network.
+
+As the framework grows, diffs will become essential to keep things smooth, especially in fast-paced real-time combat.
 
 ## Attribution
 
