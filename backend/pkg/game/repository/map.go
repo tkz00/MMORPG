@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"tkz00/backend/pkg/utils"
+	"backend/pkg/utils"
 )
 
 func GetObstacleColliders() [][]utils.Vector2 {

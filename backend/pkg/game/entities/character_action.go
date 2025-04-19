@@ -1,9 +1,9 @@
 package entities
 
 import (
+	"backend/pkg/utils"
 	"fmt"
 	"time"
-	"tkz00/backend/pkg/utils"
 )
 
 type CharacterAction interface {

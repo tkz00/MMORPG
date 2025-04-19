@@ -1,8 +1,8 @@
 package entities
 
 import (
+	"backend/pkg/utils"
 	"fmt"
-	"tkz00/backend/pkg/utils"
 )
 
 type Mechanic struct {

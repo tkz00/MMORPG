@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
-	"tkz00/backend/api/dtos"
-	"tkz00/backend/pkg/game/entities"
-	"tkz00/backend/pkg/game/gameplay"
-	"tkz00/backend/pkg/utils"
+	"backend/api/dtos"
+	"backend/pkg/game/entities"
+	"backend/pkg/game/gameplay"
+	"backend/pkg/utils"
 
 	"golang.org/x/net/websocket"
 )

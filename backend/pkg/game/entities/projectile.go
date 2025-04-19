@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"tkz00/backend/pkg/utils"
+	"backend/pkg/utils"
 
 	"github.com/google/uuid"
 )

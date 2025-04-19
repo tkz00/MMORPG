@@ -1,10 +1,10 @@
 package entities
 
 import (
+	"backend/pkg/game/stats"
+	"backend/pkg/utils"
 	"fmt"
 	"time"
-	"tkz00/backend/pkg/game/stats"
-	"tkz00/backend/pkg/utils"
 )
 
 const BASE_MAX_HEALTH = 100

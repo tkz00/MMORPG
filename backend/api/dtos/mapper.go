@@ -4,8 +4,8 @@ import (
 	"slices"
 	"sync"
 
-	"tkz00/backend/pkg/game/entities"
-	"tkz00/backend/pkg/utils"
+	"backend/pkg/game/entities"
+	"backend/pkg/utils"
 )
 
 type Mapper struct {

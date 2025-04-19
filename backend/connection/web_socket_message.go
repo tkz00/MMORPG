@@ -1,10 +1,10 @@
 package connection
 
 import (
+	"backend/api/dtos"
+	"backend/pkg/utils"
 	"encoding/json"
 	"fmt"
-	"tkz00/backend/api/dtos"
-	"tkz00/backend/pkg/utils"
 )
 
 type WebSocketMessage struct {
