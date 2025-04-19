@@ -1,9 +1,9 @@
 package entities
 
 import (
+	"backend/pkg/utils"
 	"math/rand/v2"
 	"time"
-	"tkz00/backend/pkg/utils"
 
 	"github.com/google/uuid"
 )

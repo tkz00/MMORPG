@@ -1,7 +1,7 @@
 package configurator
 
 import (
-	"tkz00/backend/pkg/game/entities"
+	"backend/pkg/game/entities"
 )
 
 func GetSeedsAbilities() map[string]*entities.Ability {

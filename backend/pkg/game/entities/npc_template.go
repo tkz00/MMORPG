@@ -1,8 +1,8 @@
 package entities
 
 import (
+	"backend/pkg/utils"
 	"time"
-	"tkz00/backend/pkg/utils"
 )
 
 type NPCTemplate struct {

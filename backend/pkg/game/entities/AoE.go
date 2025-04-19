@@ -1,8 +1,8 @@
 package entities
 
 import (
+	"backend/pkg/utils"
 	"slices"
-	"tkz00/backend/pkg/utils"
 
 	"github.com/google/uuid"
 )

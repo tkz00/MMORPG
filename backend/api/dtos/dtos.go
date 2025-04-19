@@ -1,10 +1,10 @@
 package dtos
 
 import (
+	"backend/pkg/game/entities"
+	"backend/pkg/utils"
 	"encoding/json"
 	"fmt"
-	"tkz00/backend/pkg/game/entities"
-	"tkz00/backend/pkg/utils"
 )
 
 type DTO interface {

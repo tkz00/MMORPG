@@ -16,8 +16,8 @@
 package main
 
 import (
-	"tkz00/backend/connection"
-	"tkz00/backend/pkg/configurator"
+	"backend/connection"
+	"backend/pkg/configurator"
 )
 
 func main() {
