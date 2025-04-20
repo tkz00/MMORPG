@@ -223,6 +223,9 @@ func (character *Character) EnqueueMovementAction(position utils.Vector2) {
 }
 
 func (character *Character) UseItem(itemId string, targetId string, gs *GameState) {
+	if !character.IsAlive() {
+		return
+	}
 	if !character.Inventory.CanConsume(itemId) {
 		err := fmt.Errorf(
 			"character %s tried to use item %s, but is unable to",
