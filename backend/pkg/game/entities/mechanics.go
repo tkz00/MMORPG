@@ -229,23 +229,32 @@ func resolveParameters(
 	}
 }
 
-func deepCopyMap(original map[string]interface{}) map[string]interface{} {
-	newMap := make(map[string]interface{}, len(original))
-	for k, v := range original {
-		// Handle nested maps
-		if nestedMap, ok := v.(map[string]interface{}); ok {
-			newMap[k] = deepCopyMap(nestedMap) // Recursively copy
-		} else {
-			newMap[k] = v // Copy other values as-is
-		}
-	}
-	return newMap
+func (m Mechanic) Clone() Mechanic {
+	cloned := m
+	cloned.Params = deepCloneParams(m.Params)
+	return cloned
 }
 
-func (m *Mechanic) Clone() Mechanic {
-	newMechanic := *m
-	if m.Params != nil {
-		newMechanic.Params = deepCopyMap(m.Params) // Use deep copy for maps
+func deepCloneParams(params map[string]interface{}) map[string]interface{} {
+	if params == nil {
+		return nil
 	}
-	return newMechanic
+	cloned := make(map[string]interface{}, len(params))
+	for k, v := range params {
+		switch val := v.(type) {
+		case []Mechanic:
+			// Clone []Mechanic recursively
+			newSlice := make([]Mechanic, len(val))
+			for i, mech := range val {
+				newSlice[i] = mech.Clone()
+			}
+			cloned[k] = newSlice
+		case map[string]interface{}:
+			// Recursively deep copy nested maps
+			cloned[k] = deepCloneParams(val)
+		default:
+			cloned[k] = val // Primitives and unhandled types
+		}
+	}
+	return cloned
 }
