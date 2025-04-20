@@ -86,6 +86,7 @@ public class Inventory : MonoBehaviour
 
     private void UseItem(string itemId)
     {
+        if (!GameManager.GetPlayer(GameManager.MainPlayerID).IsAlive) return;
         UseItemDTO useItem = new UseItemDTO { itemId = itemId, targetId = GameManager.MainPlayerID };
         WebSocketMessage response = new WebSocketMessage
         {

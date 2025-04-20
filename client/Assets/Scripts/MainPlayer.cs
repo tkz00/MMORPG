@@ -81,6 +81,7 @@ public class MainPlayer : MonoBehaviour
 
     private void SendMovementMessage(InputAction.CallbackContext context)
     {
+        if (!GetComponent<Character>().IsAlive) return;
         Ray ray = mainCamera.ScreenPointToRay(Mouse.current.position.ReadValue());
         if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, groundLayer) && hit.collider)
         {
@@ -98,6 +99,7 @@ public class MainPlayer : MonoBehaviour
 
     private void CastAbility(InputAction.CallbackContext context, Ability ability)
     {
+        if (!GetComponent<Character>().IsAlive) return;
         if (ability != null)
         {
             // abilities panel is doing the work of what should be an abilities manager, it should be refactored

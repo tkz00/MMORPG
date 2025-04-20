@@ -33,10 +33,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] Inventory inventory;
 
 
-    Dictionary<string, Character> players = new Dictionary<string, Character>();
-    Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
-    Dictionary<string, Character> npcs = new Dictionary<string, Character>();
-    Dictionary<string, AoE> areaEffects = new Dictionary<string, AoE>();
+    static Dictionary<string, Character> players = new Dictionary<string, Character>();
+    static Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
+    static Dictionary<string, Character> npcs = new Dictionary<string, Character>();
+    static Dictionary<string, AoE> areaEffects = new Dictionary<string, AoE>();
 
     async void Awake()
     {
@@ -100,7 +100,7 @@ public class GameManager : MonoBehaviour
     {
         foreach (AreaEffectDTO areaEffectDTO in gameState.aoEs)
         {
-            bool areaEffectExists = this.areaEffects.Any(aoe => aoe.Key == areaEffectDTO.id);
+            bool areaEffectExists = areaEffects.Any(aoe => aoe.Key == areaEffectDTO.id);
             if (!areaEffectExists)
             {
                 GameObject newAoEGO = Instantiate(
@@ -117,28 +117,33 @@ public class GameManager : MonoBehaviour
         // Destroy old AoEs
         foreach (string entitiesToDestroy in gameState.entitiesToDestroy)
         {
-            Destroy(this.areaEffects[entitiesToDestroy].gameObject);
-            this.areaEffects.Remove(entitiesToDestroy);
+            Destroy(areaEffects[entitiesToDestroy].gameObject);
+            areaEffects.Remove(entitiesToDestroy);
         }
     }
 
     #region Players
 
-    private void UpdatePlayers(List<CharacterDTO> players)
+    private void UpdatePlayers(List<CharacterDTO> playerDTOS)
     {
-        string[] currentPlayerIds = this.players.Keys.ToArray();
+        string[] currentPlayerIds = players.Keys.ToArray();
         HashSet<string> playersToDestroy = new HashSet<string>(
-            currentPlayerIds.Except(players.Select(player => player.id))
+            currentPlayerIds.Except(playerDTOS.Select(player => player.id))
         );
         DestroyPlayers(playersToDestroy.ToArray());
-        UpdatePlayersPositions(players);
+        UpdatePlayersPositions(playerDTOS);
     }
 
     void UpdatePlayersPositions(List<CharacterDTO> playerDTOS)
     {
         foreach (CharacterDTO playerDTO in playerDTOS)
         {
-            Character player = GetPlayer(playerDTO);
+            Character player;
+            bool playerExists = players.Any(character => character.Key == playerDTO.id);
+            if (playerExists)
+                player = GetPlayer(playerDTO.id);
+            else
+                player = CreatePlayer(playerDTO);
             player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
             player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
             UpdateCharacterAnimations(playerDTO, player);
@@ -149,22 +154,9 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private Character GetPlayer(CharacterDTO playerDTO)
+    public static Character GetPlayer(string playerId)
     {
-        Character player;
-        bool playerExists = this.players.Any(
-            playerMovement => playerMovement.Key == playerDTO.id
-        );
-        if (playerExists)
-        {
-            player = players[playerDTO.id];
-        }
-        else
-        {
-            player = CreatePlayer(playerDTO);
-        }
-
-        return player;
+        return players[playerId];
     }
 
     private void CheckDeathSplash(CharacterDTO playerDTO)
@@ -172,9 +164,9 @@ public class GameManager : MonoBehaviour
         if (mainPlayerID == playerDTO.id)
         {
             if (playerDTO.currentHealth <= 0 && !deathSplash.activeSelf)
-            {
                 deathSplash.SetActive(true);
-            }
+            else if (playerDTO.currentHealth > 0 && deathSplash.activeSelf)
+                deathSplash.SetActive(false);
         }
     }
 
@@ -227,8 +219,8 @@ public class GameManager : MonoBehaviour
     {
         foreach (string playerIdToDestroy in playerIdsToDestroy)
         {
-            Destroy(this.players[playerIdToDestroy].gameObject);
-            this.players.Remove(playerIdToDestroy);
+            Destroy(players[playerIdToDestroy].gameObject);
+            players.Remove(playerIdToDestroy);
         }
     }
 
@@ -246,24 +238,24 @@ public class GameManager : MonoBehaviour
 
     #region Projectiles
 
-    private void UpdateProjectiles(List<ProjectileDTO> projectiles)
+    private void UpdateProjectiles(List<ProjectileDTO> projectilesDTOS)
     {
-        string[] currentProjectileIds = this.projectiles.Keys.ToArray();
+        string[] currentProjectileIds = projectiles.Keys.ToArray();
         HashSet<string> projectilesToDestroy = new HashSet<string>(
-            currentProjectileIds.Except(projectiles.Select(projectile => projectile.id))
+            currentProjectileIds.Except(projectilesDTOS.Select(projectile => projectile.id))
         );
         DestroyProjectiles(projectilesToDestroy.ToArray());
-        UpdateProjectilesPositions(projectiles);
+        UpdateProjectilesPositions(projectilesDTOS);
     }
 
     void UpdateProjectilesPositions(List<ProjectileDTO> projectileDTOS)
     {
         foreach (ProjectileDTO projectile in projectileDTOS)
         {
-            bool projectileExists = this.projectiles.Any(p => p.Key == projectile.id);
+            bool projectileExists = projectiles.Any(p => p.Key == projectile.id);
             if (projectileExists)
             {
-                this.projectiles[projectile.id].Move(
+                projectiles[projectile.id].Move(
                     new Vector3(projectile.position.x, 0, projectile.position.z)
                 );
             }
@@ -290,8 +282,8 @@ public class GameManager : MonoBehaviour
     {
         foreach (string projectileId in projectilesToDestroy)
         {
-            Destroy(this.projectiles[projectileId].gameObject);
-            this.projectiles.Remove(projectileId);
+            Destroy(projectiles[projectileId].gameObject);
+            projectiles.Remove(projectileId);
         }
     }
 
@@ -299,14 +291,14 @@ public class GameManager : MonoBehaviour
 
     #region NPCs
 
-    private void UpdateNPCs(List<CharacterDTO> npcs)
+    private void UpdateNPCs(List<CharacterDTO> npcsDTOS)
     {
-        string[] currentNPCsIds = this.npcs.Keys.ToArray();
+        string[] currentNPCsIds = npcs.Keys.ToArray();
         HashSet<string> npcsToDestroy = new HashSet<string>(
-            currentNPCsIds.Except(npcs.Select(npc => npc.id))
+            currentNPCsIds.Except(npcsDTOS.Select(npc => npc.id))
         );
         DestroyNPCs(npcsToDestroy.ToArray());
-        UpdateNPCsPositions(npcs);
+        UpdateNPCsPositions(npcsDTOS);
     }
 
     void UpdateNPCsPositions(List<CharacterDTO> npcDTOS)
@@ -314,7 +306,7 @@ public class GameManager : MonoBehaviour
         foreach (CharacterDTO npcDTO in npcDTOS)
         {
             Character npc;
-            bool npcExists = this.npcs.Any(npcMovement => npcMovement.Key == npcDTO.id);
+            bool npcExists = npcs.Any(npcMovement => npcMovement.Key == npcDTO.id);
             if (npcExists)
             {
                 npc = npcs[npcDTO.id];
@@ -354,8 +346,8 @@ public class GameManager : MonoBehaviour
     {
         foreach (string npcIdToDestroy in npcIdsToDestroy)
         {
-            Destroy(this.npcs[npcIdToDestroy].gameObject);
-            this.npcs.Remove(npcIdToDestroy);
+            Destroy(npcs[npcIdToDestroy].gameObject);
+            npcs.Remove(npcIdToDestroy);
         }
     }
 
@@ -365,12 +357,12 @@ public class GameManager : MonoBehaviour
     {
         hitboxOn = !hitboxOn;
 
-        foreach (Character player in this.players.Values)
+        foreach (Character player in players.Values)
         {
             player.SetHitbox(hitboxOn);
         }
 
-        foreach (Character player in this.npcs.Values)
+        foreach (Character player in npcs.Values)
         {
             player.SetHitbox(hitboxOn);
         }
