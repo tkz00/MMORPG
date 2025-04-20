@@ -60,11 +60,11 @@ func (p PositionDTO) GetType() string {
 }
 
 type ProjectileDTO struct {
-	Id       string      `json:"id"`
-	Caster   string      `json:"caster"`
-	Position PositionDTO `json:"position"`
-	Radius   float64     `json:"radius"`
-	State    string      `json:"state"`
+	Id       string       `json:"id"`
+	Caster   string       `json:"caster,omitempty"`
+	Position *PositionDTO `json:"position,omitempty"`
+	Radius   *float64     `json:"radius,omitempty"`
+	State    string       `json:"state,omitempty"`
 }
 
 func (p ProjectileDTO) GetType() string {

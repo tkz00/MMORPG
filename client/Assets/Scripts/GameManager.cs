@@ -255,9 +255,10 @@ public class GameManager : MonoBehaviour
             bool projectileExists = projectiles.Any(p => p.Key == projectile.id);
             if (projectileExists)
             {
-                projectiles[projectile.id].Move(
-                    new Vector3(projectile.position.x, 0, projectile.position.z)
-                );
+                if (projectile.position != null)
+                    projectiles[projectile.id].Move(
+                        new Vector3(projectile.position.x, 0, projectile.position.z)
+                    );
             }
             else
             {
@@ -269,12 +270,12 @@ public class GameManager : MonoBehaviour
                 projectiles[projectile.id] = newProjectileGO.GetComponent<Projectile>();
                 newProjectileGO.GetComponent<MeshRenderer>().material.color = Color.blue;
             }
-            projectiles[projectile.id].SetScale(projectile.radius * 2);
+
+            if (projectile.radius != null)
+                projectiles[projectile.id].SetScale((float)(projectile.radius * 2));
 
             if (projectile.state == State.Hit)
-            {
                 projectiles[projectile.id].TriggerHit();
-            }
         }
     }
 

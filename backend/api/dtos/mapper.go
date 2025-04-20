@@ -36,7 +36,7 @@ func (m *Mapper) GameStateToDTO(gameState entities.GameState) *GameStateDTO {
 	}
 
 	for _, projectile := range gameState.GetProjectiles() {
-		projectileDTOS = append(projectileDTOS, *m.ProjectileToDTO(projectile))
+		projectileDTOS = append(projectileDTOS, *GetDiff(&projectile))
 	}
 
 	for _, npcs := range gameState.GetNPCs() {
@@ -65,7 +65,7 @@ func (m Mapper) AoEToDTO(AoE entities.AoE) AoEDTO {
 	return AoEDTO{
 		Id:       AoE.Id(),
 		Caster:   AoE.CasterId(),
-		Position: *m.PositionToDTO(AoE.Position()),
+		Position: *PositionToDTO(AoE.Position()),
 		Radius:   AoE.Radius(),
 	}
 }
@@ -101,7 +101,7 @@ func (m Mapper) PositionDTOToEntity(positionDTO PositionDTO) *utils.Vector2 {
 	return utils.NewVector2(positionDTO.X, positionDTO.Z)
 }
 
-func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
+func PositionToDTO(position utils.Vector2) *PositionDTO {
 	x, z := position.GetPosition()
 	return &PositionDTO{
 		X: x,
@@ -122,14 +122,14 @@ func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
 	executingActionDirection := characterExecutingAction.Direction()
 	executingActionDTO := ExecutingActionDTO{
 		Action:    characterExecutingAction.ActionType(),
-		Direction: *m.PositionToDTO(executingActionDirection),
+		Direction: *PositionToDTO(executingActionDirection),
 	}
 
 	characterInventory := InventoryDTO{Items: character.ChangeLogs()}
 
 	return &CharacterDTO{
 		Id:              character.GetId(),
-		Position:        *m.PositionToDTO(character.GetPosition()),
+		Position:        *PositionToDTO(character.GetPosition()),
 		Radius:          character.GetRadius(),
 		MaxHealth:       characterHealth.GetMaxHealth(),
 		CurrentHealth:   characterHealth.GetCurrentHealth(),
@@ -139,14 +139,26 @@ func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
 	}
 }
 
-func (m Mapper) ProjectileToDTO(projectile entities.Projectile) *ProjectileDTO {
-	return &ProjectileDTO{
-		Id:       projectile.GetId(),
-		Caster:   projectile.CasterId(),
-		Position: *m.PositionToDTO(projectile.GetPosition()),
-		Radius:   projectile.GetRadius(),
-		State:    projectile.GetState(),
+func GetDiff(p *entities.Projectile) *ProjectileDTO {
+	diff := &ProjectileDTO{Id: p.GetId()}
+	if p.ProjectileLastSentState.Position == nil ||
+		!p.GetPosition().Equals(*p.ProjectileLastSentState.Position) {
+		diff.Position = PositionToDTO(p.GetPosition())
+		p.ProjectileLastSentState.Position = utils.NewVector2(p.GetPosition().GetPosition())
 	}
+	if p.ProjectileLastSentState.State == nil ||
+		p.State() != *p.ProjectileLastSentState.State {
+		diff.State = p.GetState()
+		state := p.State()
+		p.ProjectileLastSentState.State = &state
+	}
+	if p.ProjectileLastSentState.Radius == nil ||
+		p.GetRadius() != *p.ProjectileLastSentState.Radius {
+		radius := p.GetRadius()
+		diff.Radius = &radius
+		p.ProjectileLastSentState.Radius = &radius
+	}
+	return diff
 }
 
 func AbilityToDTO(ability entities.Ability) AbilityDTO {

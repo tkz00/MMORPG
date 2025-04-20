@@ -24,6 +24,8 @@ type Projectile struct {
 	to             utils.Vector2
 	state          ProjectileState
 	onHitMechanics []Mechanic
+
+	ProjectileLastSentState *ProjectileLastTickState
 }
 
 func CreateProjectile(
@@ -38,13 +40,14 @@ func CreateProjectile(
 	direction := normalizedVector.Scale(PROJECTILE_SPEED)
 
 	return &Projectile{
-		id:             uuid.New().String(),
-		caster:         caster,
-		direction:      direction,
-		position:       initialPosition,
-		to:             to,
-		state:          Active,
-		onHitMechanics: onHitMechanics,
+		id:                      uuid.New().String(),
+		caster:                  caster,
+		direction:               direction,
+		position:                initialPosition,
+		to:                      to,
+		state:                   Active,
+		onHitMechanics:          onHitMechanics,
+		ProjectileLastSentState: &ProjectileLastTickState{Position: nil, State: nil},
 	}
 }
 
@@ -106,4 +109,10 @@ func (projectile Projectile) Hit(target *Character, gs *GameState) {
 		}
 	}
 	resolveMechanics(projectile.caster, gs, projectile.onHitMechanics)
+}
+
+type ProjectileLastTickState struct {
+	Position *utils.Vector2
+	State    *ProjectileState
+	Radius   *float64
 }
