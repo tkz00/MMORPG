@@ -66,15 +66,15 @@ func (ability Ability) Mechanics() []Mechanic {
 }
 
 func (a *Ability) Clone() *Ability {
-	newAbility := *a // Start with a shallow copy
+	clone := *a // shallow copy of base fields
 
-	// Deep copy the mechanics slice
+	// Deep copy mechanics
 	if a.mechanics != nil {
-		newAbility.mechanics = make([]Mechanic, len(a.mechanics))
-		for i, mechanic := range a.mechanics {
-			newAbility.mechanics[i] = mechanic.Clone() // Use the deep copy method
+		clone.mechanics = make([]Mechanic, len(a.mechanics))
+		for i, mech := range a.mechanics {
+			clone.mechanics[i] = mech.Clone()
 		}
 	}
 
-	return &newAbility
+	return &clone
 }
