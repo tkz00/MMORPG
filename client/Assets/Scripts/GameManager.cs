@@ -87,7 +87,7 @@ public class GameManager : MonoBehaviour
         UpdatePlayers(gameState.players);
         UpdateProjectiles(gameState.projectiles);
         UpdateNPCs(gameState.npcs);
-        UpdateAreaEffects(gameState);
+        UpdateAreaEffects(gameState.aoEs);
 
         CharacterDTO mainPlayer = gameState.players.Find(player => player.id == mainPlayerID);
 
@@ -96,9 +96,15 @@ public class GameManager : MonoBehaviour
         inventory.UpdateInventory(mainPlayer.inventory);
     }
 
-    private void UpdateAreaEffects(GameStateDTO gameState)
+    private void UpdateAreaEffects(List<AreaEffectDTO> AoEs)
     {
-        foreach (AreaEffectDTO areaEffectDTO in gameState.aoEs)
+        string[] currentAoEsIds = areaEffects.Keys.ToArray();
+        HashSet<string> AoEsToDestroy = new HashSet<string>(
+            currentAoEsIds.Except(AoEs.Select(AoE => AoE.id))
+        );
+        DestroyAoEs(AoEsToDestroy.ToArray());
+
+        foreach (AreaEffectDTO areaEffectDTO in AoEs)
         {
             bool areaEffectExists = areaEffects.Any(aoe => aoe.Key == areaEffectDTO.id);
             if (!areaEffectExists)
@@ -113,12 +119,14 @@ public class GameManager : MonoBehaviour
                 areaEffects[areaEffectDTO.id].transform.localScale = Vector3.one * (areaEffectDTO.radius * 2);
             }
         }
+    }
 
-        // Destroy old AoEs
-        foreach (string entitiesToDestroy in gameState.entitiesToDestroy)
+    void DestroyAoEs(string[] AoEsToDestroy)
+    {
+        foreach (string AoEId in AoEsToDestroy)
         {
-            Destroy(areaEffects[entitiesToDestroy].gameObject);
-            areaEffects.Remove(entitiesToDestroy);
+            Destroy(areaEffects[AoEId].gameObject);
+            areaEffects.Remove(AoEId);
         }
     }
 

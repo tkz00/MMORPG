@@ -12,11 +12,10 @@ type DTO interface {
 }
 
 type GameStateDTO struct {
-	Players           []CharacterDTO  `json:"players"`
-	Projectiles       []ProjectileDTO `json:"projectiles"`
-	AreaEffects       []AoEDTO        `json:"area_effects"`
-	Npcs              []CharacterDTO  `json:"npcs"`
-	EntitiesToDestroy []string        `json:"entities_to_destroy"`
+	Players     []CharacterDTO  `json:"players"`
+	Projectiles []ProjectileDTO `json:"projectiles"`
+	AreaEffects []AoEDTO        `json:"area_effects"`
+	Npcs        []CharacterDTO  `json:"npcs"`
 }
 
 func (g GameStateDTO) GetType() string {
@@ -72,10 +71,9 @@ func (p ProjectileDTO) GetType() string {
 }
 
 type AoEDTO struct {
-	Id       string      `json:"id"`
-	Caster   string      `json:"caster"`
-	Position PositionDTO `json:"position"`
-	Radius   float64     `json:"radius"`
+	Id       string       `json:"id"`
+	Position *PositionDTO `json:"position,omitempty"`
+	Radius   *float64     `json:"radius,omitempty"`
 }
 
 func (AoEDTO) GetType() string {

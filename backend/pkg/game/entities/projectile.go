@@ -16,6 +16,12 @@ const (
 	Hit
 )
 
+type ProjectileLastTickState struct {
+	Position *utils.Vector2
+	State    *ProjectileState
+	Radius   *float64
+}
+
 type Projectile struct {
 	id             string
 	caster         string
@@ -25,7 +31,7 @@ type Projectile struct {
 	state          ProjectileState
 	onHitMechanics []Mechanic
 
-	ProjectileLastSentState *ProjectileLastTickState
+	ProjectileLastTickState *ProjectileLastTickState
 }
 
 func CreateProjectile(
@@ -47,7 +53,7 @@ func CreateProjectile(
 		to:                      to,
 		state:                   Active,
 		onHitMechanics:          onHitMechanics,
-		ProjectileLastSentState: &ProjectileLastTickState{Position: nil, State: nil},
+		ProjectileLastTickState: &ProjectileLastTickState{},
 	}
 }
 
@@ -109,10 +115,4 @@ func (projectile Projectile) Hit(target *Character, gs *GameState) {
 		}
 	}
 	resolveMechanics(projectile.caster, gs, projectile.onHitMechanics)
-}
-
-type ProjectileLastTickState struct {
-	Position *utils.Vector2
-	State    *ProjectileState
-	Radius   *float64
 }

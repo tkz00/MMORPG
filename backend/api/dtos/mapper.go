@@ -1,7 +1,6 @@
 package dtos
 
 import (
-	"slices"
 	"sync"
 
 	"backend/pkg/game/entities"
@@ -36,7 +35,7 @@ func (m *Mapper) GameStateToDTO(gameState entities.GameState) *GameStateDTO {
 	}
 
 	for _, projectile := range gameState.GetProjectiles() {
-		projectileDTOS = append(projectileDTOS, *GetDiff(&projectile))
+		projectileDTOS = append(projectileDTOS, *GetProjectileDiff(&projectile))
 	}
 
 	for _, npcs := range gameState.GetNPCs() {
@@ -44,57 +43,32 @@ func (m *Mapper) GameStateToDTO(gameState entities.GameState) *GameStateDTO {
 	}
 
 	areaEffects := gameState.AreaEffects()
-	for AoEId, areaEffect := range areaEffects {
-		if !slices.Contains(m.entitiesIds, AoEId) {
-			AoEDTOS = append(AoEDTOS, m.AoEToDTO(*areaEffect))
-			m.entitiesIds = append(m.entitiesIds, AoEId)
-		}
+	for _, AoE := range areaEffects {
+		AoEDTOS = append(AoEDTOS, *GetAoEDiff(AoE))
 	}
-	destroyedAoEs := m.GetDestroyedAoEs(areaEffects)
 
 	return &GameStateDTO{
-		Players:           playerDTOS,
-		Projectiles:       projectileDTOS,
-		Npcs:              npcsDTOS,
-		AreaEffects:       AoEDTOS,
-		EntitiesToDestroy: destroyedAoEs,
+		Players:     playerDTOS,
+		Projectiles: projectileDTOS,
+		Npcs:        npcsDTOS,
+		AreaEffects: AoEDTOS,
 	}
 }
 
-func (m Mapper) AoEToDTO(AoE entities.AoE) AoEDTO {
-	return AoEDTO{
-		Id:       AoE.Id(),
-		Caster:   AoE.CasterId(),
-		Position: *PositionToDTO(AoE.Position()),
-		Radius:   AoE.Radius(),
+func GetAoEDiff(AoE *entities.AoE) *AoEDTO {
+	diff := &AoEDTO{Id: AoE.Id()}
+	if AoE.AoELastTickState.Position == nil ||
+		!AoE.Position().Equals(*AoE.AoELastTickState.Position) {
+		diff.Position = PositionToDTO(AoE.Position())
+		AoE.AoELastTickState.Position = utils.NewVector2(AoE.Position().GetPosition())
 	}
-}
-
-func (m *Mapper) GetDestroyedAoEs(areaEffects map[string]*entities.AoE) []string {
-	destroyedAoEs := []string{}
-
-	for _, id := range m.entitiesIds {
-		if _, exists := areaEffects[id]; !exists {
-			destroyedAoEs = append(destroyedAoEs, id)
-		}
+	if AoE.AoELastTickState.Radius == nil ||
+		AoE.Radius() != *AoE.AoELastTickState.Radius {
+		radius := AoE.Radius()
+		diff.Radius = &radius
+		AoE.AoELastTickState.Radius = &radius
 	}
-
-	// Remove destroyed IDs from m.entitiesIds
-	m.entitiesIds = filter(m.entitiesIds, func(id string) bool {
-		return areaEffects[id] != nil
-	})
-
-	return destroyedAoEs
-}
-
-func filter(ids []string, predicate func(string) bool) []string {
-	var result []string
-	for _, id := range ids {
-		if predicate(id) {
-			result = append(result, id)
-		}
-	}
-	return result
+	return diff
 }
 
 func (m Mapper) PositionDTOToEntity(positionDTO PositionDTO) *utils.Vector2 {
@@ -139,24 +113,24 @@ func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
 	}
 }
 
-func GetDiff(p *entities.Projectile) *ProjectileDTO {
+func GetProjectileDiff(p *entities.Projectile) *ProjectileDTO {
 	diff := &ProjectileDTO{Id: p.GetId()}
-	if p.ProjectileLastSentState.Position == nil ||
-		!p.GetPosition().Equals(*p.ProjectileLastSentState.Position) {
+	if p.ProjectileLastTickState.Position == nil ||
+		!p.GetPosition().Equals(*p.ProjectileLastTickState.Position) {
 		diff.Position = PositionToDTO(p.GetPosition())
-		p.ProjectileLastSentState.Position = utils.NewVector2(p.GetPosition().GetPosition())
+		p.ProjectileLastTickState.Position = utils.NewVector2(p.GetPosition().GetPosition())
 	}
-	if p.ProjectileLastSentState.State == nil ||
-		p.State() != *p.ProjectileLastSentState.State {
+	if p.ProjectileLastTickState.State == nil ||
+		p.State() != *p.ProjectileLastTickState.State {
 		diff.State = p.GetState()
 		state := p.State()
-		p.ProjectileLastSentState.State = &state
+		p.ProjectileLastTickState.State = &state
 	}
-	if p.ProjectileLastSentState.Radius == nil ||
-		p.GetRadius() != *p.ProjectileLastSentState.Radius {
+	if p.ProjectileLastTickState.Radius == nil ||
+		p.GetRadius() != *p.ProjectileLastTickState.Radius {
 		radius := p.GetRadius()
 		diff.Radius = &radius
-		p.ProjectileLastSentState.Radius = &radius
+		p.ProjectileLastTickState.Radius = &radius
 	}
 	return diff
 }
