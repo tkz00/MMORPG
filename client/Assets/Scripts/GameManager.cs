@@ -152,11 +152,11 @@ public class GameManager : MonoBehaviour
                 player = GetPlayer(playerDTO.id);
             else
                 player = CreatePlayer(playerDTO);
-            player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
+            if (playerDTO.position != null) player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
             player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
             UpdateCharacterAnimations(playerDTO, player);
 
-            player.SetScale(playerDTO.radius * 2);
+            if (playerDTO.radius != null) player.SetScale((float)(playerDTO.radius * 2));
 
             CheckDeathSplash(playerDTO);
         }
@@ -180,17 +180,15 @@ public class GameManager : MonoBehaviour
 
     private void UpdateCharacterAnimations(CharacterDTO characterDTO, Character character)
     {
-        if (characterDTO.currentHealth > 0)
+        if (character.Stats.CurrentHealth > 0)
         {
-            character.HandleActionFeedback(characterDTO.executingAction);
-
+            if (characterDTO.action != null) character.HandleActionFeedback((CharacterAction)characterDTO.action);
+            if (characterDTO.direction != null) character.Movement.RotateTowards(characterDTO.direction);
             return;
         }
 
         if (character.IsAlive)
-        {
             character.TriggerDeath();
-        }
     }
 
     private Character CreatePlayer(CharacterDTO playerDTO)
@@ -319,7 +317,7 @@ public class GameManager : MonoBehaviour
             if (npcExists)
             {
                 npc = npcs[npcDTO.id];
-                npc.Movement.Move(new Vector3(npcDTO.position.x, 0, npcDTO.position.z));
+                if (npcDTO.position != null) npc.Movement.Move(new Vector3(npcDTO.position.x, 0, npcDTO.position.z));
             }
             else
             {
@@ -327,9 +325,10 @@ public class GameManager : MonoBehaviour
             }
             npc.UpdateHealth(npcDTO.currentHealth, npcDTO.maxHealth);
 
-            npc.HandleActionFeedback(npcDTO.executingAction);
+            if (npcDTO.action != null) npc.HandleActionFeedback((CharacterAction)npcDTO.action);
+            if (npcDTO.direction != null) npc.Movement.RotateTowards(npcDTO.direction);
 
-            npc.SetScale(npcDTO.radius * 2);
+            if (npcDTO.radius != null) npc.SetScale((float)(npcDTO.radius * 2));
         }
     }
 

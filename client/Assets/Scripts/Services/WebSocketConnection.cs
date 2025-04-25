@@ -90,6 +90,7 @@ public static class WebSocketConnection
 
                 if (_responseHandlers.ContainsKey(response.ActionType))
                 {
+                    Debug.Log(responseJson);
                     var handler = _responseHandlers[response.ActionType];
                     handler.DynamicInvoke(response.Body);
                 }

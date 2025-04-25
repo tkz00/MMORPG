@@ -23,14 +23,15 @@ func (g GameStateDTO) GetType() string {
 }
 
 type CharacterDTO struct {
-	Id              string             `json:"id"`
-	MaxHealth       int                `json:"maxHealth"`
-	CurrentHealth   int                `json:"currentHealth"`
-	Radius          float64            `json:"radius"`
-	Position        PositionDTO        `json:"position"`
-	ExecutingAction ExecutingActionDTO `json:"executingAction"`
-	Abilities       []AbilityDTO       `json:"abilities"`
-	Inventory       InventoryDTO       `json:"inventory"`
+	Id            string           `json:"id"`
+	MaxHealth     *int             `json:"maxHealth,omitempty"`
+	CurrentHealth *int             `json:"currentHealth,omitempty"`
+	Radius        *float64         `json:"radius,omitempty"`
+	Position      *PositionDTO     `json:"position,omitempty"`
+	Action        *entities.Action `json:"action,omitempty"`
+	Direction     *PositionDTO     `json:"direction,omitempty"`
+	Abilities     []AbilityDTO     `json:"abilities,omitempty"`
+	Inventory     InventoryDTO     `json:"inventory"` // Refactor this
 }
 
 func (p CharacterDTO) GetType() string {
@@ -78,11 +79,6 @@ type AoEDTO struct {
 
 func (AoEDTO) GetType() string {
 	return "AoE"
-}
-
-type ExecutingActionDTO struct {
-	Action    entities.Action `json:"action"`
-	Direction PositionDTO     `json:"direction"`
 }
 
 type InventoryDTO struct {

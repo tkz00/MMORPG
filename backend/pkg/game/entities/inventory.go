@@ -47,12 +47,6 @@ func (looter *Inventory) AddItem(item *Item, quantity int) {
 	})
 }
 
-func (inventory *Inventory) ChangeLogs() []ItemChange {
-	changes := inventory.changeLog
-	inventory.changeLog = []ItemChange{}
-	return changes
-}
-
 func (inv Inventory) CanConsume(itemId string) bool {
 	for item := range inv.items {
 		if item.id == itemId {
@@ -69,6 +63,20 @@ func (inv Inventory) GetItem(itemId string) *Item {
 		}
 	}
 	return nil
+}
+
+func (inventory *Inventory) ChangeLogs() []ItemChange {
+	changes := inventory.changeLog
+	inventory.changeLog = []ItemChange{}
+	return changes
+}
+
+func (inventory *Inventory) GetInventory() []ItemChange {
+	invSlice := []ItemChange{}
+	for item, qty := range inventory.items {
+		invSlice = append(invSlice, ItemChange{Id: item.id, Quantity: qty})
+	}
+	return invSlice
 }
 
 func (inv *Inventory) PrintInventory() {

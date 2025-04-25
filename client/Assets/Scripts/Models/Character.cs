@@ -46,16 +46,16 @@ public class Character : MonoBehaviour, ITargeteable
         playerNameUI.text = playerName;
     }
 
-    public void UpdateHealth(int currentHealth, int maxHealth)
+    public void UpdateHealth(int? currentHealth, int? maxHealth)
     {
         // this logic should be changed, "states" should come from the backend and them trigger specific feedbacks, i.e.: the "healed" state should trigger the respective healing vfx
-        if (this.Stats.CurrentHealth < currentHealth)
+        if (currentHealth != null && this.Stats.CurrentHealth < currentHealth)
         {
             this.playerVFXsHandler.TriggerHealingVFX();
         }
 
-        this.Stats.UpdateHealth(currentHealth, maxHealth);
-        this.healthBar.UpdateHealthBar(currentHealth, maxHealth);
+        this.stats.UpdateHealth(currentHealth, maxHealth);
+        this.healthBar.UpdateHealthBar(this.stats.CurrentHealth, this.stats.MaxHealth);
     }
 
     public string GetTargetId()
@@ -101,23 +101,20 @@ public class Character : MonoBehaviour, ITargeteable
         playerNameUI.transform.parent.gameObject.SetActive(false);
     }
 
-    public void HandleActionFeedback(ExecutingAction action)
+    public void HandleActionFeedback(CharacterAction action)
     {
-        switch (action.action)
+        switch (action)
         {
             case CharacterAction.Attacking:
                 Movement.TriggerWalkingAnimation(false);
                 Movement.AttackAnimation();
-                Movement.RotateTowards(action.direction);
                 break;
             case CharacterAction.CastingHeal:
                 Movement.TriggerWalkingAnimation(false);
                 Movement.HealAnimation();
-                Movement.RotateTowards(action.direction);
                 break;
             case CharacterAction.Moving:
                 Movement.TriggerWalkingAnimation(true);
-                Movement.RotateTowards(action.direction);
                 break;
             default:
                 Movement.TriggerWalkingAnimation(false);
