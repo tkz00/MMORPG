@@ -87,6 +87,9 @@ public class AbilitiesPanel : MonoBehaviour
 
     public void UpdatePlayerPanel(CharacterDTO playerDTO)
     {
+        if (playerDTO.abilities == null)
+            return;
+
         foreach (AbilityDTO abilityDTO in playerDTO.abilities)
         {
             if (abilityIcons[abilityDTO.id] != null)

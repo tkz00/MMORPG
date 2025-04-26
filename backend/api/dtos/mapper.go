@@ -3,6 +3,8 @@ package dtos
 import (
 	"backend/pkg/game/entities"
 	"backend/pkg/utils"
+
+	"github.com/samber/lo"
 )
 
 func GameStateDiff(gameState entities.GameState) GameStateDTO {
@@ -126,17 +128,48 @@ func GetCharacterDiff(c *entities.Character) *CharacterDTO {
 			c.GetExecutingAction().Direction().GetPosition(),
 		)
 	}
-	// move this into a function and do diff check
-	characterAbilities := make([]AbilityDTO, 0)
-	for _, ability := range c.GetAbilities() {
-		abilityDTO := AbilityToDTO(*ability)
-		abilityDTO.RemainingCooldown = float64(c.RemainingCooldown(ability)) / 1000
-		characterAbilities = append(characterAbilities, abilityDTO)
-	}
-	diff.Abilities = characterAbilities
+	diff.Abilities = GetAbilitiesDiff(c)
 	characterInventory := InventoryDTO{Items: c.ChangeLogs()}
 	diff.Inventory = characterInventory
 	return diff
+}
+
+func GetAbilitiesDiff(c *entities.Character) []AbilityDTO {
+	abilitiesDTOs := make([]AbilityDTO, 0)
+	characterAbilities := c.GetAbilities()
+
+	newAbilityIds, _ := lo.Difference(
+		lo.Keys(characterAbilities),
+		c.CharacterLastTickState.Abilities,
+	)
+
+	if len(newAbilityIds) > 0 {
+		for abilityId, ability := range characterAbilities {
+			abilitiesDTOs = append(abilitiesDTOs, buildAbilityDTO(c, abilityId, ability))
+		}
+		c.CharacterLastTickState.Abilities = lo.Keys(characterAbilities)
+	} else {
+		for abilityId, ability := range characterAbilities {
+			remainingCooldown := c.RemainingCooldown(ability)
+			if remainingCooldown != c.CharacterLastTickState.AbilitiesRemainingCooldows[abilityId] {
+				abilitiesDTOs = append(abilitiesDTOs, buildAbilityDTO(c, abilityId, ability))
+			}
+		}
+	}
+
+	return abilitiesDTOs
+}
+
+func buildAbilityDTO(
+	c *entities.Character,
+	abilityId string,
+	ability *entities.Ability,
+) AbilityDTO {
+	remainingCooldown := c.RemainingCooldown(ability)
+	abilityDTO := AbilityToDTO(*ability)
+	abilityDTO.RemainingCooldown = float64(remainingCooldown) / 1000
+	c.CharacterLastTickState.AbilitiesRemainingCooldows[abilityId] = remainingCooldown
+	return abilityDTO
 }
 
 func GetProjectileDiff(p *entities.Projectile) *ProjectileDTO {

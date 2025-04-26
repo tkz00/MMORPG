@@ -35,14 +35,14 @@ func (action ExecutingAction) Direction() utils.Vector2 {
 }
 
 type CharacterLastTickState struct {
-	Position          *utils.Vector2
-	Radius            *float64
-	MaxHealth         *int
-	CurrentHealth     *int
-	Action            *Action
-	Direction         *utils.Vector2
-	Abilities         []string
-	AbilitiesLastUsed map[string]time.Time
+	Position                   *utils.Vector2
+	Radius                     *float64
+	MaxHealth                  *int
+	CurrentHealth              *int
+	Action                     *Action
+	Direction                  *utils.Vector2
+	Abilities                  []string
+	AbilitiesRemainingCooldows map[string]int64
 }
 
 type Character struct {
@@ -74,16 +74,18 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 	}
 
 	return &Character{
-		id:                     id,
-		position:               initialPosition,
-		to:                     initialPosition,
-		Health:                 stats.NewHealth(BASE_MAX_HEALTH),
-		executingAction:        ExecutingAction{Idle, *utils.NewVector2(0, 0)},
-		actionsQueue:           []CharacterAction{},
-		Inventory:              NewInventory(),
-		abilities:              abilities,
-		lastUsed:               lastUsed,
-		CharacterLastTickState: &CharacterLastTickState{},
+		id:              id,
+		position:        initialPosition,
+		to:              initialPosition,
+		Health:          stats.NewHealth(BASE_MAX_HEALTH),
+		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0)},
+		actionsQueue:    []CharacterAction{},
+		Inventory:       NewInventory(),
+		abilities:       abilities,
+		lastUsed:        lastUsed,
+		CharacterLastTickState: &CharacterLastTickState{
+			AbilitiesRemainingCooldows: make(map[string]int64),
+		},
 	}
 }
 
