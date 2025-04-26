@@ -120,8 +120,7 @@ func GetCharacterDiff(c *entities.Character) *CharacterDTO {
 		c.CharacterLastTickState.Action = &action
 	}
 	if c.CharacterLastTickState.Direction == nil ||
-		c.GetExecutingAction().
-			Direction().Equals(*c.CharacterLastTickState.Direction) {
+		!c.GetExecutingAction().Direction().Equals(*c.CharacterLastTickState.Direction) {
 		diff.Direction = PositionToDTO(c.GetExecutingAction().Direction())
 		c.CharacterLastTickState.Direction = utils.NewVector2(
 			c.GetExecutingAction().Direction().GetPosition(),
