@@ -48,6 +48,7 @@ type CharacterLastTickState struct {
 type Character struct {
 	id string
 	Health
+	stats           map[string]int64
 	executingAction ExecutingAction
 	position        utils.Vector2
 	to              utils.Vector2
@@ -65,7 +66,12 @@ type Character struct {
 	onRemoved []func()
 }
 
-func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Character {
+func CreateCharacter(
+	id string,
+	x, z float64,
+	stats map[string]int64,
+	abilities map[string]*Ability,
+) *Character {
 	initialPosition := *utils.NewVector2(x, z)
 
 	lastUsed := make(map[string]time.Time, len(abilities))
@@ -78,6 +84,7 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 		position:        initialPosition,
 		to:              initialPosition,
 		Health:          NewHealth(BASE_MAX_HEALTH),
+		stats:           stats,
 		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0)},
 		actionsQueue:    []CharacterAction{},
 		Inventory:       NewInventory(),

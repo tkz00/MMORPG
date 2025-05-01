@@ -149,7 +149,8 @@ func AddPlayer(gs *entities.GameState, conn *websocket.Conn) entities.Character 
 	id := uuid.New()
 	playerId := id.String()
 	abilities := repository.GetPlayerAbilities()
-	player := entities.CreateCharacter(playerId, 0, 0, abilities)
+	stats := map[string]int64{"damage": 10, "defense": 5}
+	player := entities.CreateCharacter(playerId, 0, 0, stats, abilities)
 	gs.AddPlayer(conn, player)
 	return *player
 }

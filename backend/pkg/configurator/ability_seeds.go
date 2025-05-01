@@ -89,7 +89,8 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 									{
 										MechanicType: "damage",
 										Params: map[string]interface{}{
-											"amount":             20,
+											"baseAmount":         20,
+											"damageMultiplier":   1.5,
 											"targeting_strategy": "character_hit",
 										},
 									},
