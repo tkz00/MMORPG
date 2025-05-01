@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"backend/pkg/game/stats"
 	"backend/pkg/utils"
 	"fmt"
 	"time"
@@ -48,7 +47,7 @@ type CharacterLastTickState struct {
 
 type Character struct {
 	id string
-	stats.Health
+	Health
 	executingAction ExecutingAction
 	position        utils.Vector2
 	to              utils.Vector2
@@ -78,7 +77,7 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 		id:              id,
 		position:        initialPosition,
 		to:              initialPosition,
-		Health:          stats.NewHealth(BASE_MAX_HEALTH),
+		Health:          NewHealth(BASE_MAX_HEALTH),
 		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0)},
 		actionsQueue:    []CharacterAction{},
 		Inventory:       NewInventory(),
@@ -104,7 +103,7 @@ func (p Character) GetPosition() utils.Vector2 {
 }
 
 // this shouldn't be here
-func (p Character) GetHealth() stats.Health {
+func (p Character) GetHealth() Health {
 	return p.Health
 }
 
