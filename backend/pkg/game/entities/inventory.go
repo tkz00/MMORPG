@@ -18,7 +18,6 @@ func NewInventory() *Inventory {
 func (looter *Inventory) Loot(loot *Inventory) {
 	for item, qty := range loot.items {
 		looter.AddItem(item, qty)
-		looter.PrintInventory()
 	}
 }
 

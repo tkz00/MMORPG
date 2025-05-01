@@ -96,7 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 43d6ac74dc5292f4dbe624d23228de38, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerAnimator: {fileID: 5474627217145932087}
+  playerAnimator: {fileID: 1284735182059568413}
 --- !u!143 &5879035764854825204
 CharacterController:
   m_ObjectHideFlags: 0
@@ -199,9 +199,9 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5d58f493044954c519a6b741a4b66c51, type: 3}
---- !u!95 &5474627217145932087 stripped
+--- !u!95 &1284735182059568413 stripped
 Animator:
-  m_CorrespondingSourceObject: {fileID: 5124317705334522879, guid: 5d58f493044954c519a6b741a4b66c51, type: 3}
+  m_CorrespondingSourceObject: {fileID: 2103383784811780053, guid: 5d58f493044954c519a6b741a4b66c51, type: 3}
   m_PrefabInstance: {fileID: 929135425432234696}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &6697845729446549841 stripped
