@@ -281,3 +281,11 @@ func (caster *Character) EnqueueAbilityCastAction(
 	}
 	caster.EnqueueAction(castAbilityAction)
 }
+
+func (c *Character) TakeDamage(d int) {
+	c.HealthVariation(-(d - int(c.stats["defense"])))
+}
+
+func (c *Character) Heal(a int) {
+	c.HealthVariation(a)
+}

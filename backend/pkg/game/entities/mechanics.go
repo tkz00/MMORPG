@@ -19,27 +19,54 @@ func RegisterMechanicHandler(mechanicType string, handler MechanicHandler) {
 }
 
 func HealMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
-	if amount, ok := params["amount"].(float64); ok {
-		target, err := gs.GetCharacterById(params["target_id"].(string))
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		if !target.IsAlive() {
-			return nil
-		}
-		target.HealthVariation(int(amount))
-
-		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
-			for _, mechanic := range onHitMechanics.([]Mechanic) {
-				mechanic.Params["target_id"] = target.id
-			}
-			resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
-		}
-
+	targetID, ok := params["target_id"].(string)
+	if !ok {
+		fmt.Println("Warning: 'target_id' not set or invalid.")
 		return nil
 	}
-	return fmt.Errorf("missing or invalid 'amount' parameter")
+
+	target, err := gs.GetCharacterById(targetID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	if !target.IsAlive() {
+		return nil
+	}
+
+	healAmount := 0.0
+
+	if baseAmount, ok := params["baseAmount"].(float64); ok {
+		healAmount += baseAmount
+	} else {
+		fmt.Println("Warning: 'baseAmount' not set or invalid. No heal will be done.")
+	}
+
+	if damageScaling, ok := params["damageMultiplier"].(float64); ok {
+		healAmount += float64(caster.stats["damage"]) * damageScaling
+	} else {
+		fmt.Println("Warning: 'damageMultiplier' not set or invalid. No heal will be done.")
+	}
+
+	target.Heal(int(healAmount))
+
+	if npc, ok := gs.npcs[targetID]; ok {
+		npc.BecomeAggressive(caster)
+	}
+
+	if !target.IsAlive() {
+		caster, _ := gs.GetCharacterById(caster.id)
+		caster.Loot(target.Inventory)
+	}
+
+	if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
+		for _, mechanic := range onHitMechanics.([]Mechanic) {
+			mechanic.Params["target_id"] = target.id
+		}
+		resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
+	}
+
+	return nil
 }
 
 func DamageMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
@@ -72,7 +99,7 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 		fmt.Println("Warning: 'damageMultiplier' not set or invalid. No damage will be dealt.")
 	}
 
-	target.HealthVariation(-int(damageAmount))
+	target.TakeDamage(int(damageAmount))
 
 	if npc, ok := gs.npcs[targetID]; ok {
 		npc.BecomeAggressive(caster)

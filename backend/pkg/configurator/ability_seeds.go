@@ -110,9 +110,9 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			entities.Target,
 			entities.CastingHeal,
 			entities.Mechanic{
-				MechanicType: "damage",
+				MechanicType: "heal",
 				Params: map[string]interface{}{
-					"baseAmount":         -20,
+					"baseAmount":         20,
 					"damageMultiplier":   0,
 					"targeting_strategy": "character_hit",
 				},
@@ -137,9 +137,9 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 								"delay_ms": 1000,
 								"execute_after_delay_mechanics": []entities.Mechanic{
 									{
-										MechanicType: "damage",
+										MechanicType: "heal",
 										Params: map[string]interface{}{
-											"baseAmount":         -10,
+											"baseAmount":         10,
 											"damageMultiplier":   0,
 											"targeting_strategy": "caster",
 										},
