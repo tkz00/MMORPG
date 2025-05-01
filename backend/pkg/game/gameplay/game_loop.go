@@ -1,8 +1,8 @@
 package gameplay
 
 import (
-	"tkz00/backend/pkg/game/entities"
-	"tkz00/backend/pkg/game/repository"
+	"backend/pkg/game/entities"
+	"backend/pkg/game/repository"
 
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"

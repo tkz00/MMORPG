@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
 
-	"tkz00/backend/pkg/utils"
+	"backend/pkg/utils"
 )
 
 type GameState struct {

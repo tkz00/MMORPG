@@ -1,107 +1,47 @@
 package dtos
 
 import (
-	"slices"
-	"sync"
+	"backend/pkg/game/entities"
+	"backend/pkg/utils"
 
-	"tkz00/backend/pkg/game/entities"
-	"tkz00/backend/pkg/utils"
+	"github.com/samber/lo"
 )
 
-type Mapper struct {
-	entitiesIds []string
-}
-
-var mapperInstance *Mapper
-var doItOnce sync.Once
-
-func GetMapper() *Mapper {
-	doItOnce.Do(func() {
-		mapperInstance = &Mapper{
-			entitiesIds: make([]string, 0),
-		}
-	})
-
-	return mapperInstance
-}
-
-func (m *Mapper) GameStateToDTO(gameState entities.GameState) *GameStateDTO {
+func GameStateDiff(gameState entities.GameState) GameStateDTO {
 	playerDTOS := make([]CharacterDTO, 0)
 	projectileDTOS := make([]ProjectileDTO, 0)
 	npcsDTOS := make([]CharacterDTO, 0)
 	AoEDTOS := make([]AoEDTO, 0)
 
 	for _, player := range gameState.GetPlayers() {
-		playerDTOS = append(playerDTOS, *m.CharacterToDTO(player))
+		playerDTOS = append(playerDTOS, *GetCharacterDiff(&player))
 	}
 
 	for _, projectile := range gameState.GetProjectiles() {
-		projectileDTOS = append(projectileDTOS, *m.ProjectileToDTO(projectile))
+		projectileDTOS = append(projectileDTOS, *GetProjectileDiff(&projectile))
 	}
 
 	for _, npcs := range gameState.GetNPCs() {
-		npcsDTOS = append(npcsDTOS, *m.CharacterToDTO(*npcs.Character))
+		npcsDTOS = append(npcsDTOS, *GetCharacterDiff(npcs.Character))
 	}
 
-	areaEffects := gameState.AreaEffects()
-	for AoEId, areaEffect := range areaEffects {
-		if !slices.Contains(m.entitiesIds, AoEId) {
-			AoEDTOS = append(AoEDTOS, m.AoEToDTO(*areaEffect))
-			m.entitiesIds = append(m.entitiesIds, AoEId)
-		}
+	for _, AoE := range gameState.AreaEffects() {
+		AoEDTOS = append(AoEDTOS, *GetAoEDiff(AoE))
 	}
-	destroyedAoEs := m.GetDestroyedAoEs(areaEffects)
 
-	return &GameStateDTO{
-		Players:           playerDTOS,
-		Projectiles:       projectileDTOS,
-		Npcs:              npcsDTOS,
-		AreaEffects:       AoEDTOS,
-		EntitiesToDestroy: destroyedAoEs,
+	return GameStateDTO{
+		Players:     playerDTOS,
+		Projectiles: projectileDTOS,
+		Npcs:        npcsDTOS,
+		AreaEffects: AoEDTOS,
 	}
 }
 
-func (m Mapper) AoEToDTO(AoE entities.AoE) AoEDTO {
-	return AoEDTO{
-		Id:       AoE.Id(),
-		Caster:   AoE.CasterId(),
-		Position: *m.PositionToDTO(AoE.Position()),
-		Radius:   AoE.Radius(),
-	}
-}
-
-func (m *Mapper) GetDestroyedAoEs(areaEffects map[string]*entities.AoE) []string {
-	destroyedAoEs := []string{}
-
-	for _, id := range m.entitiesIds {
-		if _, exists := areaEffects[id]; !exists {
-			destroyedAoEs = append(destroyedAoEs, id)
-		}
-	}
-
-	// Remove destroyed IDs from m.entitiesIds
-	m.entitiesIds = filter(m.entitiesIds, func(id string) bool {
-		return areaEffects[id] != nil
-	})
-
-	return destroyedAoEs
-}
-
-func filter(ids []string, predicate func(string) bool) []string {
-	var result []string
-	for _, id := range ids {
-		if predicate(id) {
-			result = append(result, id)
-		}
-	}
-	return result
-}
-
-func (m Mapper) PositionDTOToEntity(positionDTO PositionDTO) *utils.Vector2 {
+func PositionDTOToEntity(positionDTO PositionDTO) *utils.Vector2 {
 	return utils.NewVector2(positionDTO.X, positionDTO.Z)
 }
 
-func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
+func PositionToDTO(position utils.Vector2) *PositionDTO {
 	x, z := position.GetPosition()
 	return &PositionDTO{
 		X: x,
@@ -109,7 +49,7 @@ func (m Mapper) PositionToDTO(position utils.Vector2) *PositionDTO {
 	}
 }
 
-func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
+func CharacterToDTO(character entities.Character) CharacterDTO {
 	characterHealth := character.GetHealth()
 	characterAbilities := make([]AbilityDTO, 0)
 	for _, ability := range character.GetAbilities() {
@@ -118,34 +58,31 @@ func (m Mapper) CharacterToDTO(character entities.Character) *CharacterDTO {
 		characterAbilities = append(characterAbilities, abilityDTO)
 	}
 
+	currentHealth := characterHealth.GetCurrentHealth()
+	maxHealth := characterHealth.GetMaxHealth()
+	radius := character.GetRadius()
 	characterExecutingAction := character.GetExecutingAction()
 	executingActionDirection := characterExecutingAction.Direction()
-	executingActionDTO := ExecutingActionDTO{
-		Action:    characterExecutingAction.ActionType(),
-		Direction: *m.PositionToDTO(executingActionDirection),
+	actionType := characterExecutingAction.ActionType()
+
+	characterInventory := InventoryDTO{}
+	for item, quantity := range character.GetInventory() {
+		characterInventory.Items = append(
+			characterInventory.Items,
+			ItemDTO{Id: item, Quantity: quantity},
+		)
 	}
 
-	characterInventory := InventoryDTO{Items: character.ChangeLogs()}
-
-	return &CharacterDTO{
-		Id:              character.GetId(),
-		Position:        *m.PositionToDTO(character.GetPosition()),
-		Radius:          character.GetRadius(),
-		MaxHealth:       characterHealth.GetMaxHealth(),
-		CurrentHealth:   characterHealth.GetCurrentHealth(),
-		ExecutingAction: executingActionDTO,
-		Abilities:       characterAbilities,
-		Inventory:       characterInventory,
-	}
-}
-
-func (m Mapper) ProjectileToDTO(projectile entities.Projectile) *ProjectileDTO {
-	return &ProjectileDTO{
-		Id:       projectile.GetId(),
-		Caster:   projectile.CasterId(),
-		Position: *m.PositionToDTO(projectile.GetPosition()),
-		Radius:   projectile.GetRadius(),
-		State:    projectile.GetState(),
+	return CharacterDTO{
+		Id:            character.GetId(),
+		Position:      PositionToDTO(character.GetPosition()),
+		Radius:        &radius,
+		MaxHealth:     &maxHealth,
+		CurrentHealth: &currentHealth,
+		Action:        &actionType,
+		Direction:     PositionToDTO(executingActionDirection),
+		Abilities:     characterAbilities,
+		Inventory:     &characterInventory,
 	}
 }
 
@@ -156,4 +93,227 @@ func AbilityToDTO(ability entities.Ability) AbilityDTO {
 		Range:    ability.Range(),
 		Cooldown: ability.Cooldown(),
 	}
+}
+
+func GetCharacterDiff(c *entities.Character) *CharacterDTO {
+	diff := &CharacterDTO{Id: c.GetId()}
+	if c.CharacterLastTickState.Position == nil ||
+		!c.GetPosition().Equals(*c.CharacterLastTickState.Position) {
+		diff.Position = PositionToDTO(c.GetPosition())
+		c.CharacterLastTickState.Position = utils.NewVector2(c.GetPosition().GetPosition())
+	}
+	if c.CharacterLastTickState.Radius == nil ||
+		c.GetRadius() != *c.CharacterLastTickState.Radius {
+		radius := c.GetRadius()
+		diff.Radius = &radius
+		c.CharacterLastTickState.Radius = &radius
+	}
+	if c.CharacterLastTickState.MaxHealth == nil ||
+		c.GetMaxHealth() != *c.CharacterLastTickState.MaxHealth {
+		maxHealth := c.GetMaxHealth()
+		diff.MaxHealth = &maxHealth
+		c.CharacterLastTickState.MaxHealth = &maxHealth
+	}
+	if c.CharacterLastTickState.CurrentHealth == nil ||
+		c.GetCurrentHealth() != *c.CharacterLastTickState.CurrentHealth {
+		currentHealth := c.GetCurrentHealth()
+		diff.CurrentHealth = &currentHealth
+		c.CharacterLastTickState.CurrentHealth = &currentHealth
+	}
+	if c.CharacterLastTickState.Action == nil ||
+		c.GetExecutingAction().
+			ActionType() !=
+			*c.CharacterLastTickState.Action {
+		action := c.GetExecutingAction().ActionType()
+		diff.Action = &action
+		c.CharacterLastTickState.Action = &action
+	}
+	if c.CharacterLastTickState.Direction == nil ||
+		!c.GetExecutingAction().Direction().Equals(*c.CharacterLastTickState.Direction) {
+		diff.Direction = PositionToDTO(c.GetExecutingAction().Direction())
+		c.CharacterLastTickState.Direction = utils.NewVector2(
+			c.GetExecutingAction().Direction().GetPosition(),
+		)
+	}
+	diff.Abilities = getAbilitiesDiff(c)
+	diff.Inventory = getInventoryDiff(c)
+	return diff
+}
+
+func getAbilitiesDiff(c *entities.Character) []AbilityDTO {
+	abilitiesDTOs := make([]AbilityDTO, 0)
+	characterAbilities := c.GetAbilities()
+
+	newAbilityIds, _ := lo.Difference(
+		lo.Keys(characterAbilities),
+		c.CharacterLastTickState.Abilities,
+	)
+
+	if len(newAbilityIds) > 0 {
+		for abilityId, ability := range characterAbilities {
+			abilitiesDTOs = append(abilitiesDTOs, buildAbilityDTO(c, abilityId, ability))
+		}
+		c.CharacterLastTickState.Abilities = lo.Keys(characterAbilities)
+	} else {
+		for abilityId, ability := range characterAbilities {
+			remainingCooldown := c.RemainingCooldown(ability)
+			if remainingCooldown != c.CharacterLastTickState.AbilitiesRemainingCooldows[abilityId] {
+				abilitiesDTOs = append(abilitiesDTOs, buildAbilityDTO(c, abilityId, ability))
+			}
+		}
+	}
+
+	return abilitiesDTOs
+}
+
+func getInventoryDiff(c *entities.Character) *InventoryDTO {
+	inventoryDTO := InventoryDTO{}
+	characterInventory := c.GetInventory()
+	itemIds := lo.Map(lo.Keys(characterInventory), func(id string, _ int) string {
+		return id
+	})
+
+	newItemsIds, removedItemsIds := lo.Difference(
+		itemIds,
+		lo.Keys(c.CharacterLastTickState.Items),
+	)
+
+	if len(newItemsIds) > 0 || len(removedItemsIds) > 0 {
+		for itemId, quantity := range characterInventory {
+			inventoryDTO.Items = append(
+				inventoryDTO.Items,
+				ItemDTO{Id: itemId, Quantity: quantity},
+			)
+		}
+		c.CharacterLastTickState.Items = lo.Associate(
+			inventoryDTO.Items,
+			func(i ItemDTO) (string, int64) {
+				return i.Id, i.Quantity
+			},
+		)
+		for _, itemId := range removedItemsIds {
+			inventoryDTO.Items = append(inventoryDTO.Items, ItemDTO{Id: itemId, Quantity: 0})
+		}
+		return &inventoryDTO
+	} else {
+		for itemId, quantity := range characterInventory {
+			if quantity != c.CharacterLastTickState.Items[itemId] {
+				inventoryDTO.Items = append(inventoryDTO.Items, ItemDTO{Id: itemId, Quantity: quantity})
+			}
+		}
+		if len(inventoryDTO.Items) > 0 {
+			c.CharacterLastTickState.Items = lo.Associate(
+				inventoryDTO.Items,
+				func(i ItemDTO) (string, int64) {
+					return i.Id, i.Quantity
+				},
+			)
+			return &inventoryDTO
+		}
+	}
+
+	return nil
+}
+
+func buildAbilityDTO(
+	c *entities.Character,
+	abilityId string,
+	ability *entities.Ability,
+) AbilityDTO {
+	remainingCooldown := c.RemainingCooldown(ability)
+	abilityDTO := AbilityToDTO(*ability)
+	abilityDTO.RemainingCooldown = float64(remainingCooldown) / 1000
+	c.CharacterLastTickState.AbilitiesRemainingCooldows[abilityId] = remainingCooldown
+	return abilityDTO
+}
+
+func GetProjectileDiff(p *entities.Projectile) *ProjectileDTO {
+	diff := &ProjectileDTO{Id: p.GetId()}
+	if p.ProjectileLastTickState.Position == nil ||
+		!p.GetPosition().Equals(*p.ProjectileLastTickState.Position) {
+		diff.Position = PositionToDTO(p.GetPosition())
+		p.ProjectileLastTickState.Position = utils.NewVector2(p.GetPosition().GetPosition())
+	}
+	if p.ProjectileLastTickState.State == nil ||
+		p.State() != *p.ProjectileLastTickState.State {
+		diff.State = p.GetState()
+		state := p.State()
+		p.ProjectileLastTickState.State = &state
+	}
+	if p.ProjectileLastTickState.Radius == nil ||
+		p.GetRadius() != *p.ProjectileLastTickState.Radius {
+		radius := p.GetRadius()
+		diff.Radius = &radius
+		p.ProjectileLastTickState.Radius = &radius
+	}
+	return diff
+}
+
+func GetAoEDiff(AoE *entities.AoE) *AoEDTO {
+	diff := &AoEDTO{Id: AoE.Id()}
+	if AoE.AoELastTickState.Position == nil ||
+		!AoE.Position().Equals(*AoE.AoELastTickState.Position) {
+		diff.Position = PositionToDTO(AoE.Position())
+		AoE.AoELastTickState.Position = utils.NewVector2(AoE.Position().GetPosition())
+	}
+	if AoE.AoELastTickState.Radius == nil ||
+		AoE.Radius() != *AoE.AoELastTickState.Radius {
+		radius := AoE.Radius()
+		diff.Radius = &radius
+		AoE.AoELastTickState.Radius = &radius
+	}
+	return diff
+}
+
+func GameStateToDTO(gameState entities.GameState) *GameStateDTO {
+	playerDTOS := make([]CharacterDTO, 0)
+	projectileDTOS := make([]ProjectileDTO, 0)
+	npcsDTOS := make([]CharacterDTO, 0)
+	AoEDTOS := make([]AoEDTO, 0)
+
+	for _, player := range gameState.GetPlayers() {
+		playerDTOS = append(playerDTOS, CharacterToDTO(player))
+	}
+
+	for _, projectile := range gameState.GetProjectiles() {
+		projectileDTOS = append(projectileDTOS, ProjectileTODTO(projectile))
+	}
+
+	for _, npcs := range gameState.GetNPCs() {
+		npcsDTOS = append(npcsDTOS, CharacterToDTO(*npcs.Character))
+	}
+
+	areaEffects := gameState.AreaEffects()
+	for _, AoE := range areaEffects {
+		AoEDTOS = append(AoEDTOS, AoEToDTO(AoE))
+	}
+
+	return &GameStateDTO{
+		Players:     playerDTOS,
+		Projectiles: projectileDTOS,
+		Npcs:        npcsDTOS,
+		AreaEffects: AoEDTOS,
+	}
+}
+
+func ProjectileTODTO(p entities.Projectile) ProjectileDTO {
+	radius := p.GetRadius()
+	projectile := ProjectileDTO{
+		Id:       p.GetId(),
+		Caster:   p.CasterId(),
+		Position: PositionToDTO(p.GetPosition()),
+		Radius:   &radius,
+		State:    p.GetState(),
+	}
+	return projectile
+}
+
+func AoEToDTO(AoE *entities.AoE) AoEDTO {
+	radius := AoE.Radius()
+	AoEDTO := AoEDTO{
+		Id:       AoE.Id(),
+		Position: PositionToDTO(AoE.Position()),
+		Radius:   &radius,
+	}
+	return AoEDTO
 }

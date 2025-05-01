@@ -33,10 +33,10 @@ public class GameManager : MonoBehaviour
     [SerializeField] Inventory inventory;
 
 
-    Dictionary<string, Character> players = new Dictionary<string, Character>();
-    Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
-    Dictionary<string, Character> npcs = new Dictionary<string, Character>();
-    Dictionary<string, AoE> areaEffects = new Dictionary<string, AoE>();
+    static Dictionary<string, Character> players = new Dictionary<string, Character>();
+    static Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
+    static Dictionary<string, Character> npcs = new Dictionary<string, Character>();
+    static Dictionary<string, AoE> areaEffects = new Dictionary<string, AoE>();
 
     async void Awake()
     {
@@ -87,20 +87,29 @@ public class GameManager : MonoBehaviour
         UpdatePlayers(gameState.players);
         UpdateProjectiles(gameState.projectiles);
         UpdateNPCs(gameState.npcs);
-        UpdateAreaEffects(gameState);
+        UpdateAreaEffects(gameState.aoEs);
 
         CharacterDTO mainPlayer = gameState.players.Find(player => player.id == mainPlayerID);
-
         abilitiesPanel.UpdatePlayerPanel(mainPlayer);
-
         inventory.UpdateInventory(mainPlayer.inventory);
     }
 
-    private void UpdateAreaEffects(GameStateDTO gameState)
+    private void UpdateAreaEffects(List<AreaEffectDTO> AoEs)
     {
-        foreach (AreaEffectDTO areaEffectDTO in gameState.aoEs)
+        if (AoEs == null || AoEs.Count == 0)
         {
-            bool areaEffectExists = this.areaEffects.Any(aoe => aoe.Key == areaEffectDTO.id);
+            DestroyAoEs(areaEffects.Keys.ToArray());
+            return;
+        }
+        string[] currentAoEsIds = areaEffects.Keys.ToArray();
+        HashSet<string> AoEsToDestroy = new HashSet<string>(
+            currentAoEsIds.Except(AoEs.Select(AoE => AoE.id))
+        );
+        DestroyAoEs(AoEsToDestroy.ToArray());
+
+        foreach (AreaEffectDTO areaEffectDTO in AoEs)
+        {
+            bool areaEffectExists = areaEffects.Any(aoe => aoe.Key == areaEffectDTO.id);
             if (!areaEffectExists)
             {
                 GameObject newAoEGO = Instantiate(
@@ -113,58 +122,52 @@ public class GameManager : MonoBehaviour
                 areaEffects[areaEffectDTO.id].transform.localScale = Vector3.one * (areaEffectDTO.radius * 2);
             }
         }
+    }
 
-        // Destroy old AoEs
-        foreach (string entitiesToDestroy in gameState.entitiesToDestroy)
+    void DestroyAoEs(string[] AoEsToDestroy)
+    {
+        foreach (string AoEId in AoEsToDestroy)
         {
-            Destroy(this.areaEffects[entitiesToDestroy].gameObject);
-            this.areaEffects.Remove(entitiesToDestroy);
+            Destroy(areaEffects[AoEId].gameObject);
+            areaEffects.Remove(AoEId);
         }
     }
 
     #region Players
 
-    private void UpdatePlayers(List<CharacterDTO> players)
+    private void UpdatePlayers(List<CharacterDTO> playerDTOS)
     {
-        string[] currentPlayerIds = this.players.Keys.ToArray();
+        string[] currentPlayerIds = players.Keys.ToArray();
         HashSet<string> playersToDestroy = new HashSet<string>(
-            currentPlayerIds.Except(players.Select(player => player.id))
+            currentPlayerIds.Except(playerDTOS.Select(player => player.id))
         );
         DestroyPlayers(playersToDestroy.ToArray());
-        UpdatePlayersPositions(players);
+        UpdatePlayersPositions(playerDTOS);
     }
 
     void UpdatePlayersPositions(List<CharacterDTO> playerDTOS)
     {
         foreach (CharacterDTO playerDTO in playerDTOS)
         {
-            Character player = GetPlayer(playerDTO);
-            player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
+            Character player;
+            bool playerExists = players.Any(character => character.Key == playerDTO.id);
+            if (playerExists)
+                player = GetPlayer(playerDTO.id);
+            else
+                player = CreatePlayer(playerDTO);
+            if (playerDTO.position != null) player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
             player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
             UpdateCharacterAnimations(playerDTO, player);
 
-            player.SetScale(playerDTO.radius * 2);
+            if (playerDTO.radius != null) player.SetScale((float)(playerDTO.radius * 2));
 
             CheckDeathSplash(playerDTO);
         }
     }
 
-    private Character GetPlayer(CharacterDTO playerDTO)
+    public static Character GetPlayer(string playerId)
     {
-        Character player;
-        bool playerExists = this.players.Any(
-            playerMovement => playerMovement.Key == playerDTO.id
-        );
-        if (playerExists)
-        {
-            player = players[playerDTO.id];
-        }
-        else
-        {
-            player = CreatePlayer(playerDTO);
-        }
-
-        return player;
+        return players[playerId];
     }
 
     private void CheckDeathSplash(CharacterDTO playerDTO)
@@ -172,25 +175,23 @@ public class GameManager : MonoBehaviour
         if (mainPlayerID == playerDTO.id)
         {
             if (playerDTO.currentHealth <= 0 && !deathSplash.activeSelf)
-            {
                 deathSplash.SetActive(true);
-            }
+            else if (playerDTO.currentHealth > 0 && deathSplash.activeSelf)
+                deathSplash.SetActive(false);
         }
     }
 
     private void UpdateCharacterAnimations(CharacterDTO characterDTO, Character character)
     {
-        if (characterDTO.currentHealth > 0)
+        if (character.Stats.CurrentHealth > 0)
         {
-            character.HandleActionFeedback(characterDTO.executingAction);
-
+            if (characterDTO.action != null) character.HandleActionFeedback((CharacterAction)characterDTO.action);
+            if (characterDTO.direction != null) character.Movement.RotateTowards(characterDTO.direction);
             return;
         }
 
         if (character.IsAlive)
-        {
             character.TriggerDeath();
-        }
     }
 
     private Character CreatePlayer(CharacterDTO playerDTO)
@@ -227,8 +228,8 @@ public class GameManager : MonoBehaviour
     {
         foreach (string playerIdToDestroy in playerIdsToDestroy)
         {
-            Destroy(this.players[playerIdToDestroy].gameObject);
-            this.players.Remove(playerIdToDestroy);
+            Destroy(players[playerIdToDestroy].gameObject);
+            players.Remove(playerIdToDestroy);
         }
     }
 
@@ -246,26 +247,32 @@ public class GameManager : MonoBehaviour
 
     #region Projectiles
 
-    private void UpdateProjectiles(List<ProjectileDTO> projectiles)
+    private void UpdateProjectiles(List<ProjectileDTO> projectilesDTOS)
     {
-        string[] currentProjectileIds = this.projectiles.Keys.ToArray();
+        if (projectilesDTOS == null || projectilesDTOS.Count == 0)
+        {
+            DestroyProjectiles(projectiles.Keys.ToArray());
+            return;
+        }
+        string[] currentProjectileIds = projectiles.Keys.ToArray();
         HashSet<string> projectilesToDestroy = new HashSet<string>(
-            currentProjectileIds.Except(projectiles.Select(projectile => projectile.id))
+            currentProjectileIds.Except(projectilesDTOS.Select(projectile => projectile.id))
         );
         DestroyProjectiles(projectilesToDestroy.ToArray());
-        UpdateProjectilesPositions(projectiles);
+        UpdateProjectilesPositions(projectilesDTOS);
     }
 
     void UpdateProjectilesPositions(List<ProjectileDTO> projectileDTOS)
     {
         foreach (ProjectileDTO projectile in projectileDTOS)
         {
-            bool projectileExists = this.projectiles.Any(p => p.Key == projectile.id);
+            bool projectileExists = projectiles.Any(p => p.Key == projectile.id);
             if (projectileExists)
             {
-                this.projectiles[projectile.id].Move(
-                    new Vector3(projectile.position.x, 0, projectile.position.z)
-                );
+                if (projectile.position != null)
+                    projectiles[projectile.id].Move(
+                        new Vector3(projectile.position.x, 0, projectile.position.z)
+                    );
             }
             else
             {
@@ -277,12 +284,12 @@ public class GameManager : MonoBehaviour
                 projectiles[projectile.id] = newProjectileGO.GetComponent<Projectile>();
                 newProjectileGO.GetComponent<MeshRenderer>().material.color = Color.blue;
             }
-            projectiles[projectile.id].SetScale(projectile.radius * 2);
+
+            if (projectile.radius != null)
+                projectiles[projectile.id].SetScale((float)(projectile.radius * 2));
 
             if (projectile.state == State.Hit)
-            {
                 projectiles[projectile.id].TriggerHit();
-            }
         }
     }
 
@@ -290,8 +297,8 @@ public class GameManager : MonoBehaviour
     {
         foreach (string projectileId in projectilesToDestroy)
         {
-            Destroy(this.projectiles[projectileId].gameObject);
-            this.projectiles.Remove(projectileId);
+            Destroy(projectiles[projectileId].gameObject);
+            projectiles.Remove(projectileId);
         }
     }
 
@@ -299,14 +306,19 @@ public class GameManager : MonoBehaviour
 
     #region NPCs
 
-    private void UpdateNPCs(List<CharacterDTO> npcs)
+    private void UpdateNPCs(List<CharacterDTO> npcsDTOS)
     {
-        string[] currentNPCsIds = this.npcs.Keys.ToArray();
+        if (npcsDTOS == null || npcsDTOS.Count == 0)
+        {
+            DestroyNPCs(npcs.Keys.ToArray());
+            return;
+        }
+        string[] currentNPCsIds = npcs.Keys.ToArray();
         HashSet<string> npcsToDestroy = new HashSet<string>(
-            currentNPCsIds.Except(npcs.Select(npc => npc.id))
+            currentNPCsIds.Except(npcsDTOS.Select(npc => npc.id))
         );
         DestroyNPCs(npcsToDestroy.ToArray());
-        UpdateNPCsPositions(npcs);
+        UpdateNPCsPositions(npcsDTOS);
     }
 
     void UpdateNPCsPositions(List<CharacterDTO> npcDTOS)
@@ -314,11 +326,11 @@ public class GameManager : MonoBehaviour
         foreach (CharacterDTO npcDTO in npcDTOS)
         {
             Character npc;
-            bool npcExists = this.npcs.Any(npcMovement => npcMovement.Key == npcDTO.id);
+            bool npcExists = npcs.Any(npcMovement => npcMovement.Key == npcDTO.id);
             if (npcExists)
             {
                 npc = npcs[npcDTO.id];
-                npc.Movement.Move(new Vector3(npcDTO.position.x, 0, npcDTO.position.z));
+                if (npcDTO.position != null) npc.Movement.Move(new Vector3(npcDTO.position.x, 0, npcDTO.position.z));
             }
             else
             {
@@ -326,9 +338,10 @@ public class GameManager : MonoBehaviour
             }
             npc.UpdateHealth(npcDTO.currentHealth, npcDTO.maxHealth);
 
-            npc.HandleActionFeedback(npcDTO.executingAction);
+            if (npcDTO.action != null) npc.HandleActionFeedback((CharacterAction)npcDTO.action);
+            if (npcDTO.direction != null) npc.Movement.RotateTowards(npcDTO.direction);
 
-            npc.SetScale(npcDTO.radius * 2);
+            if (npcDTO.radius != null) npc.SetScale((float)(npcDTO.radius * 2));
         }
     }
 
@@ -354,8 +367,8 @@ public class GameManager : MonoBehaviour
     {
         foreach (string npcIdToDestroy in npcIdsToDestroy)
         {
-            Destroy(this.npcs[npcIdToDestroy].gameObject);
-            this.npcs.Remove(npcIdToDestroy);
+            Destroy(npcs[npcIdToDestroy].gameObject);
+            npcs.Remove(npcIdToDestroy);
         }
     }
 
@@ -365,12 +378,12 @@ public class GameManager : MonoBehaviour
     {
         hitboxOn = !hitboxOn;
 
-        foreach (Character player in this.players.Values)
+        foreach (Character player in players.Values)
         {
             player.SetHitbox(hitboxOn);
         }
 
-        foreach (Character player in this.npcs.Values)
+        foreach (Character player in npcs.Values)
         {
             player.SetHitbox(hitboxOn);
         }

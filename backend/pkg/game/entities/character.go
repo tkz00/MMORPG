@@ -1,10 +1,10 @@
 package entities
 
 import (
+	"backend/pkg/game/stats"
+	"backend/pkg/utils"
 	"fmt"
 	"time"
-	"tkz00/backend/pkg/game/stats"
-	"tkz00/backend/pkg/utils"
 )
 
 const BASE_MAX_HEALTH = 100
@@ -34,6 +34,18 @@ func (action ExecutingAction) Direction() utils.Vector2 {
 	return action.direction
 }
 
+type CharacterLastTickState struct {
+	Position                   *utils.Vector2
+	Radius                     *float64
+	MaxHealth                  *int
+	CurrentHealth              *int
+	Action                     *Action
+	Direction                  *utils.Vector2
+	Abilities                  []string
+	AbilitiesRemainingCooldows map[string]int64
+	Items                      map[string]int64
+}
+
 type Character struct {
 	id string
 	stats.Health
@@ -44,6 +56,8 @@ type Character struct {
 	actionsQueue    []CharacterAction
 
 	*Inventory
+
+	CharacterLastTickState *CharacterLastTickState
 
 	// should this be here?
 	abilities map[string]*Ability
@@ -70,6 +84,10 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 		Inventory:       NewInventory(),
 		abilities:       abilities,
 		lastUsed:        lastUsed,
+		CharacterLastTickState: &CharacterLastTickState{
+			AbilitiesRemainingCooldows: make(map[string]int64),
+			Items:                      make(map[string]int64),
+		},
 	}
 }
 
@@ -223,6 +241,9 @@ func (character *Character) EnqueueMovementAction(position utils.Vector2) {
 }
 
 func (character *Character) UseItem(itemId string, targetId string, gs *GameState) {
+	if !character.IsAlive() {
+		return
+	}
 	if !character.Inventory.CanConsume(itemId) {
 		err := fmt.Errorf(
 			"character %s tried to use item %s, but is unable to",
@@ -233,9 +254,9 @@ func (character *Character) UseItem(itemId string, targetId string, gs *GameStat
 		return
 	}
 
-	item := character.GetItem(itemId)
+	item := existingItems[itemId]
 	item.ExecuteMechanics(character, targetId, gs)
-	character.Inventory.AddItem(item, -1)
+	character.Inventory.AddItem(itemId, -1)
 }
 
 func (caster *Character) EnqueueAbilityCastAction(

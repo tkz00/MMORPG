@@ -1,11 +1,11 @@
 package repository
 
 import (
+	"backend/pkg/configurator"
+	"backend/pkg/game/entities"
 	"encoding/json"
 	"fmt"
 	"os"
-	"tkz00/backend/pkg/configurator"
-	"tkz00/backend/pkg/game/entities"
 )
 
 const ABILITIES_FILE_NAME = "abilities.json"

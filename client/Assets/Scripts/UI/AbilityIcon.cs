@@ -41,7 +41,7 @@ public class AbilityIcon : MonoBehaviour
 
     public void UpdateCooldown(float remainingCooldown)
     {
-        if(remainingCooldown > 0)
+        if (remainingCooldown > 0)
         {
             cooldownOverlay.color = cooldownOverlayColor;
             cooldownOverlay.enabled = true;

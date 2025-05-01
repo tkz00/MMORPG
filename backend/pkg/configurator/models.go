@@ -1,6 +1,6 @@
 package configurator
 
-import "tkz00/backend/pkg/game/entities"
+import "backend/pkg/game/entities"
 
 type ConfiguratorAbility struct {
 	ID             string              `json:"id"`

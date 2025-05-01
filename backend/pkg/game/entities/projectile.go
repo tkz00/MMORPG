@@ -1,7 +1,7 @@
 package entities
 
 import (
-	"tkz00/backend/pkg/utils"
+	"backend/pkg/utils"
 
 	"github.com/google/uuid"
 )
@@ -16,6 +16,12 @@ const (
 	Hit
 )
 
+type ProjectileLastTickState struct {
+	Position *utils.Vector2
+	State    *ProjectileState
+	Radius   *float64
+}
+
 type Projectile struct {
 	id             string
 	caster         string
@@ -24,6 +30,8 @@ type Projectile struct {
 	to             utils.Vector2
 	state          ProjectileState
 	onHitMechanics []Mechanic
+
+	ProjectileLastTickState *ProjectileLastTickState
 }
 
 func CreateProjectile(
@@ -38,13 +46,14 @@ func CreateProjectile(
 	direction := normalizedVector.Scale(PROJECTILE_SPEED)
 
 	return &Projectile{
-		id:             uuid.New().String(),
-		caster:         caster,
-		direction:      direction,
-		position:       initialPosition,
-		to:             to,
-		state:          Active,
-		onHitMechanics: onHitMechanics,
+		id:                      uuid.New().String(),
+		caster:                  caster,
+		direction:               direction,
+		position:                initialPosition,
+		to:                      to,
+		state:                   Active,
+		onHitMechanics:          onHitMechanics,
+		ProjectileLastTickState: &ProjectileLastTickState{},
 	}
 }
 

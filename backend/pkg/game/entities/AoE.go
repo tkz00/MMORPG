@@ -1,11 +1,16 @@
 package entities
 
 import (
+	"backend/pkg/utils"
 	"slices"
-	"tkz00/backend/pkg/utils"
 
 	"github.com/google/uuid"
 )
+
+type AoELastTickState struct {
+	Position *utils.Vector2
+	Radius   *float64
+}
 
 type AoE struct {
 	id                  string
@@ -15,6 +20,8 @@ type AoE struct {
 	remainingDurationMs int
 	onHitMechanics      []Mechanic
 	hitCharacterIds     []string
+
+	AoELastTickState *AoELastTickState
 }
 
 func InstantiateAoE(
@@ -31,6 +38,7 @@ func InstantiateAoE(
 		radius:              radius,
 		remainingDurationMs: durationMs,
 		onHitMechanics:      onHitMechanics,
+		AoELastTickState:    &AoELastTickState{},
 	}
 }
 

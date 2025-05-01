@@ -6,19 +6,19 @@ using UnityEngine.UI;
 
 public class HealthBar : MonoBehaviour
 {
-	[SerializeField]
-	Slider healthSlider;
+    [SerializeField]
+    Slider healthSlider;
 
-	// this has to be called by an event
-	public void UpdateHealthBar(int currentHealth, int maxHealth)
-	{
-		float fillAmount = currentHealth / (float)maxHealth;
+    // this has to be called by an event
+    public void UpdateHealthBar(int currentHealth, int maxHealth)
+    {
+        float fillAmount = currentHealth / (float)maxHealth;
         healthSlider.value = fillAmount;
-	}
+    }
 
-	// remove in the future
-	public void SetColor(Color color)
-	{
-		healthSlider.fillRect.gameObject.GetComponent<Image>().color = color;
-	}
+    // remove in the future
+    public void SetColor(Color color)
+    {
+        healthSlider.fillRect.gameObject.GetComponent<Image>().color = color;
+    }
 }
