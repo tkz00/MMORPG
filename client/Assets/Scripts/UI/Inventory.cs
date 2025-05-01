@@ -43,17 +43,9 @@ public class Inventory : MonoBehaviour
         if (inventory.items.Length == 0)
             return;
 
-        var itemVariations = inventory.items.Select(item => (item.id, item.quantity));
-        foreach ((string id, int quantity) in itemVariations)
+        foreach ((string id, int quantity) in inventory.items.Select(item => (item.id, item.quantity)))
         {
-            if (items.ContainsKey(id))
-            {
-                items[id] += quantity;
-            }
-            else
-            {
-                items[id] = quantity;
-            }
+            items[id] = quantity;
 
             if (items[id] == 0)
             {

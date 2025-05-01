@@ -5,18 +5,13 @@ public class CharacterDTO : DTO
 {
     public string id;
     public PositionDTO position;
-    public float radius;
-    public int maxHealth;
-    public int currentHealth;
-    public ExecutingAction executingAction;
+    public float? radius;
+    public int? maxHealth;
+    public int? currentHealth;
+    public CharacterAction? action;
+    public PositionDTO direction;
     public AbilityDTO[] abilities;
     public InventoryDTO inventory;
-}
-
-public class ExecutingAction
-{
-    public CharacterAction action;
-    public PositionDTO direction;
 }
 
 public enum CharacterAction

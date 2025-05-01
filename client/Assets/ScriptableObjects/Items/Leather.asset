@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c683e6446fa44c0989dc9141e303d8e, type: 3}
   m_Name: Leather
   m_EditorClassIdentifier: 
-  id: 2
+  id: 1
   icon: {fileID: 21300000, guid: fe17bcef71ea81e4cbc4ede9743ec01f, type: 3}
+  isConsumible: 0

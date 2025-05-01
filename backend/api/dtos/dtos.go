@@ -12,11 +12,10 @@ type DTO interface {
 }
 
 type GameStateDTO struct {
-	Players           []CharacterDTO  `json:"players"`
-	Projectiles       []ProjectileDTO `json:"projectiles"`
-	AreaEffects       []AoEDTO        `json:"area_effects"`
-	Npcs              []CharacterDTO  `json:"npcs"`
-	EntitiesToDestroy []string        `json:"entities_to_destroy"`
+	Players     []CharacterDTO  `json:"players,omitempty"`
+	Projectiles []ProjectileDTO `json:"projectiles,omitempty"`
+	AreaEffects []AoEDTO        `json:"area_effects,omitempty"`
+	Npcs        []CharacterDTO  `json:"npcs,omitempty"`
 }
 
 func (g GameStateDTO) GetType() string {
@@ -24,14 +23,15 @@ func (g GameStateDTO) GetType() string {
 }
 
 type CharacterDTO struct {
-	Id              string             `json:"id"`
-	MaxHealth       int                `json:"maxHealth"`
-	CurrentHealth   int                `json:"currentHealth"`
-	Radius          float64            `json:"radius"`
-	Position        PositionDTO        `json:"position"`
-	ExecutingAction ExecutingActionDTO `json:"executingAction"`
-	Abilities       []AbilityDTO       `json:"abilities"`
-	Inventory       InventoryDTO       `json:"inventory"`
+	Id            string           `json:"id"`
+	MaxHealth     *int             `json:"maxHealth,omitempty"`
+	CurrentHealth *int             `json:"currentHealth,omitempty"`
+	Radius        *float64         `json:"radius,omitempty"`
+	Position      *PositionDTO     `json:"position,omitempty"`
+	Action        *entities.Action `json:"action,omitempty"`
+	Direction     *PositionDTO     `json:"direction,omitempty"`
+	Abilities     []AbilityDTO     `json:"abilities,omitempty"`
+	Inventory     *InventoryDTO    `json:"inventory,omitempty"` // Refactor this
 }
 
 func (p CharacterDTO) GetType() string {
@@ -60,11 +60,11 @@ func (p PositionDTO) GetType() string {
 }
 
 type ProjectileDTO struct {
-	Id       string      `json:"id"`
-	Caster   string      `json:"caster"`
-	Position PositionDTO `json:"position"`
-	Radius   float64     `json:"radius"`
-	State    string      `json:"state"`
+	Id       string       `json:"id"`
+	Caster   string       `json:"caster,omitempty"`
+	Position *PositionDTO `json:"position,omitempty"`
+	Radius   *float64     `json:"radius,omitempty"`
+	State    string       `json:"state,omitempty"`
 }
 
 func (p ProjectileDTO) GetType() string {
@@ -72,23 +72,22 @@ func (p ProjectileDTO) GetType() string {
 }
 
 type AoEDTO struct {
-	Id       string      `json:"id"`
-	Caster   string      `json:"caster"`
-	Position PositionDTO `json:"position"`
-	Radius   float64     `json:"radius"`
+	Id       string       `json:"id"`
+	Position *PositionDTO `json:"position,omitempty"`
+	Radius   *float64     `json:"radius,omitempty"`
 }
 
 func (AoEDTO) GetType() string {
 	return "AoE"
 }
 
-type ExecutingActionDTO struct {
-	Action    entities.Action `json:"action"`
-	Direction PositionDTO     `json:"direction"`
+type InventoryDTO struct {
+	Items []ItemDTO `json:"items,omitempty"`
 }
 
-type InventoryDTO struct {
-	Items []entities.ItemChange `json:"items"`
+type ItemDTO struct {
+	Id       string `json:"id"`
+	Quantity int64  `json:"quantity"`
 }
 
 type UseItemDTO struct {

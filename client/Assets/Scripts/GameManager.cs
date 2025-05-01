@@ -87,18 +87,27 @@ public class GameManager : MonoBehaviour
         UpdatePlayers(gameState.players);
         UpdateProjectiles(gameState.projectiles);
         UpdateNPCs(gameState.npcs);
-        UpdateAreaEffects(gameState);
+        UpdateAreaEffects(gameState.aoEs);
 
         CharacterDTO mainPlayer = gameState.players.Find(player => player.id == mainPlayerID);
-
         abilitiesPanel.UpdatePlayerPanel(mainPlayer);
-
         inventory.UpdateInventory(mainPlayer.inventory);
     }
 
-    private void UpdateAreaEffects(GameStateDTO gameState)
+    private void UpdateAreaEffects(List<AreaEffectDTO> AoEs)
     {
-        foreach (AreaEffectDTO areaEffectDTO in gameState.aoEs)
+        if (AoEs == null || AoEs.Count == 0)
+        {
+            DestroyAoEs(areaEffects.Keys.ToArray());
+            return;
+        }
+        string[] currentAoEsIds = areaEffects.Keys.ToArray();
+        HashSet<string> AoEsToDestroy = new HashSet<string>(
+            currentAoEsIds.Except(AoEs.Select(AoE => AoE.id))
+        );
+        DestroyAoEs(AoEsToDestroy.ToArray());
+
+        foreach (AreaEffectDTO areaEffectDTO in AoEs)
         {
             bool areaEffectExists = areaEffects.Any(aoe => aoe.Key == areaEffectDTO.id);
             if (!areaEffectExists)
@@ -113,12 +122,14 @@ public class GameManager : MonoBehaviour
                 areaEffects[areaEffectDTO.id].transform.localScale = Vector3.one * (areaEffectDTO.radius * 2);
             }
         }
+    }
 
-        // Destroy old AoEs
-        foreach (string entitiesToDestroy in gameState.entitiesToDestroy)
+    void DestroyAoEs(string[] AoEsToDestroy)
+    {
+        foreach (string AoEId in AoEsToDestroy)
         {
-            Destroy(areaEffects[entitiesToDestroy].gameObject);
-            areaEffects.Remove(entitiesToDestroy);
+            Destroy(areaEffects[AoEId].gameObject);
+            areaEffects.Remove(AoEId);
         }
     }
 
@@ -144,11 +155,11 @@ public class GameManager : MonoBehaviour
                 player = GetPlayer(playerDTO.id);
             else
                 player = CreatePlayer(playerDTO);
-            player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
+            if (playerDTO.position != null) player.Movement.Move(new Vector3(playerDTO.position.x, 0, playerDTO.position.z));
             player.UpdateHealth(playerDTO.currentHealth, playerDTO.maxHealth);
             UpdateCharacterAnimations(playerDTO, player);
 
-            player.SetScale(playerDTO.radius * 2);
+            if (playerDTO.radius != null) player.SetScale((float)(playerDTO.radius * 2));
 
             CheckDeathSplash(playerDTO);
         }
@@ -172,17 +183,15 @@ public class GameManager : MonoBehaviour
 
     private void UpdateCharacterAnimations(CharacterDTO characterDTO, Character character)
     {
-        if (characterDTO.currentHealth > 0)
+        if (character.Stats.CurrentHealth > 0)
         {
-            character.HandleActionFeedback(characterDTO.executingAction);
-
+            if (characterDTO.action != null) character.HandleActionFeedback((CharacterAction)characterDTO.action);
+            if (characterDTO.direction != null) character.Movement.RotateTowards(characterDTO.direction);
             return;
         }
 
         if (character.IsAlive)
-        {
             character.TriggerDeath();
-        }
     }
 
     private Character CreatePlayer(CharacterDTO playerDTO)
@@ -240,6 +249,11 @@ public class GameManager : MonoBehaviour
 
     private void UpdateProjectiles(List<ProjectileDTO> projectilesDTOS)
     {
+        if (projectilesDTOS == null || projectilesDTOS.Count == 0)
+        {
+            DestroyProjectiles(projectiles.Keys.ToArray());
+            return;
+        }
         string[] currentProjectileIds = projectiles.Keys.ToArray();
         HashSet<string> projectilesToDestroy = new HashSet<string>(
             currentProjectileIds.Except(projectilesDTOS.Select(projectile => projectile.id))
@@ -255,9 +269,10 @@ public class GameManager : MonoBehaviour
             bool projectileExists = projectiles.Any(p => p.Key == projectile.id);
             if (projectileExists)
             {
-                projectiles[projectile.id].Move(
-                    new Vector3(projectile.position.x, 0, projectile.position.z)
-                );
+                if (projectile.position != null)
+                    projectiles[projectile.id].Move(
+                        new Vector3(projectile.position.x, 0, projectile.position.z)
+                    );
             }
             else
             {
@@ -269,12 +284,12 @@ public class GameManager : MonoBehaviour
                 projectiles[projectile.id] = newProjectileGO.GetComponent<Projectile>();
                 newProjectileGO.GetComponent<MeshRenderer>().material.color = Color.blue;
             }
-            projectiles[projectile.id].SetScale(projectile.radius * 2);
+
+            if (projectile.radius != null)
+                projectiles[projectile.id].SetScale((float)(projectile.radius * 2));
 
             if (projectile.state == State.Hit)
-            {
                 projectiles[projectile.id].TriggerHit();
-            }
         }
     }
 
@@ -293,6 +308,11 @@ public class GameManager : MonoBehaviour
 
     private void UpdateNPCs(List<CharacterDTO> npcsDTOS)
     {
+        if (npcsDTOS == null || npcsDTOS.Count == 0)
+        {
+            DestroyNPCs(npcs.Keys.ToArray());
+            return;
+        }
         string[] currentNPCsIds = npcs.Keys.ToArray();
         HashSet<string> npcsToDestroy = new HashSet<string>(
             currentNPCsIds.Except(npcsDTOS.Select(npc => npc.id))
@@ -310,7 +330,7 @@ public class GameManager : MonoBehaviour
             if (npcExists)
             {
                 npc = npcs[npcDTO.id];
-                npc.Movement.Move(new Vector3(npcDTO.position.x, 0, npcDTO.position.z));
+                if (npcDTO.position != null) npc.Movement.Move(new Vector3(npcDTO.position.x, 0, npcDTO.position.z));
             }
             else
             {
@@ -318,9 +338,10 @@ public class GameManager : MonoBehaviour
             }
             npc.UpdateHealth(npcDTO.currentHealth, npcDTO.maxHealth);
 
-            npc.HandleActionFeedback(npcDTO.executingAction);
+            if (npcDTO.action != null) npc.HandleActionFeedback((CharacterAction)npcDTO.action);
+            if (npcDTO.direction != null) npc.Movement.RotateTowards(npcDTO.direction);
 
-            npc.SetScale(npcDTO.radius * 2);
+            if (npcDTO.radius != null) npc.SetScale((float)(npcDTO.radius * 2));
         }
     }
 

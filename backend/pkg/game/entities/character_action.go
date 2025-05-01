@@ -18,8 +18,10 @@ type MoveAction struct {
 
 func (a *MoveAction) Execute(character *Character, _ *GameState) error {
 	if !a.isComplete {
-		character.MoveTowards(a.TargetPosition)
-		a.isComplete = character.position == a.TargetPosition // Adjust this check based on your movement logic
+		if character.to != a.TargetPosition { // This isn't a good check see https://github.com/tkz00/MMORPG/issues/38
+			character.MoveTowards(a.TargetPosition)
+		}
+		a.isComplete = character.position == a.TargetPosition
 	}
 	return nil
 }
