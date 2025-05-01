@@ -98,6 +98,11 @@ public class GameManager : MonoBehaviour
 
     private void UpdateAreaEffects(List<AreaEffectDTO> AoEs)
     {
+        if (AoEs == null || AoEs.Count == 0)
+        {
+            DestroyAoEs(areaEffects.Keys.ToArray());
+            return;
+        }
         string[] currentAoEsIds = areaEffects.Keys.ToArray();
         HashSet<string> AoEsToDestroy = new HashSet<string>(
             currentAoEsIds.Except(AoEs.Select(AoE => AoE.id))
@@ -246,6 +251,11 @@ public class GameManager : MonoBehaviour
 
     private void UpdateProjectiles(List<ProjectileDTO> projectilesDTOS)
     {
+        if (projectilesDTOS == null || projectilesDTOS.Count == 0)
+        {
+            DestroyProjectiles(projectiles.Keys.ToArray());
+            return;
+        }
         string[] currentProjectileIds = projectiles.Keys.ToArray();
         HashSet<string> projectilesToDestroy = new HashSet<string>(
             currentProjectileIds.Except(projectilesDTOS.Select(projectile => projectile.id))
@@ -300,6 +310,11 @@ public class GameManager : MonoBehaviour
 
     private void UpdateNPCs(List<CharacterDTO> npcsDTOS)
     {
+        if (npcsDTOS == null || npcsDTOS.Count == 0)
+        {
+            DestroyNPCs(npcs.Keys.ToArray());
+            return;
+        }
         string[] currentNPCsIds = npcs.Keys.ToArray();
         HashSet<string> npcsToDestroy = new HashSet<string>(
             currentNPCsIds.Except(npcsDTOS.Select(npc => npc.id))

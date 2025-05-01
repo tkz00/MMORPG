@@ -12,10 +12,10 @@ type DTO interface {
 }
 
 type GameStateDTO struct {
-	Players     []CharacterDTO  `json:"players"`
-	Projectiles []ProjectileDTO `json:"projectiles"`
-	AreaEffects []AoEDTO        `json:"area_effects"`
-	Npcs        []CharacterDTO  `json:"npcs"`
+	Players     []CharacterDTO  `json:"players,omitempty"`
+	Projectiles []ProjectileDTO `json:"projectiles,omitempty"`
+	AreaEffects []AoEDTO        `json:"area_effects,omitempty"`
+	Npcs        []CharacterDTO  `json:"npcs,omitempty"`
 }
 
 func (g GameStateDTO) GetType() string {
