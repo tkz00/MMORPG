@@ -52,13 +52,23 @@ func (server *NativeServer) readLoop() {
 		case client := <-server.addClient:
 			player := gameplay.AddPlayer(server.gameState, client)
 			server.clients[client] = true
-			response := CreateWebSocketResponse(*dtos.GetMapper().CharacterToDTO(player))
+
+			response := CreateWebSocketResponse(dtos.CharacterToDTO(player))
 			message := response.Serialize()
 			err := websocket.Message.Send(client, message)
 			if err != nil {
 				log.Println("Error broadcasting message:", err)
 				return
 			}
+
+			// Send initial gamestate to client
+			gameStateDTO := dtos.GameStateToDTO(*server.gameState)
+			webSocketResponse := CreateWebSocketResponse(gameStateDTO)
+			if err := websocket.Message.Send(client, webSocketResponse.Serialize()); err != nil {
+				log.Println("Error broadcasting initial message:", err)
+				return
+			}
+
 			log.Println("Client connected", client.RemoteAddr())
 		case client := <-server.removeClient:
 			server.gameState.DeletePlayer(client)
@@ -89,7 +99,7 @@ func (server *NativeServer) broadcastGameState() {
 		previousUpdateTime = currentUpdateTime
 		gameplay.UpdateState(server.gameState, deltaTime.Seconds())
 
-		gameStateDTO := *dtos.GetMapper().GameStateToDTO(*server.gameState)
+		gameStateDTO := dtos.GameStateDiff(*server.gameState)
 		webSocketResponse := CreateWebSocketResponse(gameStateDTO)
 		server.broadcast <- webSocketResponse.Serialize()
 	}
@@ -134,7 +144,7 @@ func (server *NativeServer) handlePlayerMovement(
 	client *websocket.Conn,
 	positionDTO dtos.PositionDTO,
 ) {
-	position := *dtos.GetMapper().PositionDTOToEntity(positionDTO)
+	position := *dtos.PositionDTOToEntity(positionDTO)
 
 	// this should be just one "action", one line of code, it gives access to two different things while the entry point should be single
 	player := server.gameState.GetPlayerByConn(client)
@@ -186,7 +196,7 @@ func (server *NativeServer) handleRespawn(client *websocket.Conn) {
 		player.HealthVariation(player.GetMaxHealth())
 		player.MoveTowards(*utils.NewVector2(0, 0))
 		player.SetPosition(*utils.NewVector2(0, 0))
-		response := CreateWebSocketResponse(*dtos.GetMapper().CharacterToDTO(*player))
+		response := CreateWebSocketResponse(dtos.CharacterToDTO(*player))
 		response.ActionType = "respawn"
 		message := response.Serialize()
 		websocket.Message.Send(client, message)
