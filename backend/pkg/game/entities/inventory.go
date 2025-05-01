@@ -1,89 +1,75 @@
 // I don't know if this should be in entities, prolly doesn't matter, same for item
 package entities
 
-import "fmt"
-
-type ItemChange struct {
-	Id       string `json:"id"`       // Template ID of the item
-	Quantity int    `json:"quantity"` // New quantity of the item
-}
+import (
+	"fmt"
+)
 
 type Inventory struct {
-	items     map[*Item]int
-	changeLog []ItemChange
+	items map[string]int64
 }
 
 func NewInventory() *Inventory {
 	return &Inventory{
-		items: make(map[*Item]int),
+		items: make(map[string]int64),
 	}
 }
 
 func (looter *Inventory) Loot(loot *Inventory) {
-	for item := range loot.items {
-		looter.AddItem(item, loot.items[item])
+	for item, qty := range loot.items {
+		looter.AddItem(item, qty)
+		looter.PrintInventory()
 	}
 }
 
-func (looter *Inventory) AddItem(item *Item, quantity int) {
-	for itemInInventory := range looter.items {
-		if itemInInventory.id == item.id {
-			looter.items[item] += quantity
-			if looter.items[item] == 0 {
-				delete(looter.items, item)
+func (looter *Inventory) AddItem(itemId string, quantity int64) {
+	for itemInInventoryId := range looter.items {
+		if itemInInventoryId == itemId {
+			looter.items[itemId] += quantity
+			if looter.items[itemId] == 0 {
+				delete(looter.items, itemId)
 			}
-			looter.changeLog = append(looter.changeLog, ItemChange{
-				Id:       item.id,
-				Quantity: quantity,
-			})
 			return
 		}
 	}
 
-	looter.items[item] = quantity
-	looter.changeLog = append(looter.changeLog, ItemChange{
-		Id:       item.id,
-		Quantity: quantity,
-	})
+	looter.items[itemId] = quantity
 }
 
 func (inv Inventory) CanConsume(itemId string) bool {
-	for item := range inv.items {
-		if item.id == itemId {
-			return item.isConsumable
+	for itemInInventoryId := range inv.items {
+		if itemInInventoryId == itemId {
+			return GetItem(itemId).isConsumable
 		}
 	}
 	return false
 }
 
-func (inv Inventory) GetItem(itemId string) *Item {
-	for item := range inv.items {
-		if item.id == itemId {
-			return item
-		}
-	}
-	return nil
+func GetItem(itemId string) *Item {
+	return existingItems[itemId]
 }
 
-func (inventory *Inventory) ChangeLogs() []ItemChange {
-	changes := inventory.changeLog
-	inventory.changeLog = []ItemChange{}
-	return changes
-}
-
-func (inventory *Inventory) GetInventory() []ItemChange {
-	invSlice := []ItemChange{}
-	for item, qty := range inventory.items {
-		invSlice = append(invSlice, ItemChange{Id: item.id, Quantity: qty})
-	}
-	return invSlice
+func (inv Inventory) GetInventory() map[string]int64 {
+	return inv.items
 }
 
 func (inv *Inventory) PrintInventory() {
 	if len(inv.items) > 0 {
-		for item, quantity := range inv.items {
-			fmt.Printf("%s, %d - ", item.name, quantity)
+		for itemId, quantity := range inv.items {
+			fmt.Printf("%s, %d - ", itemId, quantity)
 		}
 		fmt.Print("\n")
 	}
+}
+
+var existingItems = map[string]*Item{
+	"0": NewItem(
+		"0",
+		"small health potion",
+		Mechanic{
+			MechanicType: "heal",
+			Params:       map[string]interface{}{"amount": 40.0},
+		},
+	),
+	"1": NewItem("1", "leather"),
 }

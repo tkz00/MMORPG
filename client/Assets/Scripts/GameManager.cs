@@ -90,9 +90,7 @@ public class GameManager : MonoBehaviour
         UpdateAreaEffects(gameState.aoEs);
 
         CharacterDTO mainPlayer = gameState.players.Find(player => player.id == mainPlayerID);
-
         abilitiesPanel.UpdatePlayerPanel(mainPlayer);
-
         inventory.UpdateInventory(mainPlayer.inventory);
     }
 

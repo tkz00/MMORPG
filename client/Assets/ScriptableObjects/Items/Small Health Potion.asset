@@ -12,6 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c683e6446fa44c0989dc9141e303d8e, type: 3}
   m_Name: Small Health Potion
   m_EditorClassIdentifier: 
-  id: 1
+  id: 0
   icon: {fileID: 21300000, guid: 4e8b35477a7fb5a46870c1973a523722, type: 3}
   isConsumible: 1

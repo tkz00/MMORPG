@@ -31,7 +31,7 @@ type CharacterDTO struct {
 	Action        *entities.Action `json:"action,omitempty"`
 	Direction     *PositionDTO     `json:"direction,omitempty"`
 	Abilities     []AbilityDTO     `json:"abilities,omitempty"`
-	Inventory     InventoryDTO     `json:"inventory"` // Refactor this
+	Inventory     *InventoryDTO    `json:"inventory,omitempty"` // Refactor this
 }
 
 func (p CharacterDTO) GetType() string {
@@ -82,7 +82,12 @@ func (AoEDTO) GetType() string {
 }
 
 type InventoryDTO struct {
-	Items []entities.ItemChange `json:"items"`
+	Items []ItemDTO `json:"items,omitempty"`
+}
+
+type ItemDTO struct {
+	Id       string `json:"id"`
+	Quantity int64  `json:"quantity"`
 }
 
 type UseItemDTO struct {

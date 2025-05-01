@@ -64,7 +64,14 @@ func CharacterToDTO(character entities.Character) CharacterDTO {
 	characterExecutingAction := character.GetExecutingAction()
 	executingActionDirection := characterExecutingAction.Direction()
 	actionType := characterExecutingAction.ActionType()
-	characterInventory := InventoryDTO{Items: character.GetInventory()}
+
+	characterInventory := InventoryDTO{}
+	for item, quantity := range character.GetInventory() {
+		characterInventory.Items = append(
+			characterInventory.Items,
+			ItemDTO{Id: item, Quantity: quantity},
+		)
+	}
 
 	return CharacterDTO{
 		Id:            character.GetId(),
@@ -75,7 +82,7 @@ func CharacterToDTO(character entities.Character) CharacterDTO {
 		Action:        &actionType,
 		Direction:     PositionToDTO(executingActionDirection),
 		Abilities:     characterAbilities,
-		Inventory:     characterInventory,
+		Inventory:     &characterInventory,
 	}
 }
 
@@ -128,13 +135,12 @@ func GetCharacterDiff(c *entities.Character) *CharacterDTO {
 			c.GetExecutingAction().Direction().GetPosition(),
 		)
 	}
-	diff.Abilities = GetAbilitiesDiff(c)
-	characterInventory := InventoryDTO{Items: c.ChangeLogs()}
-	diff.Inventory = characterInventory
+	diff.Abilities = getAbilitiesDiff(c)
+	diff.Inventory = getInventoryDiff(c)
 	return diff
 }
 
-func GetAbilitiesDiff(c *entities.Character) []AbilityDTO {
+func getAbilitiesDiff(c *entities.Character) []AbilityDTO {
 	abilitiesDTOs := make([]AbilityDTO, 0)
 	characterAbilities := c.GetAbilities()
 
@@ -158,6 +164,55 @@ func GetAbilitiesDiff(c *entities.Character) []AbilityDTO {
 	}
 
 	return abilitiesDTOs
+}
+
+func getInventoryDiff(c *entities.Character) *InventoryDTO {
+	inventoryDTO := InventoryDTO{}
+	characterInventory := c.GetInventory()
+	itemIds := lo.Map(lo.Keys(characterInventory), func(id string, _ int) string {
+		return id
+	})
+
+	newItemsIds, removedItemsIds := lo.Difference(
+		itemIds,
+		lo.Keys(c.CharacterLastTickState.Items),
+	)
+
+	if len(newItemsIds) > 0 || len(removedItemsIds) > 0 {
+		for itemId, quantity := range characterInventory {
+			inventoryDTO.Items = append(
+				inventoryDTO.Items,
+				ItemDTO{Id: itemId, Quantity: quantity},
+			)
+		}
+		c.CharacterLastTickState.Items = lo.Associate(
+			inventoryDTO.Items,
+			func(i ItemDTO) (string, int64) {
+				return i.Id, i.Quantity
+			},
+		)
+		for _, itemId := range removedItemsIds {
+			inventoryDTO.Items = append(inventoryDTO.Items, ItemDTO{Id: itemId, Quantity: 0})
+		}
+		return &inventoryDTO
+	} else {
+		for itemId, quantity := range characterInventory {
+			if quantity != c.CharacterLastTickState.Items[itemId] {
+				inventoryDTO.Items = append(inventoryDTO.Items, ItemDTO{Id: itemId, Quantity: quantity})
+			}
+		}
+		if len(inventoryDTO.Items) > 0 {
+			c.CharacterLastTickState.Items = lo.Associate(
+				inventoryDTO.Items,
+				func(i ItemDTO) (string, int64) {
+					return i.Id, i.Quantity
+				},
+			)
+			return &inventoryDTO
+		}
+	}
+
+	return nil
 }
 
 func buildAbilityDTO(

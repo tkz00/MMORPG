@@ -43,6 +43,7 @@ type CharacterLastTickState struct {
 	Direction                  *utils.Vector2
 	Abilities                  []string
 	AbilitiesRemainingCooldows map[string]int64
+	Items                      map[string]int64
 }
 
 type Character struct {
@@ -85,6 +86,7 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 		lastUsed:        lastUsed,
 		CharacterLastTickState: &CharacterLastTickState{
 			AbilitiesRemainingCooldows: make(map[string]int64),
+			Items:                      make(map[string]int64),
 		},
 	}
 }
@@ -252,9 +254,9 @@ func (character *Character) UseItem(itemId string, targetId string, gs *GameStat
 		return
 	}
 
-	item := character.GetItem(itemId)
+	item := existingItems[itemId]
 	item.ExecuteMechanics(character, targetId, gs)
-	character.Inventory.AddItem(item, -1)
+	character.Inventory.AddItem(itemId, -1)
 }
 
 func (caster *Character) EnqueueAbilityCastAction(
