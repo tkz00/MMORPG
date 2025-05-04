@@ -21,7 +21,8 @@ public class AbilitiesEditorWindow : EditorWindow
 
     string responseText = string.Empty;
     List<Configurator.AbilityDTO> abilitiesList = new();
-    Dictionary<string, bool> playerAbilityMap = new(); // determines if an ability is enabled for players, it will be equiped when they enter the game
+    string[] playerAbilitiesIds; // Player abilities in the backend
+    Dictionary<string, bool> playerAbilitiesMap = new(); // determines if an ability is enabled for players, it will be equiped when they enter the game, client state
     Vector2 listScrollPosition;
     Configurator.AbilityDTO selectedAbility;
     bool isEditing;
@@ -113,8 +114,10 @@ public class AbilitiesEditorWindow : EditorWindow
         DrawCreateAbilityButton();
 
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField($"Current Player Abilities: {playerAbilityMap.Where(kvp => kvp.Value).Count()} (needs to be 4)", EditorStyles.boldLabel);
-        if (GUILayout.Button("Set Player Abilities"))
+        EditorGUILayout.LabelField($"Current Player Abilities: {playerAbilitiesMap.Where(kvp => kvp.Value).Count()} (needs to be 4)", EditorStyles.boldLabel);
+        if (playerAbilitiesMap.Where(kvp => kvp.Value).Count() == 4
+            && !playerAbilitiesMap.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray().SequenceEqual(playerAbilitiesIds)
+            && GUILayout.Button("Set Player Abilities"))
         {
             isSettingPlayerAbilities = true;
         }
@@ -152,16 +155,16 @@ public class AbilitiesEditorWindow : EditorWindow
 
     void DrawPlayerAbilityToggle(Configurator.AbilityDTO ability)
     {
-        bool isPlayerAbility = playerAbilityMap.ContainsKey(ability.id) && playerAbilityMap[ability.id];
+        bool isPlayerAbility = playerAbilitiesMap.ContainsKey(ability.id) && playerAbilitiesMap[ability.id];
         bool newToggleValue = GUILayout.Toggle(isPlayerAbility, "Is Player Ability", GUILayout.Width(120));
         if (newToggleValue != isPlayerAbility) // Check if the toggle state has changed
         {
             if (newToggleValue) // Toggle is now true
             {
                 // Check if less than 4 abilities are already set to true
-                if (playerAbilityMap.Count(kvp => kvp.Value) < 4)
+                if (playerAbilitiesMap.Count(kvp => kvp.Value) < 4)
                 {
-                    playerAbilityMap[ability.id] = true;
+                    playerAbilitiesMap[ability.id] = true;
                 }
                 else
                 {
@@ -173,7 +176,7 @@ public class AbilitiesEditorWindow : EditorWindow
             }
             else // Toggle is now false
             {
-                playerAbilityMap[ability.id] = false;
+                playerAbilitiesMap[ability.id] = false;
             }
 
         }
@@ -229,10 +232,10 @@ public class AbilitiesEditorWindow : EditorWindow
         {
             var abilitiesResponse = await httpClient.GetAbilities();
             abilitiesList = new List<Configurator.AbilityDTO>(abilitiesResponse.Values);
-            var playerAbilitiesIds = await httpClient.GetPlayerAbilities();
+            playerAbilitiesIds = await httpClient.GetPlayerAbilities();
             foreach (Configurator.AbilityDTO ability in abilitiesList)
             {
-                playerAbilityMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
+                playerAbilitiesMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
             }
             responseText = string.Empty;
         }
@@ -299,9 +302,9 @@ public class AbilitiesEditorWindow : EditorWindow
     {
         try
         {
-            string[] playerAbilitiesIds = await httpClient.SetPlayerAbilities(playerAbilityMap.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray());
+            playerAbilitiesIds = await httpClient.SetPlayerAbilities(playerAbilitiesMap.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray());
             foreach (Configurator.AbilityDTO ability in abilitiesList)
-                playerAbilityMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
+                playerAbilitiesMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
         }
         catch (Exception ex)
         {
