@@ -3,6 +3,7 @@ package entities
 import (
 	"backend/pkg/utils"
 	"fmt"
+	"math"
 )
 
 type Mechanic struct {
@@ -194,6 +195,53 @@ func AoEMechanic(
 	)
 
 	gs.AddAreaEffect(AoE)
+
+	return nil
+}
+
+func BuffStatMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
+	targetID, ok := params["target_id"].(string)
+	if !ok {
+		fmt.Println("Warning: 'target_id' not set or invalid.")
+		return nil
+	}
+
+	target, err := gs.GetCharacterById(targetID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	if !target.IsAlive() {
+		return nil
+	}
+
+	newStatValue := target.GetStat(params["target_stat"].(string))
+	modifiedStat := false
+
+	if statMultiplier, ok := params["multiplier"].(float64); ok {
+		newStatValue += int64(math.Round(float64(newStatValue) * statMultiplier))
+		modifiedStat = true
+	}
+
+	if base_amount, ok := params["base_amount"].(int64); ok {
+		newStatValue += base_amount
+		modifiedStat = true
+	}
+
+	if !modifiedStat {
+		fmt.Println(
+			"Warning: No valid modification value ('base_amount' or 'multiplier') provided. No change to stat will be made.",
+		)
+	}
+
+	target.SetStat(params["target_stat"].(string), newStatValue)
+
+	if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
+		for _, mechanic := range onHitMechanics.([]Mechanic) {
+			mechanic.Params["target_id"] = target.id
+		}
+		resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
+	}
 
 	return nil
 }

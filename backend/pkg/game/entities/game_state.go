@@ -40,6 +40,7 @@ func StartGameState() *GameState {
 	RegisterMechanicHandler("create_projectile", CreateProjectileMechanic)
 	RegisterMechanicHandler("delay", DelayMechanic)
 	RegisterMechanicHandler("create_AoE", AoEMechanic)
+	RegisterMechanicHandler("buff_stat", BuffStatMechanic)
 
 	return gs
 }

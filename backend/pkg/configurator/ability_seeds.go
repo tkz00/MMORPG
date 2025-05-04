@@ -54,19 +54,55 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 				},
 			},
 		),
+		// "2": entities.NewAbility(
+		// 	"2",
+		// 	"Heal",
+		// 	7,
+		// 	3000,
+		// 	entities.Target,
+		// 	entities.CastingHeal,
+		// 	entities.Mechanic{
+		// 		MechanicType: "heal",
+		// 		Params: map[string]interface{}{
+		// 			"base_amount":            20,
+		// 			"damage_stat_multiplier": 0,
+		// 			"targeting_strategy":     "character_hit",
+		// 		},
+		// 	},
+		// ),
 		"2": entities.NewAbility(
 			"2",
-			"Heal",
+			"Buff Damage",
 			7,
 			3000,
 			entities.Target,
 			entities.CastingHeal,
 			entities.Mechanic{
-				MechanicType: "heal",
+				MechanicType: "buff_stat",
 				Params: map[string]interface{}{
-					"base_amount":            20,
-					"damage_stat_multiplier": 0,
-					"targeting_strategy":     "character_hit",
+					"target_stat":        "damage",
+					"base_amount":        0,
+					"multiplier":         0.5, // this is original value + (this * original value)
+					"targeting_strategy": "character_hit",
+					"on_hit_mechanics": []entities.Mechanic{
+						{
+							MechanicType: "delay",
+							Params: map[string]interface{}{
+								"delay_ms": 5000,
+								"execute_after_delay_mechanics": []entities.Mechanic{
+									{
+										MechanicType: "buff_stat",
+										Params: map[string]interface{}{
+											"target_stat":        "damage",
+											"base_amount":        0,
+											"multiplier":         -(1 / float64(3)), // this is original value + (this * original value)
+											"targeting_strategy": "character_hit",
+										},
+									},
+								},
+							},
+						},
+					},
 				},
 			},
 		),

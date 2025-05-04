@@ -301,3 +301,7 @@ func (c *Character) GetStat(s string) int64 {
 func (c *Character) GetStats() map[string]int64 {
 	return c.stats
 }
+
+func (c *Character) SetStat(stat string, value int64) {
+	c.stats[stat] = value
+}
