@@ -39,6 +39,7 @@ type CharacterLastTickState struct {
 	Radius                     *float64
 	MaxHealth                  *int
 	CurrentHealth              *int
+	Stats                      map[string]int64
 	Action                     *Action
 	Direction                  *utils.Vector2
 	Abilities                  []string
@@ -94,6 +95,7 @@ func CreateCharacter(
 		CharacterLastTickState: &CharacterLastTickState{
 			AbilitiesRemainingCooldows: make(map[string]int64),
 			Items:                      make(map[string]int64),
+			Stats:                      make(map[string]int64),
 		},
 	}
 }
@@ -290,4 +292,12 @@ func (c *Character) TakeDamage(d int) {
 
 func (c *Character) Heal(a int) {
 	c.HealthVariation(a)
+}
+
+func (c *Character) GetStat(s string) int64 {
+	return c.stats[s]
+}
+
+func (c *Character) GetStats() map[string]int64 {
+	return c.stats
 }

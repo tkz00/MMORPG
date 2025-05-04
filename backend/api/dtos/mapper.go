@@ -49,43 +49,6 @@ func PositionToDTO(position utils.Vector2) *PositionDTO {
 	}
 }
 
-func CharacterToDTO(character entities.Character) CharacterDTO {
-	characterHealth := character.GetHealth()
-	characterAbilities := make([]AbilityDTO, 0)
-	for _, ability := range character.GetAbilities() {
-		abilityDTO := AbilityToDTO(*ability)
-		abilityDTO.RemainingCooldown = float64(character.RemainingCooldown(ability)) / 1000
-		characterAbilities = append(characterAbilities, abilityDTO)
-	}
-
-	currentHealth := characterHealth.GetCurrentHealth()
-	maxHealth := characterHealth.GetMaxHealth()
-	radius := character.GetRadius()
-	characterExecutingAction := character.GetExecutingAction()
-	executingActionDirection := characterExecutingAction.Direction()
-	actionType := characterExecutingAction.ActionType()
-
-	characterInventory := InventoryDTO{}
-	for item, quantity := range character.GetInventory() {
-		characterInventory.Items = append(
-			characterInventory.Items,
-			ItemDTO{Id: item, Quantity: quantity},
-		)
-	}
-
-	return CharacterDTO{
-		Id:            character.GetId(),
-		Position:      PositionToDTO(character.GetPosition()),
-		Radius:        &radius,
-		MaxHealth:     &maxHealth,
-		CurrentHealth: &currentHealth,
-		Action:        &actionType,
-		Direction:     PositionToDTO(executingActionDirection),
-		Abilities:     characterAbilities,
-		Inventory:     &characterInventory,
-	}
-}
-
 func AbilityToDTO(ability entities.Ability) AbilityDTO {
 	return AbilityDTO{
 		Id:       ability.Id(),
@@ -135,6 +98,7 @@ func GetCharacterDiff(c *entities.Character) *CharacterDTO {
 			c.GetExecutingAction().Direction().GetPosition(),
 		)
 	}
+	diff.Stats = getStatsDiff(c)
 	diff.Abilities = getAbilitiesDiff(c)
 	diff.Inventory = getInventoryDiff(c)
 	return diff
@@ -212,6 +176,20 @@ func getInventoryDiff(c *entities.Character) *InventoryDTO {
 		}
 	}
 
+	return nil
+}
+
+func getStatsDiff(c *entities.Character) *map[string]int64 {
+	diff := make(map[string]int64)
+	for stat, value := range c.GetStats() {
+		if c.CharacterLastTickState.Stats[stat] != value {
+			diff[stat] = value
+			c.CharacterLastTickState.Stats[stat] = value
+		}
+	}
+	if len(diff) > 0 {
+		return &diff
+	}
 	return nil
 }
 
@@ -293,6 +271,45 @@ func GameStateToDTO(gameState entities.GameState) *GameStateDTO {
 		Projectiles: projectileDTOS,
 		Npcs:        npcsDTOS,
 		AreaEffects: AoEDTOS,
+	}
+}
+
+func CharacterToDTO(character entities.Character) CharacterDTO {
+	characterHealth := character.GetHealth()
+	characterAbilities := make([]AbilityDTO, 0)
+	for _, ability := range character.GetAbilities() {
+		abilityDTO := AbilityToDTO(*ability)
+		abilityDTO.RemainingCooldown = float64(character.RemainingCooldown(ability)) / 1000
+		characterAbilities = append(characterAbilities, abilityDTO)
+	}
+
+	currentHealth := characterHealth.GetCurrentHealth()
+	maxHealth := characterHealth.GetMaxHealth()
+	radius := character.GetRadius()
+	characterExecutingAction := character.GetExecutingAction()
+	executingActionDirection := characterExecutingAction.Direction()
+	actionType := characterExecutingAction.ActionType()
+	characterStats := character.GetStats()
+
+	characterInventory := InventoryDTO{}
+	for item, quantity := range character.GetInventory() {
+		characterInventory.Items = append(
+			characterInventory.Items,
+			ItemDTO{Id: item, Quantity: quantity},
+		)
+	}
+
+	return CharacterDTO{
+		Id:            character.GetId(),
+		Position:      PositionToDTO(character.GetPosition()),
+		Radius:        &radius,
+		MaxHealth:     &maxHealth,
+		CurrentHealth: &currentHealth,
+		Stats:         &characterStats,
+		Action:        &actionType,
+		Direction:     PositionToDTO(executingActionDirection),
+		Abilities:     characterAbilities,
+		Inventory:     &characterInventory,
 	}
 }
 
