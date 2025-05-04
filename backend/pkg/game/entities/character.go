@@ -3,6 +3,7 @@ package entities
 import (
 	"backend/pkg/utils"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -283,7 +284,8 @@ func (caster *Character) EnqueueAbilityCastAction(
 }
 
 func (c *Character) TakeDamage(d int) {
-	c.HealthVariation(-(d - int(c.stats["defense"])))
+	damage := d - int(c.stats["defense"])
+	c.HealthVariation(-int(math.Max(0, float64(damage))))
 }
 
 func (c *Character) Heal(a int) {
