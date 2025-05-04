@@ -471,7 +471,8 @@ public class AbilityUIManager
 public class AbilityMechanicManager
 {
     static readonly string[] TargetingStrategies = { "caster", "character_hit" };
-    static readonly string[] MechanicTypes = { "create_projectile", "create_AoE", "delay", "damage", "heal" };
+    static readonly string[] MechanicTypes = { "create_projectile", "create_AoE", "delay", "damage", "heal", "buff_stat" };
+    static readonly string[] Stats = { "damage", "defense" };
 
     public static List<Configurator.AbilityDTO.MechanicDTO> DisplayMechanics(List<Configurator.AbilityDTO.MechanicDTO> mechanics, bool isNested)
     {
@@ -539,6 +540,7 @@ public class AbilityMechanicManager
             "damage" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.DamageParams(),
             "heal" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.HealParams(),
             "delay" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.DelayParams(),
+            "buff_stat" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.BuffStatParams(),
             _ => throw new ArgumentException($"Unknown mechanic type: {mechanicType}")
         };
     }
@@ -561,6 +563,9 @@ public class AbilityMechanicManager
                 break;
             case "delay":
                 DisplayDelayParams(mechanic);
+                break;
+            case "buff_stat":
+                DisplayBuffStatParams(mechanic);
                 break;
             default:
                 GUILayout.Label($"Error, mechanic {mechanic.mechanicType} not found");
@@ -629,6 +634,26 @@ public class AbilityMechanicManager
         delayParams.delayMs = EditorGUILayout.IntField("Delay", delayParams.delayMs);
         delayParams.executeAfterDelayMechanics = DisplayMechanics(delayParams.executeAfterDelayMechanics, true);
         mechanic.@params = delayParams;
+    }
+
+    static void DisplayBuffStatParams(Configurator.AbilityDTO.MechanicDTO mechanic)
+    {
+        var buffStatParams = mechanic.@params as Configurator.AbilityDTO.BuffStatParams;
+
+        int targetStatSelectedIndex = Mathf.Max(0, Array.IndexOf(Stats, buffStatParams.targetStat));
+        int newTargetStatSelectedIndex = EditorGUILayout.Popup("Stat", targetStatSelectedIndex, Stats);
+        buffStatParams.targetStat = Stats[newTargetStatSelectedIndex];
+
+        buffStatParams.baseAmount = EditorGUILayout.IntField("Base Amount", buffStatParams.baseAmount);
+        buffStatParams.multiplier = EditorGUILayout.FloatField("Multiplier (1 + this value)", buffStatParams.multiplier);
+
+        int targetingStrategySelectedIndex = Mathf.Max(0, Array.IndexOf(TargetingStrategies, buffStatParams.targetingStrategy));
+        int newTargetingStrategySelectedIndex = EditorGUILayout.Popup("Targeting Strategy", targetingStrategySelectedIndex, TargetingStrategies);
+        buffStatParams.targetingStrategy = TargetingStrategies[newTargetingStrategySelectedIndex];
+
+        GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
+        buffStatParams.onHitMechanics = DisplayMechanics(buffStatParams.onHitMechanics, true);
+        mechanic.@params = buffStatParams;
     }
 }
 

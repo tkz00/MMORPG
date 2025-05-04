@@ -296,6 +296,14 @@ func resolveParameters(
 		default:
 			panic("no targeting_strategy for heal mechanic found")
 		}
+	case "buff_stat":
+		switch params["targeting_strategy"] {
+		case "character_hit":
+		case "caster":
+			params["target_id"] = casterId
+		default:
+			panic("no targeting_strategy for buff_stat mechanic found")
+		}
 	case "delay":
 		for _, delayedMechanic := range params["execute_after_delay_mechanics"].([]Mechanic) {
 			delayedMechanic.Params["target_id"] = params["target_id"]

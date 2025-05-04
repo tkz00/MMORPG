@@ -185,6 +185,41 @@ namespace Configurator
                 };
             }
         }
+
+        public class BuffStatParams : Params
+        {
+            [JsonProperty("target_stat")] public string targetStat;
+            [JsonProperty("base_amount")] public int baseAmount;
+            [JsonProperty("multiplier")] public float multiplier;
+            [JsonProperty("targeting_strategy")] public string targetingStrategy;
+            [JsonProperty("on_hit_mechanics")] public List<MechanicDTO> onHitMechanics;
+
+            public BuffStatParams()
+            {
+                targetStat = "damage";
+                baseAmount = 0;
+                multiplier = 0;
+                targetingStrategy = "TO DO";
+                onHitMechanics = new List<MechanicDTO>();
+            }
+
+            public override Params DeepCopy()
+            {
+                List<MechanicDTO> onHitMechanicsCopy = new List<MechanicDTO>();
+                foreach (MechanicDTO mechanicDTO in this.onHitMechanics)
+                {
+                    onHitMechanicsCopy.Add(mechanicDTO.DeepCopy());
+                }
+                return new BuffStatParams
+                {
+                    targetStat = this.targetStat,
+                    baseAmount = this.baseAmount,
+                    multiplier = this.multiplier,
+                    targetingStrategy = this.targetingStrategy,
+                    onHitMechanics = onHitMechanicsCopy
+                };
+            }
+        }
     }
 
     public class MechanicDTOConverter : JsonConverter<AbilityDTO.MechanicDTO>
@@ -212,6 +247,7 @@ namespace Configurator
                 "damage" => jsonObject["params"]?.ToObject<AbilityDTO.DamageParams>(serializer),
                 "heal" => jsonObject["params"]?.ToObject<AbilityDTO.HealParams>(serializer),
                 "delay" => jsonObject["params"]?.ToObject<AbilityDTO.DelayParams>(serializer),
+                "buff_stat" => jsonObject["params"]?.ToObject<AbilityDTO.BuffStatParams>(serializer),
                 _ => throw new JsonSerializationException($"Unknown mechanic_type: {mechanicType}")
             };
 
