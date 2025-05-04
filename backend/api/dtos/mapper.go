@@ -3,6 +3,8 @@ package dtos
 import (
 	"backend/pkg/game/entities"
 	"backend/pkg/utils"
+	"slices"
+	"strings"
 
 	"github.com/samber/lo"
 )
@@ -126,6 +128,9 @@ func getAbilitiesDiff(c *entities.Character) []AbilityDTO {
 			}
 		}
 	}
+	slices.SortFunc(abilitiesDTOs, func(a, b AbilityDTO) int {
+		return strings.Compare(a.Id, b.Id)
+	})
 
 	return abilitiesDTOs
 }
@@ -282,6 +287,9 @@ func CharacterToDTO(character entities.Character) CharacterDTO {
 		abilityDTO.RemainingCooldown = float64(character.RemainingCooldown(ability)) / 1000
 		characterAbilities = append(characterAbilities, abilityDTO)
 	}
+	slices.SortFunc(characterAbilities, func(a, b AbilityDTO) int {
+		return strings.Compare(a.Id, b.Id)
+	})
 
 	currentHealth := characterHealth.GetCurrentHealth()
 	maxHealth := characterHealth.GetMaxHealth()
