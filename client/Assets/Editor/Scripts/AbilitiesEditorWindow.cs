@@ -21,7 +21,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
     string responseText = string.Empty;
     List<Configurator.AbilityDTO> abilitiesList = new();
-    Vector2 scrollPosition;
+    Vector2 listScrollPosition;
     Configurator.AbilityDTO selectedAbility;
     bool isEditing;
     bool isSaving;
@@ -103,7 +103,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
     void DrawAbilitiesList()
     {
-        scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(300));
+        listScrollPosition = GUILayout.BeginScrollView(listScrollPosition, GUILayout.Height(300));
 
         foreach (var ability in abilitiesList)
         {
@@ -339,6 +339,7 @@ public class AbilityUIManager
     public bool IsInitialized { get; set; }
     public Sprite Icon { get; set; }
     public Sprite pendingIcon;
+    Vector2 detailScrollPosition;
 
     string abilityName;
     int abilityCooldown;
@@ -397,6 +398,8 @@ public class AbilityUIManager
 
     public void DrawAbilityDetails(Configurator.AbilityDTO ability)
     {
+        detailScrollPosition = GUILayout.BeginScrollView(detailScrollPosition, GUILayout.Height(700));
+
         GUILayout.Space(10);
         GUILayout.Label($"Details for: {ability.name}", EditorStyles.boldLabel);
         GUILayout.Label($"ID: {ability.id}");
@@ -410,6 +413,8 @@ public class AbilityUIManager
 
         GUILayout.Label("Mechanics:", EditorStyles.boldLabel);
         abilityMechanics = AbilityMechanicManager.DisplayMechanics(abilityMechanics, false);
+
+        GUILayout.EndScrollView();
     }
 
     public Dictionary<string, object> GetAbilityFields()
