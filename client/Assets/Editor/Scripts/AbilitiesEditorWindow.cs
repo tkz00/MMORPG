@@ -21,11 +21,13 @@ public class AbilitiesEditorWindow : EditorWindow
 
     string responseText = string.Empty;
     List<Configurator.AbilityDTO> abilitiesList = new();
+    Dictionary<string, bool> playerAbilityMap = new(); // determines if an ability is enabled for players, it will be equiped when they enter the game
     Vector2 listScrollPosition;
     Configurator.AbilityDTO selectedAbility;
     bool isEditing;
     bool isSaving;
     bool isCreating;
+    bool isSettingPlayerAbilities;
     Configurator.AbilityDTO abilityToDelete;
 
     public AbilitiesEditorWindow()
@@ -48,13 +50,9 @@ public class AbilitiesEditorWindow : EditorWindow
         GUILayout.Label("Abilities Editor", EditorStyles.boldLabel);
 
         if (selectedAbility == null)
-        {
             DrawListView();
-        }
         else
-        {
             DrawDetailView();
-        }
 
         HandlePendingOperations();
     }
@@ -78,14 +76,18 @@ public class AbilitiesEditorWindow : EditorWindow
             CreateAbility();
             isCreating = false;
         }
+
+        if (isSettingPlayerAbilities)
+        {
+            SetPlayerAbilities();
+            isSettingPlayerAbilities = false;
+        }
     }
 
     void DrawListView()
     {
         if (GUILayout.Button("Fetch Abilities", GUILayout.Height(30)))
-        {
             FetchAbilities();
-        }
 
         uiManager.DrawResponseText(responseText);
 
@@ -106,11 +108,16 @@ public class AbilitiesEditorWindow : EditorWindow
         listScrollPosition = GUILayout.BeginScrollView(listScrollPosition, GUILayout.Height(300));
 
         foreach (var ability in abilitiesList)
-        {
             DrawAbilityListItem(ability);
-        }
 
         DrawCreateAbilityButton();
+
+        EditorGUILayout.Space();
+        EditorGUILayout.LabelField($"Current Player Abilities: {playerAbilityMap.Where(kvp => kvp.Value).Count()} (needs to be 4)", EditorStyles.boldLabel);
+        if (GUILayout.Button("Set Player Abilities"))
+        {
+            isSettingPlayerAbilities = true;
+        }
 
         GUILayout.EndScrollView();
     }
@@ -123,6 +130,7 @@ public class AbilitiesEditorWindow : EditorWindow
             isEditing = true;
             selectedAbility = ability;
         }
+        DrawPlayerAbilityToggle(ability);
         if (GUILayout.Button("Delete", GUILayout.Width(50), GUILayout.Height(25)))
         {
             abilityToDelete = ability;
@@ -140,6 +148,35 @@ public class AbilitiesEditorWindow : EditorWindow
             selectedAbility = new();
         }
         EditorGUILayout.EndHorizontal();
+    }
+
+    void DrawPlayerAbilityToggle(Configurator.AbilityDTO ability)
+    {
+        bool isPlayerAbility = playerAbilityMap.ContainsKey(ability.id) && playerAbilityMap[ability.id];
+        bool newToggleValue = GUILayout.Toggle(isPlayerAbility, "Is Player Ability", GUILayout.Width(120));
+        if (newToggleValue != isPlayerAbility) // Check if the toggle state has changed
+        {
+            if (newToggleValue) // Toggle is now true
+            {
+                // Check if less than 4 abilities are already set to true
+                if (playerAbilityMap.Count(kvp => kvp.Value) < 4)
+                {
+                    playerAbilityMap[ability.id] = true;
+                }
+                else
+                {
+                    // Optionally, provide feedback to the user that they can't select more
+                    Debug.LogWarning("You can only select a maximum of 4 player abilities.");
+                    // Revert the toggle back to false in the UI
+                    Repaint(); // Force a redraw to update the toggle
+                }
+            }
+            else // Toggle is now false
+            {
+                playerAbilityMap[ability.id] = false;
+            }
+
+        }
     }
 
     void DrawDetailView()
@@ -190,8 +227,13 @@ public class AbilitiesEditorWindow : EditorWindow
     {
         try
         {
-            var response = await httpClient.GetAbilities();
-            abilitiesList = new List<Configurator.AbilityDTO>(response.Values);
+            var abilitiesResponse = await httpClient.GetAbilities();
+            abilitiesList = new List<Configurator.AbilityDTO>(abilitiesResponse.Values);
+            var playerAbilitiesIds = await httpClient.GetPlayerAbilities();
+            foreach (Configurator.AbilityDTO ability in abilitiesList)
+            {
+                playerAbilityMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
+            }
             responseText = string.Empty;
         }
         catch (Exception ex)
@@ -252,6 +294,20 @@ public class AbilitiesEditorWindow : EditorWindow
             Debug.LogError($"Failed to delete ability: {ex.Message}");
         }
     }
+
+    async void SetPlayerAbilities()
+    {
+        try
+        {
+            string[] playerAbilitiesIds = await httpClient.SetPlayerAbilities(playerAbilityMap.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray());
+            foreach (Configurator.AbilityDTO ability in abilitiesList)
+                playerAbilityMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Failed to update player abilities: {ex.Message}");
+        }
+    }
 }
 
 public class AbilityHttpClient
@@ -310,7 +366,41 @@ public class AbilityHttpClient
             throw new Exception(request.error);
     }
 
+    public async Task<string[]> GetPlayerAbilities()
+    {
+        using var request = UnityWebRequest.Get($"{baseUrl}/playerAbilities");
+        await SendWebRequestAsync(request);
+
+        if (request.result != UnityWebRequest.Result.Success)
+            throw new Exception(request.error);
+
+        var jsonResponse = request.downloadHandler.text;
+        return JsonConvert.DeserializeObject<string[]>(jsonResponse);
+    }
+
+    public async Task<string[]> SetPlayerAbilities(string[] playerAbilitiesIds)
+    {
+        using var request = CreateWebRequest($"{baseUrl}/playerAbilities", "POST", playerAbilitiesIds);
+        await SendWebRequestAsync(request);
+
+        if (request.result != UnityWebRequest.Result.Success)
+            throw new Exception(request.error);
+
+        return JsonConvert.DeserializeObject<string[]>(request.downloadHandler.text);
+    }
+
     UnityWebRequest CreateWebRequest(string url, string method, Dictionary<string, object> fields)
+    {
+        var request = new UnityWebRequest(url, method);
+        var jsonPayload = JsonConvert.SerializeObject(fields);
+        var bodyRaw = Encoding.UTF8.GetBytes(jsonPayload);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        return request;
+    }
+
+    UnityWebRequest CreateWebRequest(string url, string method, string[] fields)
     {
         var request = new UnityWebRequest(url, method);
         var jsonPayload = JsonConvert.SerializeObject(fields);
