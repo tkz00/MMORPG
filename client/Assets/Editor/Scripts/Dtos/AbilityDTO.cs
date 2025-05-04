@@ -99,13 +99,15 @@ namespace Configurator
 
         public class DamageParams : Params
         {
-            public int amount;
+            [JsonProperty("base_amount")] public int baseAmount;
+            [JsonProperty("damage_stat_multiplier")] public float damageStatMultiplier;
             [JsonProperty("targeting_strategy")] public string targetingStrategy;
             [JsonProperty("on_hit_mechanics")] public List<MechanicDTO> onHitMechanics;
 
             public DamageParams()
             {
-                amount = 10;
+                baseAmount = 10;
+                damageStatMultiplier = 0;
                 targetingStrategy = "TO DO";
                 onHitMechanics = new List<MechanicDTO>();
             }
@@ -119,7 +121,40 @@ namespace Configurator
                 }
                 return new DamageParams
                 {
-                    amount = this.amount,
+                    baseAmount = this.baseAmount,
+                    damageStatMultiplier = this.damageStatMultiplier,
+                    targetingStrategy = this.targetingStrategy,
+                    onHitMechanics = onHitMechanicsCopy
+                };
+            }
+        }
+
+        public class HealParams : Params
+        {
+            [JsonProperty("base_amount")] public int baseAmount;
+            [JsonProperty("damage_stat_multiplier")] public float damageStatMultiplier;
+            [JsonProperty("targeting_strategy")] public string targetingStrategy;
+            [JsonProperty("on_hit_mechanics")] public List<MechanicDTO> onHitMechanics;
+
+            public HealParams()
+            {
+                baseAmount = 10;
+                damageStatMultiplier = 0;
+                targetingStrategy = "TO DO";
+                onHitMechanics = new List<MechanicDTO>();
+            }
+
+            public override Params DeepCopy()
+            {
+                List<MechanicDTO> onHitMechanicsCopy = new List<MechanicDTO>();
+                foreach (MechanicDTO mechanicDTO in this.onHitMechanics)
+                {
+                    onHitMechanicsCopy.Add(mechanicDTO.DeepCopy());
+                }
+                return new HealParams
+                {
+                    baseAmount = this.baseAmount,
+                    damageStatMultiplier = this.damageStatMultiplier,
                     targetingStrategy = this.targetingStrategy,
                     onHitMechanics = onHitMechanicsCopy
                 };
@@ -175,6 +210,7 @@ namespace Configurator
                 "create_projectile" => jsonObject["params"]?.ToObject<AbilityDTO.CreateProjectileParams>(serializer),
                 "create_AoE" => jsonObject["params"]?.ToObject<AbilityDTO.CreateAoEParams>(serializer),
                 "damage" => jsonObject["params"]?.ToObject<AbilityDTO.DamageParams>(serializer),
+                "heal" => jsonObject["params"]?.ToObject<AbilityDTO.HealParams>(serializer),
                 "delay" => jsonObject["params"]?.ToObject<AbilityDTO.DelayParams>(serializer),
                 _ => throw new JsonSerializationException($"Unknown mechanic_type: {mechanicType}")
             };

@@ -16,60 +16,12 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			entities.Mechanic{
 				MechanicType: "damage",
 				Params: map[string]interface{}{
-					"baseAmount":         25,
-					"damageMultiplier":   0,
-					"targeting_strategy": "character_hit",
+					"base_amount":            25,
+					"damage_stat_multiplier": 0,
+					"targeting_strategy":     "character_hit",
 				},
 			},
 		),
-		// "0": entities.NewAbility(
-		// 	"0",
-		// 	"projectile",
-		// 	12,
-		// 	2000,
-		// 	entities.Coordinates,
-		// 	entities.Attacking,
-		// 	entities.Mechanic{
-		// 		MechanicType: "create_projectile",
-		// 		Params: map[string]interface{}{
-		// 			"on_hit_mechanics": []entities.Mechanic{
-		// 				{
-		// 					MechanicType: "damage",
-		// 					Params: map[string]interface{}{
-		// 						"amount":             40,
-		// 						"targeting_strategy": "character_hit",
-		// 					},
-		// 				},
-		// 				{
-		// 					MechanicType: "heal",
-		// 					Params: map[string]interface{}{
-		// 						"amount":             20,
-		// 						"targeting_strategy": "caster",
-		// 					},
-		// 				},
-		// 				{
-		// 					MechanicType: "create_projectile",
-		// 					Params: map[string]interface{}{
-		// 						"targeting_strategy": "arc",
-		// 						"number":             5,
-		// 						"radius":             utils.DegreesToRadians(360),
-		// 						"range":              5.0,
-		// 						"origin_position":    "target",
-		// 						"on_hit_mechanics": []entities.Mechanic{
-		// 							{
-		// 								MechanicType: "damage",
-		// 								Params: map[string]interface{}{
-		// 									"amount":             20,
-		// 									"targeting_strategy": "character_hit",
-		// 								},
-		// 							},
-		// 						},
-		// 					},
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// ),
 		"1": entities.NewAbility(
 			"1",
 			"Projectile",
@@ -90,9 +42,9 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 									{
 										MechanicType: "damage",
 										Params: map[string]interface{}{
-											"baseAmount":         20,
-											"damageMultiplier":   1.5,
-											"targeting_strategy": "character_hit",
+											"base_amount":            20,
+											"damage_stat_multiplier": 1.5,
+											"targeting_strategy":     "character_hit",
 										},
 									},
 								},
@@ -112,9 +64,9 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			entities.Mechanic{
 				MechanicType: "heal",
 				Params: map[string]interface{}{
-					"baseAmount":         20,
-					"damageMultiplier":   0,
-					"targeting_strategy": "character_hit",
+					"base_amount":            20,
+					"damage_stat_multiplier": 0,
+					"targeting_strategy":     "character_hit",
 				},
 			},
 		),
@@ -128,7 +80,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			entities.Mechanic{
 				MechanicType: "damage",
 				Params: map[string]interface{}{
-					"amount":             20,
+					"base_amount":        20,
 					"targeting_strategy": "character_hit",
 					"on_hit_mechanics": []entities.Mechanic{
 						{
@@ -139,9 +91,9 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 									{
 										MechanicType: "heal",
 										Params: map[string]interface{}{
-											"baseAmount":         10,
-											"damageMultiplier":   0,
-											"targeting_strategy": "caster",
+											"base_amount":            10,
+											"damage_stat_multiplier": 0,
+											"targeting_strategy":     "caster",
 										},
 									},
 								},
@@ -167,9 +119,9 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 						{
 							MechanicType: "damage",
 							Params: map[string]interface{}{
-								"baseAmount":         20,
-								"damageMultiplier":   0,
-								"targeting_strategy": "character_hit",
+								"base_amount":            20,
+								"damage_stat_multiplier": 0,
+								"targeting_strategy":     "character_hit",
 							},
 						},
 					},

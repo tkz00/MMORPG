@@ -35,17 +35,22 @@ func HealMechanic(caster *Character, gs *GameState, params map[string]interface{
 	}
 
 	healAmount := 0.0
+	hasHealSource := false
 
-	if baseAmount, ok := params["baseAmount"].(float64); ok {
-		healAmount += baseAmount
-	} else {
-		fmt.Println("Warning: 'baseAmount' not set or invalid. No heal will be done.")
+	if base_amount, ok := params["base_amount"].(float64); ok {
+		healAmount += base_amount
+		hasHealSource = true
 	}
 
-	if damageScaling, ok := params["damageMultiplier"].(float64); ok {
+	if damageScaling, ok := params["damage_stat_multiplier"].(float64); ok {
 		healAmount += float64(caster.stats["damage"]) * damageScaling
-	} else {
-		fmt.Println("Warning: 'damageMultiplier' not set or invalid. No heal will be done.")
+		hasHealSource = true
+	}
+
+	if !hasHealSource {
+		fmt.Println(
+			"Warning: No valid heal source ('base_amount' or 'damage_stat_multiplier') provided. No heal will be done.",
+		)
 	}
 
 	target.Heal(int(healAmount))
@@ -86,17 +91,22 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 	}
 
 	damageAmount := 0.0
+	hasDamageSource := false
 
-	if baseAmount, ok := params["baseAmount"].(float64); ok {
-		damageAmount += baseAmount
-	} else {
-		fmt.Println("Warning: 'baseAmount' not set or invalid. No damage will be dealt.")
+	if base_amount, ok := params["base_amount"].(float64); ok {
+		damageAmount += base_amount
+		hasDamageSource = true
 	}
 
-	if damageScaling, ok := params["damageMultiplier"].(float64); ok {
+	if damageScaling, ok := params["damage_stat_multiplier"].(float64); ok {
 		damageAmount += float64(caster.stats["damage"]) * damageScaling
-	} else {
-		fmt.Println("Warning: 'damageMultiplier' not set or invalid. No damage will be dealt.")
+		hasDamageSource = true
+	}
+
+	if !hasDamageSource {
+		fmt.Println(
+			"Warning: No valid damage source ('base_amount' or 'damage_stat_multiplier') provided. No damage will be dealt.",
+		)
 	}
 
 	target.TakeDamage(int(damageAmount))
