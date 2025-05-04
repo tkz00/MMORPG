@@ -19,6 +19,7 @@ func SetupRouter() *gin.Engine {
 	r.POST("/ability", CreateAbility)
 	r.PATCH("/ability/:id", UpdateAbility)
 	r.DELETE("/ability/:id", DeleteAbility)
+	r.GET("/playerAbilities", GetPlayerAbilities)
 	r.POST("/playerAbilities", SetPlayerAbilities)
 	return r
 }
@@ -152,6 +153,16 @@ func DeleteAbility(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
+}
+
+func GetPlayerAbilities(c *gin.Context) {
+	playerAbilitiesIds, err := LoadPlayerAbilitiesIds()
+	if err != nil {
+		fmt.Printf("Error loading abilities: %v\n", err)
+		return
+	}
+
+	c.JSON(http.StatusOK, playerAbilitiesIds)
 }
 
 func SetPlayerAbilities(c *gin.Context) {
