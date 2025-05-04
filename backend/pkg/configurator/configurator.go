@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"sort"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/samber/lo"
 )
 
 func SetupRouter() *gin.Engine {
@@ -28,6 +30,9 @@ func RunSeeds() {
 	}
 
 	SaveAbilitiesToFile(configuratorAbilities)
+	playerAbilitiesIds := lo.Keys(configuratorAbilities)
+	sort.Strings(playerAbilitiesIds)
+	SavePlayerInitialAbilities(playerAbilitiesIds[1:5])
 }
 
 func Run() {

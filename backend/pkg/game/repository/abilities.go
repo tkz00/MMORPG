@@ -6,6 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/samber/lo"
 )
 
 const ABILITIES_FILE_NAME = "abilities.json"
@@ -50,16 +52,11 @@ func GetPlayerAbilities() map[string]*entities.Ability {
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 	}
-
-	playerAbilities := make(map[string]*entities.Ability)
-
-	for i, ability := range abilities {
-		if i != "0" { // for now 0 is the only enemy ability
-			playerAbilities[i] = ability
-		}
+	playerAbilitiesIds, err := configurator.LoadPlayerAbilitiesIds()
+	if err != nil {
+		fmt.Printf("Error loading player abilities: %v\n", err)
 	}
-
-	return playerAbilities
+	return lo.PickByKeys(abilities, playerAbilitiesIds)
 }
 
 func ConvertFromConfiguratorAbility(ability configurator.ConfiguratorAbility) *entities.Ability {
