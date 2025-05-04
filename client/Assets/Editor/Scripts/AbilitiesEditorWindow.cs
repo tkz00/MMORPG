@@ -21,7 +21,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
     string responseText = string.Empty;
     List<Configurator.AbilityDTO> abilitiesList = new();
-    Vector2 scrollPosition;
+    Vector2 listScrollPosition;
     Configurator.AbilityDTO selectedAbility;
     bool isEditing;
     bool isSaving;
@@ -103,7 +103,7 @@ public class AbilitiesEditorWindow : EditorWindow
 
     void DrawAbilitiesList()
     {
-        scrollPosition = GUILayout.BeginScrollView(scrollPosition, GUILayout.Height(300));
+        listScrollPosition = GUILayout.BeginScrollView(listScrollPosition, GUILayout.Height(300));
 
         foreach (var ability in abilitiesList)
         {
@@ -339,6 +339,7 @@ public class AbilityUIManager
     public bool IsInitialized { get; set; }
     public Sprite Icon { get; set; }
     public Sprite pendingIcon;
+    Vector2 detailScrollPosition;
 
     string abilityName;
     int abilityCooldown;
@@ -397,6 +398,8 @@ public class AbilityUIManager
 
     public void DrawAbilityDetails(Configurator.AbilityDTO ability)
     {
+        detailScrollPosition = GUILayout.BeginScrollView(detailScrollPosition, GUILayout.Height(700));
+
         GUILayout.Space(10);
         GUILayout.Label($"Details for: {ability.name}", EditorStyles.boldLabel);
         GUILayout.Label($"ID: {ability.id}");
@@ -410,6 +413,8 @@ public class AbilityUIManager
 
         GUILayout.Label("Mechanics:", EditorStyles.boldLabel);
         abilityMechanics = AbilityMechanicManager.DisplayMechanics(abilityMechanics, false);
+
+        GUILayout.EndScrollView();
     }
 
     public Dictionary<string, object> GetAbilityFields()
@@ -466,7 +471,8 @@ public class AbilityUIManager
 public class AbilityMechanicManager
 {
     static readonly string[] TargetingStrategies = { "caster", "character_hit" };
-    static readonly string[] MechanicTypes = { "create_projectile", "create_AoE", "delay", "damage" };
+    static readonly string[] MechanicTypes = { "create_projectile", "create_AoE", "delay", "damage", "heal", "buff_stat" };
+    static readonly string[] Stats = { "damage", "defense" };
 
     public static List<Configurator.AbilityDTO.MechanicDTO> DisplayMechanics(List<Configurator.AbilityDTO.MechanicDTO> mechanics, bool isNested)
     {
@@ -532,7 +538,9 @@ public class AbilityMechanicManager
             "create_projectile" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.CreateProjectileParams(),
             "create_AoE" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.CreateAoEParams(),
             "damage" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.DamageParams(),
+            "heal" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.HealParams(),
             "delay" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.DelayParams(),
+            "buff_stat" => (Configurator.AbilityDTO.Params)new Configurator.AbilityDTO.BuffStatParams(),
             _ => throw new ArgumentException($"Unknown mechanic type: {mechanicType}")
         };
     }
@@ -550,8 +558,14 @@ public class AbilityMechanicManager
             case "damage":
                 DisplayDamageParams(mechanic);
                 break;
+            case "heal":
+                DisplayHealParams(mechanic);
+                break;
             case "delay":
                 DisplayDelayParams(mechanic);
+                break;
+            case "buff_stat":
+                DisplayBuffStatParams(mechanic);
                 break;
             default:
                 GUILayout.Label($"Error, mechanic {mechanic.mechanicType} not found");
@@ -587,7 +601,8 @@ public class AbilityMechanicManager
     static void DisplayDamageParams(Configurator.AbilityDTO.MechanicDTO mechanic)
     {
         var damageParams = mechanic.@params as Configurator.AbilityDTO.DamageParams;
-        damageParams.amount = EditorGUILayout.IntField("Amount", damageParams.amount);
+        damageParams.baseAmount = EditorGUILayout.IntField("Base Damage", damageParams.baseAmount);
+        damageParams.damageStatMultiplier = EditorGUILayout.FloatField("Damage Stat Multiplier", damageParams.damageStatMultiplier);
 
         int targetingStrategySelectedIndex = Mathf.Max(0, Array.IndexOf(TargetingStrategies, damageParams.targetingStrategy));
         int newTargetingStrategySelectedIndex = EditorGUILayout.Popup("Targeting Strategy", targetingStrategySelectedIndex, TargetingStrategies);
@@ -598,12 +613,47 @@ public class AbilityMechanicManager
         mechanic.@params = damageParams;
     }
 
+    static void DisplayHealParams(Configurator.AbilityDTO.MechanicDTO mechanic)
+    {
+        var healParams = mechanic.@params as Configurator.AbilityDTO.HealParams;
+        healParams.baseAmount = EditorGUILayout.IntField("Base Heal", healParams.baseAmount);
+        healParams.damageStatMultiplier = EditorGUILayout.FloatField("Damage Stat Multiplier", healParams.damageStatMultiplier);
+
+        int targetingStrategySelectedIndex = Mathf.Max(0, Array.IndexOf(TargetingStrategies, healParams.targetingStrategy));
+        int newTargetingStrategySelectedIndex = EditorGUILayout.Popup("Targeting Strategy", targetingStrategySelectedIndex, TargetingStrategies);
+        healParams.targetingStrategy = TargetingStrategies[newTargetingStrategySelectedIndex];
+
+        GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
+        healParams.onHitMechanics = DisplayMechanics(healParams.onHitMechanics, true);
+        mechanic.@params = healParams;
+    }
+
     static void DisplayDelayParams(Configurator.AbilityDTO.MechanicDTO mechanic)
     {
         var delayParams = mechanic.@params as Configurator.AbilityDTO.DelayParams;
         delayParams.delayMs = EditorGUILayout.IntField("Delay", delayParams.delayMs);
         delayParams.executeAfterDelayMechanics = DisplayMechanics(delayParams.executeAfterDelayMechanics, true);
         mechanic.@params = delayParams;
+    }
+
+    static void DisplayBuffStatParams(Configurator.AbilityDTO.MechanicDTO mechanic)
+    {
+        var buffStatParams = mechanic.@params as Configurator.AbilityDTO.BuffStatParams;
+
+        int targetStatSelectedIndex = Mathf.Max(0, Array.IndexOf(Stats, buffStatParams.targetStat));
+        int newTargetStatSelectedIndex = EditorGUILayout.Popup("Stat", targetStatSelectedIndex, Stats);
+        buffStatParams.targetStat = Stats[newTargetStatSelectedIndex];
+
+        buffStatParams.baseAmount = EditorGUILayout.IntField("Base Amount", buffStatParams.baseAmount);
+        buffStatParams.multiplier = EditorGUILayout.FloatField("Multiplier (1 + this value)", buffStatParams.multiplier);
+
+        int targetingStrategySelectedIndex = Mathf.Max(0, Array.IndexOf(TargetingStrategies, buffStatParams.targetingStrategy));
+        int newTargetingStrategySelectedIndex = EditorGUILayout.Popup("Targeting Strategy", targetingStrategySelectedIndex, TargetingStrategies);
+        buffStatParams.targetingStrategy = TargetingStrategies[newTargetingStrategySelectedIndex];
+
+        GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
+        buffStatParams.onHitMechanics = DisplayMechanics(buffStatParams.onHitMechanics, true);
+        mechanic.@params = buffStatParams;
     }
 }
 

@@ -3,6 +3,7 @@ package entities
 import (
 	"backend/pkg/utils"
 	"fmt"
+	"math"
 )
 
 type Mechanic struct {
@@ -19,60 +20,115 @@ func RegisterMechanicHandler(mechanicType string, handler MechanicHandler) {
 }
 
 func HealMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
-	if amount, ok := params["amount"].(float64); ok {
-		target, err := gs.GetCharacterById(params["target_id"].(string))
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		if !target.IsAlive() {
-			return nil
-		}
-		target.HealthVariation(int(amount))
-
-		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
-			for _, mechanic := range onHitMechanics.([]Mechanic) {
-				mechanic.Params["target_id"] = target.id
-			}
-			resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
-		}
-
+	targetID, ok := params["target_id"].(string)
+	if !ok {
+		fmt.Println("Warning: 'target_id' not set or invalid.")
 		return nil
 	}
-	return fmt.Errorf("missing or invalid 'amount' parameter")
+
+	target, err := gs.GetCharacterById(targetID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	if !target.IsAlive() {
+		return nil
+	}
+
+	healAmount := 0.0
+	hasHealSource := false
+
+	if base_amount, ok := params["base_amount"].(float64); ok {
+		healAmount += base_amount
+		hasHealSource = true
+	}
+
+	if damageScaling, ok := params["damage_stat_multiplier"].(float64); ok {
+		healAmount += float64(caster.stats["damage"]) * damageScaling
+		hasHealSource = true
+	}
+
+	if !hasHealSource {
+		fmt.Println(
+			"Warning: No valid heal source ('base_amount' or 'damage_stat_multiplier') provided. No heal will be done.",
+		)
+	}
+
+	target.Heal(int(healAmount))
+
+	if npc, ok := gs.npcs[targetID]; ok {
+		npc.BecomeAggressive(caster)
+	}
+
+	if !target.IsAlive() {
+		caster, _ := gs.GetCharacterById(caster.id)
+		caster.Loot(target.Inventory)
+	}
+
+	if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
+		for _, mechanic := range onHitMechanics.([]Mechanic) {
+			mechanic.Params["target_id"] = target.id
+		}
+		resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
+	}
+
+	return nil
 }
 
 func DamageMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
-	if amount, ok := params["amount"].(float64); ok {
-		target, err := gs.GetCharacterById(params["target_id"].(string))
-		if err != nil {
-			fmt.Println(err)
-			return err
-		}
-		if !target.IsAlive() {
-			return nil
-		}
-		target.HealthVariation(-int(amount))
-
-		if npc, ok := gs.npcs[params["target_id"].(string)]; ok {
-			npc.BecomeAggressive(caster)
-		}
-
-		if !target.IsAlive() {
-			caster, _ := gs.GetCharacterById(caster.id)
-			caster.Loot(target.Inventory)
-		}
-
-		if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
-			for _, mechanic := range onHitMechanics.([]Mechanic) {
-				mechanic.Params["target_id"] = target.id
-			}
-			resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
-		}
-
+	targetID, ok := params["target_id"].(string)
+	if !ok {
+		fmt.Println("Warning: 'target_id' not set or invalid.")
 		return nil
 	}
-	return fmt.Errorf("missing or invalid 'amount' parameter")
+
+	target, err := gs.GetCharacterById(targetID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	if !target.IsAlive() {
+		return nil
+	}
+
+	damageAmount := 0.0
+	hasDamageSource := false
+
+	if base_amount, ok := params["base_amount"].(float64); ok {
+		damageAmount += base_amount
+		hasDamageSource = true
+	}
+
+	if damageScaling, ok := params["damage_stat_multiplier"].(float64); ok {
+		damageAmount += float64(caster.stats["damage"]) * damageScaling
+		hasDamageSource = true
+	}
+
+	if !hasDamageSource {
+		fmt.Println(
+			"Warning: No valid damage source ('base_amount' or 'damage_stat_multiplier') provided. No damage will be dealt.",
+		)
+	}
+
+	target.TakeDamage(int(damageAmount))
+
+	if npc, ok := gs.npcs[targetID]; ok {
+		npc.BecomeAggressive(caster)
+	}
+
+	if !target.IsAlive() {
+		caster, _ := gs.GetCharacterById(caster.id)
+		caster.Loot(target.Inventory)
+	}
+
+	if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
+		for _, mechanic := range onHitMechanics.([]Mechanic) {
+			mechanic.Params["target_id"] = target.id
+		}
+		resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
+	}
+
+	return nil
 }
 
 func DelayMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
@@ -143,6 +199,53 @@ func AoEMechanic(
 	return nil
 }
 
+func BuffStatMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
+	targetID, ok := params["target_id"].(string)
+	if !ok {
+		fmt.Println("Warning: 'target_id' not set or invalid.")
+		return nil
+	}
+
+	target, err := gs.GetCharacterById(targetID)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	if !target.IsAlive() {
+		return nil
+	}
+
+	newStatValue := target.GetStat(params["target_stat"].(string))
+	modifiedStat := false
+
+	if statMultiplier, ok := params["multiplier"].(float64); ok {
+		newStatValue += int64(math.Round(float64(newStatValue) * statMultiplier))
+		modifiedStat = true
+	}
+
+	if base_amount, ok := params["base_amount"].(int64); ok {
+		newStatValue += base_amount
+		modifiedStat = true
+	}
+
+	if !modifiedStat {
+		fmt.Println(
+			"Warning: No valid modification value ('base_amount' or 'multiplier') provided. No change to stat will be made.",
+		)
+	}
+
+	target.SetStat(params["target_stat"].(string), newStatValue)
+
+	if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
+		for _, mechanic := range onHitMechanics.([]Mechanic) {
+			mechanic.Params["target_id"] = target.id
+		}
+		resolveMechanics(caster.id, gs, onHitMechanics.([]Mechanic))
+	}
+
+	return nil
+}
+
 func resolveMechanics(
 	casterId string,
 	gs *GameState,
@@ -192,6 +295,14 @@ func resolveParameters(
 			params["target_id"] = casterId
 		default:
 			panic("no targeting_strategy for heal mechanic found")
+		}
+	case "buff_stat":
+		switch params["targeting_strategy"] {
+		case "character_hit":
+		case "caster":
+			params["target_id"] = casterId
+		default:
+			panic("no targeting_strategy for buff_stat mechanic found")
 		}
 	case "delay":
 		for _, delayedMechanic := range params["execute_after_delay_mechanics"].([]Mechanic) {

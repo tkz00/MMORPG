@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Cinemachine;
 using Newtonsoft.Json;
+using TMPro;
 using UnityEngine;
 
 public class GameManager : MonoBehaviour
@@ -31,6 +32,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] GameObject deathSplash;
 
     [SerializeField] Inventory inventory;
+    [SerializeField] StatsPanel statsPanel;
 
 
     static Dictionary<string, Character> players = new Dictionary<string, Character>();
@@ -92,6 +94,7 @@ public class GameManager : MonoBehaviour
         CharacterDTO mainPlayer = gameState.players.Find(player => player.id == mainPlayerID);
         abilitiesPanel.UpdatePlayerPanel(mainPlayer);
         inventory.UpdateInventory(mainPlayer.inventory);
+        if (mainPlayer.stats != null) statsPanel.UpdatePanel(mainPlayer.stats);
     }
 
     private void UpdateAreaEffects(List<AreaEffectDTO> AoEs)

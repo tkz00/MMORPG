@@ -67,7 +67,7 @@ var existingItems = map[string]*Item{
 		"small health potion",
 		Mechanic{
 			MechanicType: "heal",
-			Params:       map[string]interface{}{"amount": 40.0},
+			Params:       map[string]interface{}{"base_amount": 40.0},
 		},
 	),
 	"1": NewItem("1", "leather"),

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Runtime.Serialization;
 using Newtonsoft.Json;
 
@@ -8,6 +9,7 @@ public class CharacterDTO : DTO
     public float? radius;
     public int? maxHealth;
     public int? currentHealth;
+    public Dictionary<string, int> stats;
     public CharacterAction? action;
     public PositionDTO direction;
     public AbilityDTO[] abilities;

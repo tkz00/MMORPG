@@ -1,4 +1,4 @@
-package stats
+package entities
 
 type Health struct {
 	maxHealth     int

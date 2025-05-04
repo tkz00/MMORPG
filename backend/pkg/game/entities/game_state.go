@@ -40,12 +40,14 @@ func StartGameState() *GameState {
 	RegisterMechanicHandler("create_projectile", CreateProjectileMechanic)
 	RegisterMechanicHandler("delay", DelayMechanic)
 	RegisterMechanicHandler("create_AoE", AoEMechanic)
+	RegisterMechanicHandler("buff_stat", BuffStatMechanic)
 
 	return gs
 }
 
 func (gs *GameState) SetUpSkeletonEnemies(skeletonEnemiesAbilities map[string]*Ability) {
-	skeletonNPCTemplate := NewNPCTemplate("0", "skeleton", 25, 12, skeletonEnemiesAbilities)
+	stats := map[string]int64{"damage": 10, "defense": 10}
+	skeletonNPCTemplate := NewNPCTemplate("0", "skeleton", 25, stats, 12, skeletonEnemiesAbilities)
 
 	gs.spawners["skeleton_spawner_0"] = NewSpawner(
 		*utils.NewVector2(0, 15),

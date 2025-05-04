@@ -10,7 +10,8 @@
       {
         "mechanic_type": "damage",
         "params": {
-          "amount": 19,
+          "base_amount": 25,
+          "damage_stat_multiplier": 0,
           "targeting_strategy": "character_hit"
         }
       }
@@ -36,7 +37,8 @@
                   {
                     "mechanic_type": "damage",
                     "params": {
-                      "amount": 20,
+                      "base_amount": 20,
+                      "damage_stat_multiplier": 1.5,
                       "targeting_strategy": "character_hit"
                     }
                   }
@@ -51,16 +53,37 @@
   },
   "2": {
     "id": "2",
-    "name": "Heal",
+    "name": "Buff Damage",
     "range": 7,
     "cooldown": 3000,
     "targeting": 0,
     "character_state": 3,
     "mechanics": [
       {
-        "mechanic_type": "damage",
+        "mechanic_type": "buff_stat",
         "params": {
-          "amount": -20,
+          "base_amount": 0,
+          "multiplier": 0.5,
+          "on_hit_mechanics": [
+            {
+              "mechanic_type": "delay",
+              "params": {
+                "delay_ms": 5000,
+                "execute_after_delay_mechanics": [
+                  {
+                    "mechanic_type": "buff_stat",
+                    "params": {
+                      "base_amount": 0,
+                      "multiplier": -0.3333333333333333,
+                      "target_stat": "damage",
+                      "targeting_strategy": "character_hit"
+                    }
+                  }
+                ]
+              }
+            }
+          ],
+          "target_stat": "damage",
           "targeting_strategy": "character_hit"
         }
       }
@@ -77,7 +100,7 @@
       {
         "mechanic_type": "damage",
         "params": {
-          "amount": 20,
+          "base_amount": 20,
           "on_hit_mechanics": [
             {
               "mechanic_type": "delay",
@@ -85,9 +108,10 @@
                 "delay_ms": 1000,
                 "execute_after_delay_mechanics": [
                   {
-                    "mechanic_type": "damage",
+                    "mechanic_type": "heal",
                     "params": {
-                      "amount": -10,
+                      "base_amount": 10,
+                      "damage_stat_multiplier": 0,
                       "targeting_strategy": "caster"
                     }
                   }
@@ -116,7 +140,8 @@
             {
               "mechanic_type": "damage",
               "params": {
-                "amount": 20,
+                "base_amount": 20,
+                "damage_stat_multiplier": 0,
                 "targeting_strategy": "character_hit"
               }
             }

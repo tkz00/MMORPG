@@ -1,9 +1,9 @@
 package entities
 
 import (
-	"backend/pkg/game/stats"
 	"backend/pkg/utils"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -39,6 +39,7 @@ type CharacterLastTickState struct {
 	Radius                     *float64
 	MaxHealth                  *int
 	CurrentHealth              *int
+	Stats                      map[string]int64
 	Action                     *Action
 	Direction                  *utils.Vector2
 	Abilities                  []string
@@ -48,7 +49,8 @@ type CharacterLastTickState struct {
 
 type Character struct {
 	id string
-	stats.Health
+	Health
+	stats           map[string]int64
 	executingAction ExecutingAction
 	position        utils.Vector2
 	to              utils.Vector2
@@ -66,7 +68,12 @@ type Character struct {
 	onRemoved []func()
 }
 
-func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Character {
+func CreateCharacter(
+	id string,
+	x, z float64,
+	stats map[string]int64,
+	abilities map[string]*Ability,
+) *Character {
 	initialPosition := *utils.NewVector2(x, z)
 
 	lastUsed := make(map[string]time.Time, len(abilities))
@@ -78,7 +85,8 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 		id:              id,
 		position:        initialPosition,
 		to:              initialPosition,
-		Health:          stats.NewHealth(BASE_MAX_HEALTH),
+		Health:          NewHealth(BASE_MAX_HEALTH),
+		stats:           stats,
 		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0)},
 		actionsQueue:    []CharacterAction{},
 		Inventory:       NewInventory(),
@@ -87,6 +95,7 @@ func CreateCharacter(id string, x, z float64, abilities map[string]*Ability) *Ch
 		CharacterLastTickState: &CharacterLastTickState{
 			AbilitiesRemainingCooldows: make(map[string]int64),
 			Items:                      make(map[string]int64),
+			Stats:                      make(map[string]int64),
 		},
 	}
 }
@@ -104,7 +113,7 @@ func (p Character) GetPosition() utils.Vector2 {
 }
 
 // this shouldn't be here
-func (p Character) GetHealth() stats.Health {
+func (p Character) GetHealth() Health {
 	return p.Health
 }
 
@@ -274,4 +283,25 @@ func (caster *Character) EnqueueAbilityCastAction(
 		castParameters: abilityCastParameters,
 	}
 	caster.EnqueueAction(castAbilityAction)
+}
+
+func (c *Character) TakeDamage(d int) {
+	damage := d - int(c.stats["defense"])
+	c.HealthVariation(-int(math.Max(0, float64(damage))))
+}
+
+func (c *Character) Heal(a int) {
+	c.HealthVariation(a)
+}
+
+func (c *Character) GetStat(s string) int64 {
+	return c.stats[s]
+}
+
+func (c *Character) GetStats() map[string]int64 {
+	return c.stats
+}
+
+func (c *Character) SetStat(stat string, value int64) {
+	c.stats[stat] = value
 }
