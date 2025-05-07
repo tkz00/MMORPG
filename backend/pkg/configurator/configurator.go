@@ -146,13 +146,22 @@ func DeleteAbility(c *gin.Context) {
 		return
 	}
 
-	if _, exists := abilities[id]; exists {
-		delete(abilities, id)
-		SaveAbilitiesToFile(abilities)
-		c.JSON(http.StatusOK, gin.H{"message": "ability deleted"})
+	if _, exists := abilities[id]; !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
 		return
 	}
-	c.JSON(http.StatusNotFound, gin.H{"error": "ability not found"})
+
+	if playerAbilitiesIds, err := LoadPlayerAbilitiesIds(); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "could not load player abilities"})
+		return
+	} else if lo.Contains(playerAbilitiesIds, id) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "ability is player ability, cannot be deleted, remove it as player ability to delete it"})
+		return
+	}
+
+	delete(abilities, id)
+	SaveAbilitiesToFile(abilities)
+	c.JSON(http.StatusOK, gin.H{"message": "ability deleted"})
 }
 
 func GetPlayerAbilities(c *gin.Context) {

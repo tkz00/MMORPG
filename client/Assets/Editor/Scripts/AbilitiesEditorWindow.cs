@@ -366,7 +366,7 @@ public class AbilityHttpClient
         await SendWebRequestAsync(request);
 
         if (request.result != UnityWebRequest.Result.Success)
-            throw new Exception(request.error);
+            throw new Exception(request.downloadHandler.text);
     }
 
     public async Task<string[]> GetPlayerAbilities()
