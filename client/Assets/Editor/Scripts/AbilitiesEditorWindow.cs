@@ -134,7 +134,7 @@ public class AbilitiesEditorWindow : EditorWindow
             selectedAbility = ability;
         }
         DrawPlayerAbilityToggle(ability);
-        if (GUILayout.Button("Delete", GUILayout.Width(50), GUILayout.Height(25)))
+        if (!playerAbilitiesIds.Contains(ability.id) && GUILayout.Button("Delete", GUILayout.Width(50), GUILayout.Height(25)))
         {
             abilityToDelete = ability;
         }
@@ -230,13 +230,10 @@ public class AbilitiesEditorWindow : EditorWindow
     {
         try
         {
+            playerAbilitiesIds = await httpClient.GetPlayerAbilities();
             var abilitiesResponse = await httpClient.GetAbilities();
             abilitiesList = new List<Configurator.AbilityDTO>(abilitiesResponse.Values);
-            playerAbilitiesIds = await httpClient.GetPlayerAbilities();
-            foreach (Configurator.AbilityDTO ability in abilitiesList)
-            {
-                playerAbilitiesMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
-            }
+            ResetPlayerAbilities();
             responseText = string.Empty;
         }
         catch (Exception ex)
@@ -291,6 +288,7 @@ public class AbilitiesEditorWindow : EditorWindow
             await httpClient.DeleteAbility(ability.id);
             abilitiesList.Remove(ability);
             soManager.DeleteAbilityScriptableObject(ability.id);
+            ResetPlayerAbilities();
         }
         catch (Exception ex)
         {
@@ -303,12 +301,20 @@ public class AbilitiesEditorWindow : EditorWindow
         try
         {
             playerAbilitiesIds = await httpClient.SetPlayerAbilities(playerAbilitiesMap.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray());
-            foreach (Configurator.AbilityDTO ability in abilitiesList)
-                playerAbilitiesMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
+            ResetPlayerAbilities();
         }
         catch (Exception ex)
         {
             Debug.LogError($"Failed to update player abilities: {ex.Message}");
+        }
+    }
+
+    void ResetPlayerAbilities()
+    {
+        playerAbilitiesMap.Clear();
+        foreach (Configurator.AbilityDTO ability in abilitiesList)
+        {
+            playerAbilitiesMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
         }
     }
 }
