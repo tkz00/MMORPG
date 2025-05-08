@@ -47,16 +47,16 @@ func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Abil
 	}
 }
 
-func GetPlayerAbilities() map[string]*entities.Ability {
+func GetPlayersInitialAbilities() map[string]*entities.Ability {
 	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 	}
-	playerAbilitiesIds, err := configurator.LoadPlayerAbilitiesIds()
+	playersInitialAbilitiesIds, err := configurator.LoadPlayersInitialAbilitiesIds()
 	if err != nil {
 		fmt.Printf("Error loading player abilities: %v\n", err)
 	}
-	return lo.PickByKeys(abilities, playerAbilitiesIds)
+	return lo.PickByKeys(abilities, playersInitialAbilitiesIds)
 }
 
 func ConvertFromConfiguratorAbility(ability configurator.ConfiguratorAbility) *entities.Ability {

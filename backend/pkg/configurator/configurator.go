@@ -19,8 +19,8 @@ func SetupRouter() *gin.Engine {
 	r.POST("/ability", CreateAbility)
 	r.PATCH("/ability/:id", UpdateAbility)
 	r.DELETE("/ability/:id", DeleteAbility)
-	r.GET("/playerAbilities", GetPlayerAbilities)
-	r.POST("/playerAbilities", SetPlayerAbilities)
+	r.GET("/playersInitialAbilities", GetPlayersInitialAbilities)
+	r.POST("/playersInitialAbilities", SetPlayersInitialAbilities)
 	return r
 }
 
@@ -32,9 +32,9 @@ func RunSeeds() {
 	}
 
 	SaveAbilitiesToFile(configuratorAbilities)
-	playerAbilitiesIds := lo.Keys(configuratorAbilities)
-	sort.Strings(playerAbilitiesIds)
-	SavePlayerInitialAbilities(playerAbilitiesIds[1:5])
+	PlayersInitialAbilitiesIds := lo.Keys(configuratorAbilities)
+	sort.Strings(PlayersInitialAbilitiesIds)
+	SavePlayersInitialAbilities(PlayersInitialAbilitiesIds[1:5])
 }
 
 func Run() {
@@ -151,11 +151,11 @@ func DeleteAbility(c *gin.Context) {
 		return
 	}
 
-	if playerAbilitiesIds, err := LoadPlayerAbilitiesIds(); err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "could not load player abilities"})
+	if playersInitialAbilitiesIds, err := LoadPlayersInitialAbilitiesIds(); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "could not load players initial abilities"})
 		return
-	} else if lo.Contains(playerAbilitiesIds, id) {
-		c.JSON(http.StatusNotFound, gin.H{"error": "ability is player ability, cannot be deleted, remove it as player ability to delete it"})
+	} else if lo.Contains(playersInitialAbilitiesIds, id) {
+		c.JSON(http.StatusNotFound, gin.H{"error": "ability is players initial ability, cannot be deleted, remove it as players initial ability to delete it"})
 		return
 	}
 
@@ -164,26 +164,26 @@ func DeleteAbility(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "ability deleted"})
 }
 
-func GetPlayerAbilities(c *gin.Context) {
-	playerAbilitiesIds, err := LoadPlayerAbilitiesIds()
+func GetPlayersInitialAbilities(c *gin.Context) {
+	PlayersInitialAbilitiesIds, err := LoadPlayersInitialAbilitiesIds()
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 		return
 	}
 
-	c.JSON(http.StatusOK, playerAbilitiesIds)
+	c.JSON(http.StatusOK, PlayersInitialAbilitiesIds)
 }
 
-func SetPlayerAbilities(c *gin.Context) {
-	var playerAbilitiesIds []string
-	if err := c.ShouldBindJSON(&playerAbilitiesIds); err != nil {
+func SetPlayersInitialAbilities(c *gin.Context) {
+	var PlayersInitialAbilitiesIds []string
+	if err := c.ShouldBindJSON(&PlayersInitialAbilitiesIds); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if len(playerAbilitiesIds) > 4 {
+	if len(PlayersInitialAbilitiesIds) > 4 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Selected more than 4 abilities"})
 		return
-	} else if len(playerAbilitiesIds) < 4 {
+	} else if len(PlayersInitialAbilitiesIds) < 4 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Less than 4 abilities where selected"})
 		return
 	}
@@ -194,7 +194,7 @@ func SetPlayerAbilities(c *gin.Context) {
 		return
 	}
 
-	notValidAbilitiesIds, _ := lo.Difference(playerAbilitiesIds, lo.Keys(abilities))
+	notValidAbilitiesIds, _ := lo.Difference(PlayersInitialAbilitiesIds, lo.Keys(abilities))
 	if len(notValidAbilitiesIds) > 0 {
 		c.JSON(
 			http.StatusBadRequest,
@@ -202,8 +202,8 @@ func SetPlayerAbilities(c *gin.Context) {
 		)
 		return
 	}
-	SavePlayerInitialAbilities(playerAbilitiesIds)
-	c.JSON(http.StatusOK, playerAbilitiesIds)
+	SavePlayersInitialAbilities(PlayersInitialAbilitiesIds)
+	c.JSON(http.StatusOK, PlayersInitialAbilitiesIds)
 }
 
 func validateAbility(a ConfiguratorAbility) error {

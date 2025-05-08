@@ -21,14 +21,14 @@ public class AbilitiesEditorWindow : EditorWindow
 
     string responseText = string.Empty;
     List<Configurator.AbilityDTO> abilitiesList = new();
-    string[] playerAbilitiesIds; // Player abilities in the backend
-    Dictionary<string, bool> playerAbilitiesMap = new(); // determines if an ability is enabled for players, it will be equiped when they enter the game, client state
+    string[] playersInitialAbilitiesIds; // Players initial abilities in the backend
+    Dictionary<string, bool> playersInitialAbilitiesMap = new(); // determines if an ability is enabled for players, it will be equiped when they enter the game, client state
     Vector2 listScrollPosition;
     Configurator.AbilityDTO selectedAbility;
     bool isEditing;
     bool isSaving;
     bool isCreating;
-    bool isSettingPlayerAbilities;
+    bool isSettingPlayersInitialAbilities;
     Configurator.AbilityDTO abilityToDelete;
 
     public AbilitiesEditorWindow()
@@ -78,10 +78,10 @@ public class AbilitiesEditorWindow : EditorWindow
             isCreating = false;
         }
 
-        if (isSettingPlayerAbilities)
+        if (isSettingPlayersInitialAbilities)
         {
-            SetPlayerAbilities();
-            isSettingPlayerAbilities = false;
+            SetPlayersInitialAbilities();
+            isSettingPlayersInitialAbilities = false;
         }
     }
 
@@ -114,12 +114,12 @@ public class AbilitiesEditorWindow : EditorWindow
         DrawCreateAbilityButton();
 
         EditorGUILayout.Space();
-        EditorGUILayout.LabelField($"Current Player Abilities: {playerAbilitiesMap.Where(kvp => kvp.Value).Count()} (needs to be 4)", EditorStyles.boldLabel);
-        if (playerAbilitiesMap.Where(kvp => kvp.Value).Count() == 4
-            && !playerAbilitiesMap.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray().SequenceEqual(playerAbilitiesIds)
-            && GUILayout.Button("Set Player Abilities"))
+        EditorGUILayout.LabelField($"Current Players Initial Abilities: {playersInitialAbilitiesMap.Where(kvp => kvp.Value).Count()} (needs to be 4)", EditorStyles.boldLabel);
+        if (playersInitialAbilitiesMap.Where(kvp => kvp.Value).Count() == 4
+            && !playersInitialAbilitiesMap.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray().SequenceEqual(playersInitialAbilitiesIds)
+            && GUILayout.Button("Set Players Initial Abilities"))
         {
-            isSettingPlayerAbilities = true;
+            isSettingPlayersInitialAbilities = true;
         }
 
         GUILayout.EndScrollView();
@@ -128,13 +128,13 @@ public class AbilitiesEditorWindow : EditorWindow
     void DrawAbilityListItem(Configurator.AbilityDTO ability)
     {
         EditorGUILayout.BeginHorizontal();
-        if (GUILayout.Button(ability.name, GUILayout.ExpandWidth(true), GUILayout.Height(25)))
+        if (GUILayout.Button(ability.name, GUILayout.ExpandWidth(true), GUILayout.Height(25), GUILayout.Width(200)))
         {
             isEditing = true;
             selectedAbility = ability;
         }
         DrawPlayerAbilityToggle(ability);
-        if (!playerAbilitiesIds.Contains(ability.id) && GUILayout.Button("Delete", GUILayout.Width(50), GUILayout.Height(25)))
+        if (!playersInitialAbilitiesIds.Contains(ability.id) && GUILayout.Button("Delete", GUILayout.Width(50), GUILayout.Height(25)))
         {
             abilityToDelete = ability;
         }
@@ -155,28 +155,28 @@ public class AbilitiesEditorWindow : EditorWindow
 
     void DrawPlayerAbilityToggle(Configurator.AbilityDTO ability)
     {
-        bool isPlayerAbility = playerAbilitiesMap.ContainsKey(ability.id) && playerAbilitiesMap[ability.id];
-        bool newToggleValue = GUILayout.Toggle(isPlayerAbility, "Is Player Ability", GUILayout.Width(120));
-        if (newToggleValue != isPlayerAbility) // Check if the toggle state has changed
+        bool isInitialAbility = playersInitialAbilitiesMap.ContainsKey(ability.id) && playersInitialAbilitiesMap[ability.id];
+        bool newToggleValue = GUILayout.Toggle(isInitialAbility, "Is Players Initial Ability", GUILayout.Width(200));
+        if (newToggleValue != isInitialAbility) // Check if the toggle state has changed
         {
             if (newToggleValue) // Toggle is now true
             {
                 // Check if less than 4 abilities are already set to true
-                if (playerAbilitiesMap.Count(kvp => kvp.Value) < 4)
+                if (playersInitialAbilitiesMap.Count(kvp => kvp.Value) < 4)
                 {
-                    playerAbilitiesMap[ability.id] = true;
+                    playersInitialAbilitiesMap[ability.id] = true;
                 }
                 else
                 {
                     // Optionally, provide feedback to the user that they can't select more
-                    Debug.LogWarning("You can only select a maximum of 4 player abilities.");
+                    Debug.LogWarning("You can only select a maximum of 4 players initial abilities.");
                     // Revert the toggle back to false in the UI
                     Repaint(); // Force a redraw to update the toggle
                 }
             }
             else // Toggle is now false
             {
-                playerAbilitiesMap[ability.id] = false;
+                playersInitialAbilitiesMap[ability.id] = false;
             }
 
         }
@@ -230,10 +230,10 @@ public class AbilitiesEditorWindow : EditorWindow
     {
         try
         {
-            playerAbilitiesIds = await httpClient.GetPlayerAbilities();
+            playersInitialAbilitiesIds = await httpClient.GetPlayersInitialAbilities();
             var abilitiesResponse = await httpClient.GetAbilities();
             abilitiesList = new List<Configurator.AbilityDTO>(abilitiesResponse.Values);
-            ResetPlayerAbilities();
+            ResetPlayersInitialAbilities();
             responseText = string.Empty;
         }
         catch (Exception ex)
@@ -288,7 +288,7 @@ public class AbilitiesEditorWindow : EditorWindow
             await httpClient.DeleteAbility(ability.id);
             abilitiesList.Remove(ability);
             soManager.DeleteAbilityScriptableObject(ability.id);
-            ResetPlayerAbilities();
+            ResetPlayersInitialAbilities();
         }
         catch (Exception ex)
         {
@@ -296,25 +296,25 @@ public class AbilitiesEditorWindow : EditorWindow
         }
     }
 
-    async void SetPlayerAbilities()
+    async void SetPlayersInitialAbilities()
     {
         try
         {
-            playerAbilitiesIds = await httpClient.SetPlayerAbilities(playerAbilitiesMap.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray());
-            ResetPlayerAbilities();
+            playersInitialAbilitiesIds = await httpClient.SetPlayersInitialAbilities(playersInitialAbilitiesMap.Where(kvp => kvp.Value).Select(kvp => kvp.Key).ToArray());
+            ResetPlayersInitialAbilities();
         }
         catch (Exception ex)
         {
-            Debug.LogError($"Failed to update player abilities: {ex.Message}");
+            Debug.LogError($"Failed to update players initial abilities: {ex.Message}");
         }
     }
 
-    void ResetPlayerAbilities()
+    void ResetPlayersInitialAbilities()
     {
-        playerAbilitiesMap.Clear();
+        playersInitialAbilitiesMap.Clear();
         foreach (Configurator.AbilityDTO ability in abilitiesList)
         {
-            playerAbilitiesMap[ability.id] = playerAbilitiesIds.Contains(ability.id);
+            playersInitialAbilitiesMap[ability.id] = playersInitialAbilitiesIds.Contains(ability.id);
         }
     }
 }
@@ -375,9 +375,9 @@ public class AbilityHttpClient
             throw new Exception(request.downloadHandler.text);
     }
 
-    public async Task<string[]> GetPlayerAbilities()
+    public async Task<string[]> GetPlayersInitialAbilities()
     {
-        using var request = UnityWebRequest.Get($"{baseUrl}/playerAbilities");
+        using var request = UnityWebRequest.Get($"{baseUrl}/playersInitialAbilities");
         await SendWebRequestAsync(request);
 
         if (request.result != UnityWebRequest.Result.Success)
@@ -387,9 +387,9 @@ public class AbilityHttpClient
         return JsonConvert.DeserializeObject<string[]>(jsonResponse);
     }
 
-    public async Task<string[]> SetPlayerAbilities(string[] playerAbilitiesIds)
+    public async Task<string[]> SetPlayersInitialAbilities(string[] playersInitialAbilitiesIds)
     {
-        using var request = CreateWebRequest($"{baseUrl}/playerAbilities", "POST", playerAbilitiesIds);
+        using var request = CreateWebRequest($"{baseUrl}/playersInitialAbilities", "POST", playersInitialAbilitiesIds);
         await SendWebRequestAsync(request);
 
         if (request.result != UnityWebRequest.Result.Success)
