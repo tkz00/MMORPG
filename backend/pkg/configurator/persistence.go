@@ -34,3 +34,36 @@ func LoadAbilitiesFromFile() (map[string]ConfiguratorAbility, error) {
 
 	return abilities, nil
 }
+
+const PlayersInitialAbilitiesFileName = "playersInitialAbilities.json"
+
+func SavePlayersInitialAbilities(abilitiesIds []string) error {
+	file, err := os.OpenFile(
+		PlayersInitialAbilitiesFileName,
+		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
+		0644,
+	)
+	if err != nil {
+		return fmt.Errorf("error opening file: %v", err)
+	}
+	defer file.Close()
+
+	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "  ")
+	return encoder.Encode(abilitiesIds)
+}
+
+func LoadPlayersInitialAbilitiesIds() ([]string, error) {
+	file, err := os.Open(PlayersInitialAbilitiesFileName)
+	if err != nil {
+		return nil, fmt.Errorf("error opening file: %v", err)
+	}
+	defer file.Close()
+
+	var playersInitialAbilitiesIds []string
+	if err := json.NewDecoder(file).Decode(&playersInitialAbilitiesIds); err != nil {
+		return nil, fmt.Errorf("error decoding abilities from JSON: %v", err)
+	}
+
+	return playersInitialAbilitiesIds, nil
+}
