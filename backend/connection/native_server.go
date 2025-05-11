@@ -8,14 +8,13 @@ import (
 	"time"
 
 	"backend/api/dtos"
+	"backend/config"
 	"backend/pkg/game/entities"
 	"backend/pkg/game/gameplay"
 	"backend/pkg/utils"
 
 	"golang.org/x/net/websocket"
 )
-
-const TICKER_TIME = 50 * time.Millisecond
 
 type NativeServer struct {
 	clients      map[*websocket.Conn]bool
@@ -89,7 +88,7 @@ func (server *NativeServer) readLoop() {
 // the broadcast function should just broadcast, the updating of the state should be handled somewhere else
 // actually, native server shouldn't know anything about game state, it should only receive messages that it should send to the clients, but how then would client that connect to the server be convereted to players?
 func (server *NativeServer) broadcastGameState() {
-	ticker := time.NewTicker(TICKER_TIME)
+	ticker := time.NewTicker(config.TICKER_TIME)
 	defer ticker.Stop()
 	previousUpdateTime := time.Now()
 
