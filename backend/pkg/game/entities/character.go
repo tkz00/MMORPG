@@ -192,6 +192,10 @@ func (p Character) IsMoving() bool {
 	return !p.position.Equals(p.to)
 }
 
+func (p *Character) StopMovement() {
+	p.to = p.position
+}
+
 // returns if the character has been able to complete the movement without colliding with any obstacle
 func (p *Character) UpdatePosition(deltaTime float64, obstacles [][]utils.Vector2) bool {
 	distanceToTarget := p.position.Distance(p.to)

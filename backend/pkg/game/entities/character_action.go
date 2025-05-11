@@ -51,6 +51,7 @@ func (action *AbilityCastAction) Execute(
 		if MoveIfNotInRange(caster, target.position, action.ability.rangeValue, gs) {
 			return nil
 		}
+		caster.StopMovement()
 		for _, mechanic := range action.ability.mechanics {
 			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
 				mechanic.Params["target_id"] = targetId
@@ -98,6 +99,7 @@ func (action *AbilityCastAction) Execute(
 					return nil
 				}
 			}
+			caster.StopMovement()
 			if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
 				mechanic.Params["target_coordinates"] = targetCoordinates
 				mechanic.Params["range"] = action.ability.rangeValue
