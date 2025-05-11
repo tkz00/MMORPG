@@ -157,7 +157,3 @@ This project uses free assets created by others. Huge thanks to the following cr
   Licensed under Standard Unity Asset Store End User License Agreement
 
 If you're one of the creators and want your asset removed or credited differently, feel free to reach out.
-
-## License
-
-MIT (or your preferred license here)
