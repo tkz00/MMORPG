@@ -56,13 +56,25 @@ public class Movement : MonoBehaviour
     }
 
     // this shouldn't be handled in the movement script, there should be an animations controller or smth like that
-    public void AttackAnimation()
+    public void AttackAnimation(int? animationDuration)
     {
+        if (animationDuration != null)
+        {
+            float clipDuration = GetAnimationClipLengthFromStateHash(playerAnimator, AnimAttacking);
+            float animationSpeed = (float)(clipDuration / (animationDuration / 1000f));
+            playerAnimator.SetFloat("SpeedMultiplier", animationSpeed);
+        }
         playerAnimator.SetTrigger("Attack");
     }
 
-    public void HealAnimation()
+    public void HealAnimation(int? animationDuration)
     {
+        if (animationDuration != null)
+        {
+            float clipDuration = GetAnimationClipLengthFromStateHash(playerAnimator, AnimHealing);
+            float animationSpeed = (float)(clipDuration / (animationDuration / 1000f));
+            playerAnimator.SetFloat("SpeedMultiplier", animationSpeed);
+        }
         playerAnimator.SetTrigger("Heal");
     }
 
@@ -75,4 +87,27 @@ public class Movement : MonoBehaviour
     {
         playerAnimator.SetTrigger("Death");
     }
+
+    static bool DoesClipCorrespondToState(AnimationClip animClip, int stateHash)
+    {
+        return Animator.StringToHash(animClip.name) == stateHash;
+    }
+
+    static float GetAnimationClipLengthFromStateHash(Animator animator, int stateHash)
+    {
+        var runtime = animator.runtimeAnimatorController;
+        foreach (var animClip in runtime.animationClips)
+        {
+            if (DoesClipCorrespondToState(animClip, stateHash))
+            {
+                return animClip.length;
+            }
+        }
+
+        Debug.LogError("clip not found");
+        return 0;
+    }
+
+    public static readonly int AnimAttacking = Animator.StringToHash("Attack");
+    public static readonly int AnimHealing = Animator.StringToHash("Heal");
 }

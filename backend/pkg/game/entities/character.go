@@ -35,6 +35,10 @@ func (action ExecutingAction) Direction() utils.Vector2 {
 	return action.direction
 }
 
+func (action ExecutingAction) DurationInRemainingTicks() *int64 {
+	return action.durationInRemainingTicks
+}
+
 type CharacterLastTickState struct {
 	Position                   *utils.Vector2
 	Radius                     *float64

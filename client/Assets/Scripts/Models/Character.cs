@@ -101,17 +101,17 @@ public class Character : MonoBehaviour, ITargeteable
         playerNameUI.transform.parent.gameObject.SetActive(false);
     }
 
-    public void HandleActionFeedback(CharacterAction action)
+    public void HandleActionFeedback(CharacterAction action, int? animationDuration)
     {
         switch (action)
         {
             case CharacterAction.Attacking:
                 Movement.TriggerWalkingAnimation(false);
-                Movement.AttackAnimation();
+                Movement.AttackAnimation(animationDuration);
                 break;
             case CharacterAction.CastingHeal:
                 Movement.TriggerWalkingAnimation(false);
-                Movement.HealAnimation();
+                Movement.HealAnimation(animationDuration);
                 break;
             case CharacterAction.Moving:
                 Movement.TriggerWalkingAnimation(true);
