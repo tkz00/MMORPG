@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"backend/config"
 	"backend/pkg/utils"
 	"fmt"
 	"time"
@@ -16,7 +17,10 @@ type MoveAction struct {
 	isComplete     bool
 }
 
-func (a *MoveAction) Execute(character *Character, _ *GameState) error {
+func (a *MoveAction) Execute(
+	character *Character,
+	_ *GameState,
+) error {
 	if !a.isComplete {
 		if character.to != a.TargetPosition { // This isn't a good check see https://github.com/tkz00/MMORPG/issues/38
 			character.MoveTowards(a.TargetPosition)
@@ -36,7 +40,10 @@ type AbilityCastAction struct {
 	isComplete     bool
 }
 
-func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error {
+func (action *AbilityCastAction) Execute(
+	caster *Character,
+	gs *GameState,
+) error {
 	switch action.ability.targeting {
 	case Target:
 		targetId := action.castParameters[Target].(string)
@@ -58,21 +65,24 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 					caster.lastUsed[action.ability.id] = time.Now()
 					action.isComplete = true
 
+					actionDurationInTicks := action.ability.executionDurationMs / config.TICKER_TIME.Milliseconds()
+					durationPtr := new(int64)
+					*durationPtr = actionDurationInTicks
 					target, _ := gs.GetCharacterById(action.castParameters[Target].(string))
 					switch action.ability.characterState {
 					case Attacking:
 						if caster.id == target.id {
-							caster.executingAction = ExecutingAction{Attacking, caster.executingAction.direction}
+							caster.executingAction = ExecutingAction{Attacking, caster.executingAction.direction, durationPtr}
 						} else {
 							normalizedCastAbilityVector := utils.Normalize(caster.position, target.position)
-							caster.executingAction = ExecutingAction{Attacking, normalizedCastAbilityVector}
+							caster.executingAction = ExecutingAction{Attacking, normalizedCastAbilityVector, durationPtr}
 						}
 					case CastingHeal:
 						if caster.id == target.id {
-							caster.executingAction = ExecutingAction{CastingHeal, caster.executingAction.direction}
+							caster.executingAction = ExecutingAction{CastingHeal, caster.executingAction.direction, durationPtr}
 						} else {
 							normalizedCastAbilityVector := utils.Normalize(caster.position, target.position)
-							caster.executingAction = ExecutingAction{CastingHeal, normalizedCastAbilityVector}
+							caster.executingAction = ExecutingAction{CastingHeal, normalizedCastAbilityVector, durationPtr}
 						}
 					}
 				}
@@ -97,12 +107,16 @@ func (action *AbilityCastAction) Execute(caster *Character, gs *GameState) error
 				} else {
 					caster.lastUsed[action.ability.id] = time.Now()
 					action.isComplete = true
+
+					actionDurationInTicks := action.ability.executionDurationMs / config.TICKER_TIME.Milliseconds()
+					durationPtr := new(int64)
+					*durationPtr = actionDurationInTicks
 					normalizedCastAbilityVector := utils.Normalize(caster.position, targetCoordinates)
 					switch action.ability.characterState {
 					case Attacking:
-						caster.executingAction = ExecutingAction{Attacking, normalizedCastAbilityVector}
+						caster.executingAction = ExecutingAction{Attacking, normalizedCastAbilityVector, durationPtr}
 					case CastingHeal:
-						caster.executingAction = ExecutingAction{CastingHeal, normalizedCastAbilityVector}
+						caster.executingAction = ExecutingAction{CastingHeal, normalizedCastAbilityVector, durationPtr}
 					}
 				}
 			} else {

@@ -13,6 +13,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			4000,
 			entities.Target,
 			entities.Attacking,
+			550,
 			entities.Mechanic{
 				MechanicType: "damage",
 				Params: map[string]interface{}{
@@ -29,6 +30,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			2000,
 			entities.Coordinates,
 			entities.Attacking,
+			700,
 			entities.Mechanic{
 				MechanicType: "create_projectile",
 				Params: map[string]interface{}{
@@ -61,6 +63,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			3000,
 			entities.Target,
 			entities.CastingHeal,
+			1000,
 			entities.Mechanic{
 				MechanicType: "heal",
 				Params: map[string]interface{}{
@@ -77,6 +80,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			3000,
 			entities.Target,
 			entities.CastingHeal,
+			1200,
 			entities.Mechanic{
 				MechanicType: "damage",
 				Params: map[string]interface{}{
@@ -110,6 +114,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			2000,
 			entities.Coordinates,
 			entities.Attacking,
+			800,
 			entities.Mechanic{
 				MechanicType: "create_AoE",
 				Params: map[string]interface{}{
@@ -135,6 +140,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			3000,
 			entities.Target,
 			entities.CastingHeal,
+			600,
 			entities.Mechanic{
 				MechanicType: "buff_stat",
 				Params: map[string]interface{}{

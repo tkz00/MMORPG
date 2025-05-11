@@ -6,6 +6,7 @@
     "cooldown": 4000,
     "targeting": 0,
     "character_state": 2,
+    "execution_duration_ms": 550,
     "mechanics": [
       {
         "mechanic_type": "damage",
@@ -24,6 +25,7 @@
     "cooldown": 2000,
     "targeting": 2,
     "character_state": 2,
+    "execution_duration_ms": 700,
     "mechanics": [
       {
         "mechanic_type": "create_projectile",
@@ -58,6 +60,7 @@
     "cooldown": 3000,
     "targeting": 0,
     "character_state": 3,
+    "execution_duration_ms": 1000,
     "mechanics": [
       {
         "mechanic_type": "heal",
@@ -76,6 +79,7 @@
     "cooldown": 3000,
     "targeting": 0,
     "character_state": 3,
+    "execution_duration_ms": 1200,
     "mechanics": [
       {
         "mechanic_type": "damage",
@@ -111,6 +115,7 @@
     "cooldown": 2000,
     "targeting": 2,
     "character_state": 2,
+    "execution_duration_ms": 800,
     "mechanics": [
       {
         "mechanic_type": "create_AoE",
@@ -138,6 +143,7 @@
     "cooldown": 3000,
     "targeting": 0,
     "character_state": 3,
+    "execution_duration_ms": 600,
     "mechanics": [
       {
         "mechanic_type": "buff_stat",
