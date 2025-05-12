@@ -13,7 +13,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 			4000,
 			entities.Target,
 			entities.Attacking,
-			2000,
+			550,
 			entities.Mechanic{
 				MechanicType: "damage",
 				Params: map[string]interface{}{

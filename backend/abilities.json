@@ -6,7 +6,7 @@
     "cooldown": 4000,
     "targeting": 0,
     "character_state": 2,
-    "execution_duration_ms": 2000,
+    "execution_duration_ms": 550,
     "mechanics": [
       {
         "mechanic_type": "damage",
