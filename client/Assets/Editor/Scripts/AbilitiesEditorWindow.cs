@@ -443,6 +443,7 @@ public class AbilityUIManager
     string abilityName;
     int abilityCooldown;
     float abilityRange;
+    int abilityExecutionDurationMs;
     AbilityParameters abilityTargeting;
     CharacterAction characterState;
     List<Configurator.AbilityDTO.MechanicDTO> abilityMechanics;
@@ -458,6 +459,7 @@ public class AbilityUIManager
         abilityName = ability.name;
         abilityCooldown = ability.cooldown;
         abilityRange = ability.range;
+        abilityExecutionDurationMs = ability.executionDurationMs;
         abilityTargeting = ability.targeting;
         characterState = ability.characterAction;
 
@@ -507,6 +509,7 @@ public class AbilityUIManager
         pendingIcon = EditorGUILayout.ObjectField(pendingIcon, typeof(Sprite), false, GUILayout.Width(64f), GUILayout.Height(64f)) as Sprite;
         abilityRange = EditorGUILayout.FloatField("Range", abilityRange);
         abilityCooldown = EditorGUILayout.IntField("Cooldown", abilityCooldown);
+        abilityExecutionDurationMs = EditorGUILayout.IntField("Cast Duration (ms)", abilityExecutionDurationMs);
         abilityTargeting = (AbilityParameters)EditorGUILayout.Popup("Targeting", (int)abilityTargeting, Enum.GetNames(typeof(AbilityParameters)));
         characterState = (CharacterAction)EditorGUILayout.Popup("Character State", (int)characterState, Enum.GetNames(typeof(CharacterAction)));
 
@@ -523,6 +526,7 @@ public class AbilityUIManager
             ["name"] = abilityName,
             ["cooldown"] = abilityCooldown,
             ["range"] = abilityRange,
+            ["execution_duration_ms"] = abilityExecutionDurationMs,
             ["targeting"] = abilityTargeting,
             ["character_state"] = characterState,
             ["mechanics"] = abilityMechanics
@@ -539,6 +543,8 @@ public class AbilityUIManager
             modifiedFields["cooldown"] = abilityCooldown;
         if (abilityRange != originalAbility.range)
             modifiedFields["range"] = abilityRange;
+        if (abilityExecutionDurationMs != originalAbility.executionDurationMs)
+            modifiedFields["execution_duration_ms"] = abilityExecutionDurationMs;
         if (abilityTargeting != originalAbility.targeting)
             modifiedFields["targeting"] = abilityTargeting;
         if (characterState != originalAbility.characterAction)

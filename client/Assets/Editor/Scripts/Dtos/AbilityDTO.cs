@@ -10,6 +10,7 @@ namespace Configurator
         public string name;
         public int cooldown;
         public float range;
+        [JsonProperty("execution_duration_ms")] public int executionDurationMs;
         public AbilityParameters targeting;
         [JsonProperty("character_state")] public CharacterAction characterAction;
         public List<MechanicDTO> mechanics = new();

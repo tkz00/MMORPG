@@ -72,6 +72,7 @@ func ConvertFromConfiguratorAbility(ability configurator.ConfiguratorAbility) *e
 		*ability.Cooldown,
 		*ability.Targeting,
 		*ability.CharacterState,
+		*ability.ExecutionDurationMs,
 		ability.Mechanics...,
 	)
 }

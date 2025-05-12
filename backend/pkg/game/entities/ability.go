@@ -9,13 +9,14 @@ const (
 )
 
 type Ability struct {
-	id             string
-	name           string
-	rangeValue     float64
-	cooldown       int64
-	targeting      Targeting
-	characterState Action
-	mechanics      []Mechanic
+	id                  string
+	name                string
+	rangeValue          float64
+	cooldown            int64
+	targeting           Targeting
+	characterState      Action
+	executionDurationMs int64
+	mechanics           []Mechanic
 }
 
 func NewAbility(
@@ -25,15 +26,17 @@ func NewAbility(
 	cooldown int64,
 	targeting Targeting,
 	characterState Action,
+	executionDurationMs int64,
 	mechanics ...Mechanic) *Ability {
 	return &Ability{
-		id:             id,
-		name:           name,
-		rangeValue:     rangeValue,
-		cooldown:       cooldown,
-		targeting:      targeting,
-		characterState: characterState,
-		mechanics:      mechanics,
+		id:                  id,
+		name:                name,
+		rangeValue:          rangeValue,
+		cooldown:            cooldown,
+		targeting:           targeting,
+		characterState:      characterState,
+		executionDurationMs: executionDurationMs,
+		mechanics:           mechanics,
 	}
 }
 
@@ -59,6 +62,10 @@ func (ability Ability) Targeting() Targeting {
 
 func (ability Ability) CharacterState() Action {
 	return ability.characterState
+}
+
+func (ability Ability) ExecutionDurationMs() int64 {
+	return ability.executionDurationMs
 }
 
 func (ability Ability) Mechanics() []Mechanic {

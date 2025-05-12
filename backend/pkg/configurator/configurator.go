@@ -120,6 +120,9 @@ func UpdateAbility(c *gin.Context) {
 	if updatedAbility.Cooldown != nil {
 		ability.Cooldown = updatedAbility.Cooldown
 	}
+	if updatedAbility.ExecutionDurationMs != nil {
+		ability.ExecutionDurationMs = updatedAbility.ExecutionDurationMs
+	}
 	if updatedAbility.RangeValue != nil {
 		ability.RangeValue = updatedAbility.RangeValue
 	}
@@ -212,6 +215,9 @@ func validateAbility(a ConfiguratorAbility) error {
 	}
 	if a.Cooldown == nil {
 		return errors.New("`cooldown` required")
+	}
+	if a.ExecutionDurationMs == nil {
+		return errors.New("`execution_duration_ms` required")
 	}
 	if a.RangeValue == nil {
 		return errors.New("`range` required")

@@ -12,6 +12,7 @@ public class CharacterDTO : DTO
     public Dictionary<string, int> stats;
     public CharacterAction? action;
     public PositionDTO direction;
+    [JsonProperty("action_duration_ms")] public int? executionDurationMs;
     public AbilityDTO[] abilities;
     public InventoryDTO inventory;
 }

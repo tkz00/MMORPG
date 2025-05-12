@@ -1,6 +1,7 @@
 package dtos
 
 import (
+	"backend/config"
 	"backend/pkg/game/entities"
 	"backend/pkg/utils"
 	"slices"
@@ -92,6 +93,12 @@ func GetCharacterDiff(c *entities.Character) *CharacterDTO {
 		action := c.GetExecutingAction().ActionType()
 		diff.Action = &action
 		c.CharacterLastTickState.Action = &action
+		if c.GetExecutingAction().DurationInRemainingTicks() != nil {
+			actionDurationMs := *c.GetExecutingAction().
+				DurationInRemainingTicks() *
+				config.TICKER_TIME.Milliseconds()
+			diff.ActionDurationMs = &actionDurationMs
+		}
 	}
 	if c.CharacterLastTickState.Direction == nil ||
 		!c.GetExecutingAction().Direction().Equals(*c.CharacterLastTickState.Direction) {

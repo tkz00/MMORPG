@@ -188,7 +188,7 @@ public class GameManager : MonoBehaviour
     {
         if (character.Stats.CurrentHealth > 0)
         {
-            if (characterDTO.action != null) character.HandleActionFeedback((CharacterAction)characterDTO.action);
+            if (characterDTO.action != null) character.HandleActionFeedback((CharacterAction)characterDTO.action, characterDTO.executionDurationMs);
             if (characterDTO.direction != null) character.Movement.RotateTowards(characterDTO.direction);
             return;
         }
@@ -341,7 +341,7 @@ public class GameManager : MonoBehaviour
             }
             npc.UpdateHealth(npcDTO.currentHealth, npcDTO.maxHealth);
 
-            if (npcDTO.action != null) npc.HandleActionFeedback((CharacterAction)npcDTO.action);
+            if (npcDTO.action != null) npc.HandleActionFeedback((CharacterAction)npcDTO.action, npcDTO.executionDurationMs);
             if (npcDTO.direction != null) npc.Movement.RotateTowards(npcDTO.direction);
 
             if (npcDTO.radius != null) npc.SetScale((float)(npcDTO.radius * 2));

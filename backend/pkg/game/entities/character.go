@@ -22,8 +22,9 @@ const (
 )
 
 type ExecutingAction struct {
-	actionType Action
-	direction  utils.Vector2
+	actionType               Action
+	direction                utils.Vector2
+	durationInRemainingTicks *int64
 }
 
 func (action ExecutingAction) ActionType() Action {
@@ -32,6 +33,10 @@ func (action ExecutingAction) ActionType() Action {
 
 func (action ExecutingAction) Direction() utils.Vector2 {
 	return action.direction
+}
+
+func (action ExecutingAction) DurationInRemainingTicks() *int64 {
+	return action.durationInRemainingTicks
 }
 
 type CharacterLastTickState struct {
@@ -87,7 +92,7 @@ func CreateCharacter(
 		to:              initialPosition,
 		Health:          NewHealth(BASE_MAX_HEALTH),
 		stats:           stats,
-		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0)},
+		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0), nil},
 		actionsQueue:    []CharacterAction{},
 		Inventory:       NewInventory(),
 		abilities:       abilities,
@@ -140,9 +145,16 @@ func (p *Character) PrependAction(action CharacterAction) {
 }
 
 func (c *Character) ExecuteNextAction(gs *GameState) {
+	if c.executingAction.durationInRemainingTicks != nil {
+		*c.executingAction.durationInRemainingTicks--
+		if *c.executingAction.durationInRemainingTicks > 0 {
+			return
+		}
+	}
+
 	if len(c.actionsQueue) == 0 {
 		if c.executingAction.actionType != Idle {
-			c.executingAction = ExecutingAction{Idle, c.executingAction.direction}
+			c.executingAction = ExecutingAction{Idle, c.executingAction.direction, nil}
 		}
 		return
 	}
@@ -170,14 +182,18 @@ func (p *Character) MoveTowards(to utils.Vector2) {
 	p.direction = normalizedDirection.Scale(CHARACTER_SPEED)
 	// Wirty wirty
 	if p.position == p.to {
-		p.executingAction = ExecutingAction{Moving, p.executingAction.direction}
+		p.executingAction = ExecutingAction{Idle, p.executingAction.direction, nil}
 	} else {
-		p.executingAction = ExecutingAction{Moving, normalizedDirection}
+		p.executingAction = ExecutingAction{Moving, normalizedDirection, nil}
 	}
 }
 
 func (p Character) IsMoving() bool {
 	return !p.position.Equals(p.to)
+}
+
+func (p *Character) StopMovement() {
+	p.to = p.position
 }
 
 // returns if the character has been able to complete the movement without colliding with any obstacle
