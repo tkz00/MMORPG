@@ -159,19 +159,16 @@ func (c *Character) ExecuteNextAction(gs *GameState) {
 		return
 	}
 
-	// this logic should be different, bc now every action is executed on each update, this has no effect on the
-	// behavior of the system (at least for now) but it could be confusing. Maybe a way to fix is to have the
-	// queue and a single executingAction field of type character action, when the last executingAction is
-	// completed (IsComplete()), the next action in the queue is moved to this single field and it's Execute
-	// function called, probably can be done with just the queue and changing some of the logic
 	currentAction := c.actionsQueue[0]
-	err := currentAction.Execute(c, gs)
-	if err != nil {
-		fmt.Println("Error executing action:", err)
-		return
+	if !currentAction.IsExecuted() {
+		err := currentAction.Execute(c, gs)
+		if err != nil {
+			fmt.Println("Error executing action:", err)
+			return
+		}
 	}
 
-	if currentAction.IsComplete() {
+	if currentAction.IsComplete(c) {
 		c.actionsQueue = c.actionsQueue[1:]
 	}
 }

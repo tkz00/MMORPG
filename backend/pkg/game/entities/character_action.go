@@ -9,35 +9,38 @@ import (
 
 type CharacterAction interface {
 	Execute(player *Character, gs *GameState) error
-	IsComplete() bool
+	IsComplete(character *Character) bool
+	IsExecuted() bool
 }
 
 type MoveAction struct {
 	TargetPosition utils.Vector2
-	isComplete     bool
+	isExecuted     bool
 }
 
 func (a *MoveAction) Execute(
 	character *Character,
 	_ *GameState,
 ) error {
-	if !a.isComplete {
-		if character.to != a.TargetPosition { // This isn't a good check see https://github.com/tkz00/MMORPG/issues/38
-			character.MoveTowards(a.TargetPosition)
-		}
-		a.isComplete = character.position == a.TargetPosition
+	if character.to != a.TargetPosition {
+		character.MoveTowards(a.TargetPosition)
 	}
+	a.isExecuted = true
 	return nil
 }
 
-func (a *MoveAction) IsComplete() bool {
-	return a.isComplete
+func (a *MoveAction) IsComplete(character *Character) bool {
+	return a.isExecuted && a.TargetPosition.Equals(character.position)
+}
+
+func (a *MoveAction) IsExecuted() bool {
+	return a.isExecuted
 }
 
 type AbilityCastAction struct {
 	ability        Ability
 	castParameters map[Targeting]interface{}
-	isComplete     bool
+	isExecuted     bool
 }
 
 func (action *AbilityCastAction) Execute(
@@ -64,7 +67,6 @@ func (action *AbilityCastAction) Execute(
 					fmt.Println(err)
 				} else {
 					caster.lastUsed[action.ability.id] = time.Now()
-					action.isComplete = true
 
 					actionDurationInTicks := action.ability.executionDurationMs / config.TICKER_TIME.Milliseconds()
 					durationPtr := new(int64)
@@ -108,7 +110,6 @@ func (action *AbilityCastAction) Execute(
 					fmt.Println(err)
 				} else {
 					caster.lastUsed[action.ability.id] = time.Now()
-					action.isComplete = true
 
 					actionDurationInTicks := action.ability.executionDurationMs / config.TICKER_TIME.Milliseconds()
 					durationPtr := new(int64)
@@ -126,11 +127,16 @@ func (action *AbilityCastAction) Execute(
 			}
 		}
 	}
+	action.isExecuted = true
 	return nil
 }
 
-func (action *AbilityCastAction) IsComplete() bool {
-	return action.isComplete
+func (action *AbilityCastAction) IsComplete(character *Character) bool {
+	return action.isExecuted
+}
+
+func (action *AbilityCastAction) IsExecuted() bool {
+	return action.isExecuted
 }
 
 func MoveIfNotInRange(
