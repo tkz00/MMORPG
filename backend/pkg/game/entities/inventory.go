@@ -6,12 +6,14 @@ import (
 )
 
 type Inventory struct {
-	items map[string]int64
+	items    map[string]int64
+	equipped map[EquipmentType]*Equipment
 }
 
 func NewInventory() *Inventory {
 	return &Inventory{
-		items: make(map[string]int64),
+		items:    make(map[string]int64),
+		equipped: make(map[EquipmentType]*Equipment),
 	}
 }
 
@@ -65,6 +67,23 @@ func (inv *Inventory) PrintInventory() {
 		}
 		fmt.Print("\n")
 	}
+}
+
+func (inv *Inventory) EquipItem(itemId string) error {
+	item := existingItems[itemId]
+	if equip, ok := item.(*Equipment); ok {
+		inv.equipped[equip.equipmentType] = equip
+		return nil
+	}
+	return fmt.Errorf("item %s is not equipment", itemId)
+}
+
+func (inv *Inventory) UnequipItem(equipmentType EquipmentType) {
+	delete(inv.equipped, equipmentType)
+}
+
+func (inv *Inventory) GetEquipped() map[EquipmentType]*Equipment {
+	return inv.equipped
 }
 
 var existingItems = map[string]interface{}{
