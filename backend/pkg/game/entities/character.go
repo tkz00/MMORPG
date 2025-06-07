@@ -276,7 +276,7 @@ func (character *Character) UseItem(itemId string, targetId string, gs *GameStat
 		return
 	}
 
-	item := existingItems[itemId]
+	item := GetItem(itemId)
 	item.ExecuteMechanics(character, targetId, gs)
 	character.Inventory.AddItem(itemId, -1)
 }

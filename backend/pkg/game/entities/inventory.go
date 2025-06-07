@@ -45,7 +45,13 @@ func (inv Inventory) CanConsume(itemId string) bool {
 }
 
 func GetItem(itemId string) *Item {
-	return existingItems[itemId]
+	if item, ok := existingItems[itemId].(*Item); ok {
+		return item
+	}
+	if equip, ok := existingItems[itemId].(*Equipment); ok {
+		return equip.Item
+	}
+	return nil
 }
 
 func (inv Inventory) GetInventory() map[string]int64 {
@@ -61,7 +67,7 @@ func (inv *Inventory) PrintInventory() {
 	}
 }
 
-var existingItems = map[string]*Item{
+var existingItems = map[string]interface{}{
 	"0": NewItem(
 		"0",
 		"small health potion",
@@ -71,4 +77,10 @@ var existingItems = map[string]*Item{
 		},
 	),
 	"1": NewItem("1", "leather"),
+	"helm_001": NewEquipment(
+		"helm_001",
+		"leather helmet",
+		Helmet,
+		map[string]int64{"defense": 10},
+	),
 }
