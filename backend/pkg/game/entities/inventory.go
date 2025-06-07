@@ -102,4 +102,16 @@ var existingItems = map[string]interface{}{
 		Helmet,
 		map[string]int64{"defense": 10},
 	),
+	"helm_002": NewEquipment(
+		"helm_002",
+		"steel helmet",
+		Helmet,
+		map[string]int64{"defense": 20},
+	),
+	"chest_001": NewEquipment(
+		"chest_001",
+		"leather armour",
+		Chest,
+		map[string]int64{"defense": 12},
+	),
 }

@@ -58,11 +58,18 @@ func (spawner *Spawner) GetNewNPCs() []*Npc {
 		npcs[i].SubscribeToRemoval(func() {
 			spawner.HandleNPCDeath(npcs[i])
 		})
-		if rand.IntN(2) == 0 {
-			npcs[i].AddItem("0", 1)
-		} else {
-			npcs[i].AddItem("1", 2)
+		items := []struct {
+			id       string
+			quantity int64
+		}{
+			{"0", 1},
+			{"1", 2},
+			{"helm_001", 1},
+			{"helm_002", 1},
+			{"chest_001", 1},
 		}
+		randomIndex := rand.IntN(len(items))
+		npcs[i].AddItem(items[randomIndex].id, items[randomIndex].quantity)
 	}
 
 	spawner.activeNPCs = append(spawner.activeNPCs, npcs...)

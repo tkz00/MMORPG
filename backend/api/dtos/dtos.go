@@ -101,6 +101,14 @@ func (u UseItemDTO) GetType() string {
 	return "use_item"
 }
 
+type EquipItemDTO struct {
+	ItemId string `json:"item_id"`
+}
+
+func (e EquipItemDTO) GetType() string {
+	return "equip_item"
+}
+
 type AbilityParameters int
 
 const (

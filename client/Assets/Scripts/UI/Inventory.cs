@@ -72,7 +72,8 @@ public class Inventory : MonoBehaviour
                 continue;
             }
             InventoryItem itemUI = Instantiate(itemUIPrefab, itemsContainer).GetComponent<InventoryItem>();
-            itemUI.SetUp(item.Key, item.Value, itemSO.icon, itemSO.isConsumible, UseItem);
+            bool isEquippable = itemSO is Equipment;
+            itemUI.SetUp(item.Key, item.Value, itemSO.icon, itemSO.isConsumible, UseItem, isEquippable, isEquippable ? EquipItem : null);
         }
     }
 
@@ -84,6 +85,19 @@ public class Inventory : MonoBehaviour
         {
             Body = useItem,
             ActionType = "use_item"
+        };
+        string message = JsonConvert.SerializeObject(response);
+        WebSocketConnection.SendMessage(message);
+    }
+
+    private void EquipItem(string itemId)
+    {
+        if (!GameManager.GetPlayer(GameManager.MainPlayerID).IsAlive) return;
+        var equipItem = new EquipItemDTO { itemId = itemId };
+        WebSocketMessage response = new WebSocketMessage
+        {
+            Body = equipItem,
+            ActionType = "equip_item"
         };
         string message = JsonConvert.SerializeObject(response);
         WebSocketConnection.SendMessage(message);
