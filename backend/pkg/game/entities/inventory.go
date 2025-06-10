@@ -3,6 +3,8 @@ package entities
 
 import (
 	"fmt"
+
+	"github.com/samber/lo"
 )
 
 type Inventory struct {
@@ -70,16 +72,24 @@ func (inv *Inventory) PrintInventory() {
 }
 
 func (inv *Inventory) EquipItem(itemId string) error {
-	item := existingItems[itemId]
-	if equip, ok := item.(*Equipment); ok {
-		inv.equipped[equip.equipmentType] = equip
-		return nil
+	if lo.Contains(lo.Keys(inv.items), itemId) {
+		item := existingItems[itemId]
+		if equip, ok := item.(*Equipment); ok {
+			inv.equipped[equip.equipmentType] = equip
+			return nil
+		}
+		return fmt.Errorf("item %s is not equipment", itemId)
 	}
-	return fmt.Errorf("item %s is not equipment", itemId)
+	return fmt.Errorf("player doesn't hold item %s", itemId)
 }
 
-func (inv *Inventory) UnequipItem(equipmentType EquipmentType) {
-	delete(inv.equipped, equipmentType)
+func (inv *Inventory) UnequipItem(itemId string) {
+	for equipType, equip := range inv.equipped {
+		if equip.Item.Id() == itemId {
+			delete(inv.equipped, equipType)
+			return
+		}
+	}
 }
 
 func (inv *Inventory) GetEquipped() map[EquipmentType]*Equipment {

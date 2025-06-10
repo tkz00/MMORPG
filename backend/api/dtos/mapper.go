@@ -154,11 +154,30 @@ func getInventoryDiff(c *entities.Character) *InventoryDTO {
 		lo.Keys(c.CharacterLastTickState.Items),
 	)
 
-	if len(newItemsIds) > 0 || len(removedItemsIds) > 0 {
+	// Track current equipped items
+	currentEquipped := make(map[string]bool)
+	for _, equip := range c.GetEquipped() {
+		currentEquipped[equip.Id()] = true
+	}
+
+	// Check for equipment changes
+	equipmentChanged := false
+	for itemId := range characterInventory {
+		if currentEquipped[itemId] != c.CharacterLastTickState.EquippedItems[itemId] {
+			equipmentChanged = true
+			break
+		}
+	}
+
+	if len(newItemsIds) > 0 || len(removedItemsIds) > 0 || equipmentChanged {
 		for itemId, quantity := range characterInventory {
 			inventoryDTO.Items = append(
 				inventoryDTO.Items,
-				ItemDTO{Id: itemId, Quantity: quantity},
+				ItemDTO{
+					Id:         itemId,
+					Quantity:   quantity,
+					IsEquipped: currentEquipped[itemId],
+				},
 			)
 		}
 		c.CharacterLastTickState.Items = lo.Associate(
@@ -167,14 +186,22 @@ func getInventoryDiff(c *entities.Character) *InventoryDTO {
 				return i.Id, i.Quantity
 			},
 		)
+		c.CharacterLastTickState.EquippedItems = currentEquipped
 		for _, itemId := range removedItemsIds {
-			inventoryDTO.Items = append(inventoryDTO.Items, ItemDTO{Id: itemId, Quantity: 0})
+			inventoryDTO.Items = append(
+				inventoryDTO.Items,
+				ItemDTO{Id: itemId, Quantity: 0, IsEquipped: false},
+			)
 		}
 		return &inventoryDTO
 	} else {
 		for itemId, quantity := range characterInventory {
-			if quantity != c.CharacterLastTickState.Items[itemId] {
-				inventoryDTO.Items = append(inventoryDTO.Items, ItemDTO{Id: itemId, Quantity: quantity})
+			if quantity != c.CharacterLastTickState.Items[itemId] || currentEquipped[itemId] != c.CharacterLastTickState.EquippedItems[itemId] {
+				inventoryDTO.Items = append(inventoryDTO.Items, ItemDTO{
+					Id:         itemId,
+					Quantity:   quantity,
+					IsEquipped: currentEquipped[itemId],
+				})
 			}
 		}
 		if len(inventoryDTO.Items) > 0 {
@@ -184,6 +211,7 @@ func getInventoryDiff(c *entities.Character) *InventoryDTO {
 					return i.Id, i.Quantity
 				},
 			)
+			c.CharacterLastTickState.EquippedItems = currentEquipped
 			return &inventoryDTO
 		}
 	}

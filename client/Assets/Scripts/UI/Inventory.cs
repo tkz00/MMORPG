@@ -8,12 +8,15 @@ using UnityEngine.InputSystem;
 public class Inventory : MonoBehaviour
 {
     [SerializeField] GameObject inventoryMenu;
+    [SerializeField] GameObject equipmentMenu;
 
     [SerializeField] GameObject itemUIPrefab;
-    [SerializeField] Transform itemsContainer;
+    [SerializeField] Transform inventoryContainer;
+    [SerializeField] Transform equipmentContainer;
     [SerializeField] List<Item> availableItems;
 
     readonly Dictionary<string, int> items = new Dictionary<string, int>();
+    readonly HashSet<string> equippedItems = new();
 
 
     public InputAction openCloseInventoryAction = new InputAction(binding: "<Keyboard>/i");
@@ -33,6 +36,7 @@ public class Inventory : MonoBehaviour
     private void ToggleInventory(InputAction.CallbackContext context)
     {
         inventoryMenu.SetActive(!inventoryMenu.activeSelf);
+        equipmentMenu.SetActive(!equipmentMenu.activeSelf);
     }
 
     public void UpdateInventory(InventoryDTO inventory)
@@ -43,14 +47,17 @@ public class Inventory : MonoBehaviour
         if (inventory.items.Length == 0)
             return;
 
-        foreach ((string id, int quantity) in inventory.items.Select(item => (item.id, item.quantity)))
+        foreach ((string id, int quantity, bool isEquipped) in inventory.items.Select(item => (item.id, item.quantity, item.isEquipped)))
         {
             items[id] = quantity;
 
             if (items[id] == 0)
-            {
                 items.Remove(id);
-            }
+
+            if (isEquipped)
+                equippedItems.Add(id);
+            else
+                equippedItems.Remove(id);
         }
 
         DrawInventoryIcons();
@@ -58,10 +65,10 @@ public class Inventory : MonoBehaviour
 
     private void DrawInventoryIcons()
     {
-        foreach (Transform child in itemsContainer.transform)
-        {
+        foreach (Transform child in inventoryContainer.transform)
             Destroy(child.gameObject);
-        }
+        foreach (Transform child in equipmentContainer.transform)
+            Destroy(child.gameObject);
 
         foreach (var item in items)
         {
@@ -71,9 +78,18 @@ public class Inventory : MonoBehaviour
                 Debug.LogError($"Item with ID: {item.Key} not found in available items collection");
                 continue;
             }
-            InventoryItem itemUI = Instantiate(itemUIPrefab, itemsContainer).GetComponent<InventoryItem>();
+            InventoryItem itemUI = Instantiate(itemUIPrefab).GetComponent<InventoryItem>();
             bool isEquippable = itemSO is Equipment;
-            itemUI.SetUp(item.Key, item.Value, itemSO.icon, itemSO.isConsumible, UseItem, isEquippable, isEquippable ? EquipItem : null);
+            if (equippedItems.Contains(item.Key))
+            {
+                itemUI.transform.SetParent(equipmentContainer);
+                itemUI.SetUp(item.Key, item.Value, itemSO.icon, itemSO.isConsumible, UseItem, isEquippable, isEquippable ? UnequipItem : null);
+            }
+            else
+            {
+                itemUI.transform.SetParent(inventoryContainer);
+                itemUI.SetUp(item.Key, item.Value, itemSO.icon, itemSO.isConsumible, UseItem, isEquippable, isEquippable ? EquipItem : null);
+            }
         }
     }
 
@@ -90,7 +106,7 @@ public class Inventory : MonoBehaviour
         WebSocketConnection.SendMessage(message);
     }
 
-    private void EquipItem(string itemId)
+    void EquipItem(string itemId)
     {
         if (!GameManager.GetPlayer(GameManager.MainPlayerID).IsAlive) return;
         var equipItem = new EquipItemDTO { itemId = itemId };
@@ -98,6 +114,19 @@ public class Inventory : MonoBehaviour
         {
             Body = equipItem,
             ActionType = "equip_item"
+        };
+        string message = JsonConvert.SerializeObject(response);
+        WebSocketConnection.SendMessage(message);
+    }
+
+    void UnequipItem(string itemId)
+    {
+        if (!GameManager.GetPlayer(GameManager.MainPlayerID).IsAlive) return;
+        var unequipItem = new UnequipItemDTO { itemId = itemId };
+        WebSocketMessage response = new WebSocketMessage
+        {
+            Body = unequipItem,
+            ActionType = "unequip_item"
         };
         string message = JsonConvert.SerializeObject(response);
         WebSocketConnection.SendMessage(message);

@@ -50,6 +50,7 @@ type CharacterLastTickState struct {
 	Abilities                  []string
 	AbilitiesRemainingCooldows map[string]int64
 	Items                      map[string]int64
+	EquippedItems              map[string]bool
 }
 
 type Character struct {
@@ -101,6 +102,7 @@ func CreateCharacter(
 			AbilitiesRemainingCooldows: make(map[string]int64),
 			Items:                      make(map[string]int64),
 			Stats:                      make(map[string]int64),
+			EquippedItems:              make(map[string]bool),
 		},
 	}
 }
