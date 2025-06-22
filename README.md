@@ -58,7 +58,7 @@ Requirements:
 How to run:
 1. Start the backend:
    
-       go run ./backend/main.go
+       go run -C backend cmd/server/main.go
 
 2. Open the Unity project and press Play.
 
