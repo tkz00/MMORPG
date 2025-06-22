@@ -3,7 +3,7 @@ package entities
 import (
 	"backend/pkg/utils"
 	"fmt"
-	"math"
+	"time"
 )
 
 type Mechanic struct {
@@ -44,7 +44,7 @@ func HealMechanic(caster *Character, gs *GameState, params map[string]interface{
 	}
 
 	if damageScaling, ok := params["damage_stat_multiplier"].(float64); ok {
-		healAmount += float64(caster.stats["damage"]) * damageScaling
+		healAmount += float64(caster.GetStat("damage")) * damageScaling
 		hasHealSource = true
 	}
 
@@ -100,7 +100,7 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 	}
 
 	if damageScaling, ok := params["damage_stat_multiplier"].(float64); ok {
-		damageAmount += float64(caster.stats["damage"]) * damageScaling
+		damageAmount += float64(caster.GetStat("damage")) * damageScaling
 		hasDamageSource = true
 	}
 
@@ -215,16 +215,18 @@ func BuffStatMechanic(caster *Character, gs *GameState, params map[string]interf
 		return nil
 	}
 
-	newStatValue := target.GetStat(params["target_stat"].(string))
+	statName := params["target_stat"].(string)
+	flatValue := int64(0)
+	percentValue := float64(0)
 	modifiedStat := false
 
 	if statMultiplier, ok := params["multiplier"].(float64); ok {
-		newStatValue += int64(math.Round(float64(newStatValue) * statMultiplier))
+		percentValue = statMultiplier
 		modifiedStat = true
 	}
 
 	if base_amount, ok := params["base_amount"].(int64); ok {
-		newStatValue += base_amount
+		flatValue = base_amount
 		modifiedStat = true
 	}
 
@@ -232,9 +234,21 @@ func BuffStatMechanic(caster *Character, gs *GameState, params map[string]interf
 		fmt.Println(
 			"Warning: No valid modification value ('base_amount' or 'multiplier') provided. No change to stat will be made.",
 		)
+		return nil
 	}
 
-	target.SetStat(params["target_stat"].(string), newStatValue)
+	// Generate a unique ID for this modification
+	modID := fmt.Sprintf("ability_buff_%s_%s_%d", caster.id, statName, time.Now().UnixNano())
+
+	mod := StatModification{
+		ID:           modID,
+		StatName:     statName,
+		FlatValue:    flatValue,
+		PercentValue: percentValue,
+		Source:       "ability_buff",
+	}
+
+	target.AddStatModification(mod)
 
 	if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
 		for _, mechanic := range onHitMechanics.([]Mechanic) {
