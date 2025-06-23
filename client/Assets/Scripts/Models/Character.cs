@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 
@@ -38,6 +39,10 @@ public class Character : MonoBehaviour, ITargeteable
     {
         get { return stats; }
     }
+
+    [SerializeField] ItemDatabase itemDatabase;
+    [SerializeField] GameObject helmetSlot;
+    [SerializeField] GameObject chestSlot;
 
     public bool IsAlive { get; private set; } = true;
 
@@ -119,6 +124,37 @@ public class Character : MonoBehaviour, ITargeteable
             default:
                 Movement.TriggerWalkingAnimation(false);
                 break;
+        }
+    }
+
+    public void UpdateEquipmentVisuals(ItemDTO[] inventoryChanges)
+    {
+        foreach (ItemDTO inventoryChange in inventoryChanges.OrderBy(e => e.isEquipped))
+        {
+            Equipment equipmentData = itemDatabase.Items
+                .OfType<Equipment>()
+                .SingleOrDefault(e => e.id == inventoryChange.id);
+            if (equipmentData == null)
+                continue;
+
+            switch (equipmentData.equipmentType)
+            {
+                case EquipmentType.Helmet:
+                    foreach (Transform child in helmetSlot.transform)
+                        Destroy(child.gameObject);
+                    if (inventoryChange.isEquipped)
+                        Instantiate(equipmentData.model3D, helmetSlot.transform);
+                    break;
+                case EquipmentType.Chest:
+                    foreach (Transform child in chestSlot.transform)
+                        Destroy(child.gameObject);
+                    if (inventoryChange.isEquipped)
+                        Instantiate(equipmentData.model3D, chestSlot.transform);
+                    break;
+                default:
+                    Debug.LogError($"Equipment type: {equipmentData.equipmentType} not defined in character model");
+                    break;
+            }
         }
     }
 }

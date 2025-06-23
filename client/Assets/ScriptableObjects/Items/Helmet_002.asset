@@ -16,3 +16,4 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: eddb0f61210d2f4429ae92bc08d1b3ba, type: 3}
   isConsumible: 0
   equipmentType: 0
+  model3D: {fileID: 1802134561804290762, guid: d79b2ee83e0984dd9a8b17152cfe87b7, type: 3}

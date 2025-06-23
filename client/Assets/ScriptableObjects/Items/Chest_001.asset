@@ -15,4 +15,5 @@ MonoBehaviour:
   id: chest_001
   icon: {fileID: 21300000, guid: fc8542cdc3ac66d46901a4eca96d7870, type: 3}
   isConsumible: 0
-  equipmentType: 0
+  equipmentType: 1
+  model3D: {fileID: 1802134561804290762, guid: c01505f8bba5d4c569ab174bec1e15ff, type: 3}

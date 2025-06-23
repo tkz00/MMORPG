@@ -13,7 +13,7 @@ public class Inventory : MonoBehaviour
     [SerializeField] GameObject itemUIPrefab;
     [SerializeField] Transform inventoryContainer;
     [SerializeField] Transform equipmentContainer;
-    [SerializeField] List<Item> availableItems;
+    [SerializeField] ItemDatabase itemDatabase;
 
     readonly Dictionary<string, int> items = new Dictionary<string, int>();
     readonly HashSet<string> equippedItems = new();
@@ -72,10 +72,10 @@ public class Inventory : MonoBehaviour
 
         foreach (var item in items)
         {
-            Item itemSO = availableItems.SingleOrDefault(i => i.id == item.Key);
+            Item itemSO = itemDatabase.Items.SingleOrDefault(i => i.id == item.Key);
             if (itemSO == null)
             {
-                Debug.LogError($"Item with ID: {item.Key} not found in available items collection");
+                Debug.LogError($"Item with ID: {item.Key} not found in item database");
                 continue;
             }
             InventoryItem itemUI = Instantiate(itemUIPrefab).GetComponent<InventoryItem>();

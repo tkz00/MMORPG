@@ -1532,12 +1532,7 @@ MonoBehaviour:
   itemUIPrefab: {fileID: 1342456432481664737, guid: b5c3f3011069a4d14a04484a00c80003, type: 3}
   inventoryContainer: {fileID: 1302647065}
   equipmentContainer: {fileID: 978566993}
-  availableItems:
-  - {fileID: 11400000, guid: ea7b51fced50649b2adc9b2da3785a82, type: 2}
-  - {fileID: 11400000, guid: 3d6508ab4ae8f4e52a3ce986de574675, type: 2}
-  - {fileID: 11400000, guid: 8f3b2f210b9e84e4a93fa90e5f405a83, type: 2}
-  - {fileID: 11400000, guid: 02d11cf92d0924ad0b9570e53d422fc9, type: 2}
-  - {fileID: 11400000, guid: ea5e6ae08e9fb43ea992b56657eb724b, type: 2}
+  itemDatabase: {fileID: 11400000, guid: f0d5da94f2c734c5f88cb0d57a129b38, type: 2}
   openCloseInventoryAction:
     m_Name: Open Close Inventory
     m_Type: 0
