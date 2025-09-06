@@ -56,9 +56,9 @@ Requirements:
 - Go `1.23.4`
 
 How to run:
-1. Start the backend:
+1. Start the backend by running this command at the root of the project:
    
-       go run ./backend/main.go
+       go run -C backend cmd/server/main.go
 
 2. Open the Unity project and press Play.
 
