@@ -49,6 +49,7 @@ public class ItemDTO
 {
     public string id;
     public int quantity;
+    [JsonProperty("is_equipped")] public bool isEquipped;
 }
 
 public class UseItemDTO : DTO

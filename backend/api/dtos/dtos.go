@@ -88,8 +88,9 @@ type InventoryDTO struct {
 }
 
 type ItemDTO struct {
-	Id       string `json:"id"`
-	Quantity int64  `json:"quantity"`
+	Id         string `json:"id"`
+	Quantity   int64  `json:"quantity"`
+	IsEquipped bool   `json:"is_equipped"`
 }
 
 type UseItemDTO struct {
@@ -99,6 +100,22 @@ type UseItemDTO struct {
 
 func (u UseItemDTO) GetType() string {
 	return "use_item"
+}
+
+type EquipItemDTO struct {
+	ItemId string `json:"item_id"`
+}
+
+func (e EquipItemDTO) GetType() string {
+	return "equip_item"
+}
+
+type UnequipItemDTO struct {
+	ItemId string `json:"item_id"`
+}
+
+func (e UnequipItemDTO) GetType() string {
+	return "unequip_item"
 }
 
 type AbilityParameters int

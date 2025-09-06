@@ -50,17 +50,29 @@ type CharacterLastTickState struct {
 	Abilities                  []string
 	AbilitiesRemainingCooldows map[string]int64
 	Items                      map[string]int64
+	EquippedItems              map[string]bool
+}
+
+// StatModification represents a modification to a character's stats
+type StatModification struct {
+	ID           string  // Unique identifier for the modification
+	StatName     string  // The stat being modified
+	FlatValue    int64   // Flat amount to add/subtract
+	PercentValue float64 // Percentage multiplier (e.g., 0.5 = +50%)
+	Source       string  // Source of the modification (e.g., "equipment", "ability_buff")
 }
 
 type Character struct {
 	id string
 	Health
-	stats           map[string]int64
-	executingAction ExecutingAction
-	position        utils.Vector2
-	to              utils.Vector2
-	direction       utils.Vector2
-	actionsQueue    []CharacterAction
+	baseStats         map[string]int64
+	currentStats      map[string]int64
+	statModifications []StatModification
+	executingAction   ExecutingAction
+	position          utils.Vector2
+	to                utils.Vector2
+	direction         utils.Vector2
+	actionsQueue      []CharacterAction
 
 	*Inventory
 
@@ -86,23 +98,157 @@ func CreateCharacter(
 		lastUsed[ability.id] = time.Time{}
 	}
 
-	return &Character{
-		id:              id,
-		position:        initialPosition,
-		to:              initialPosition,
-		Health:          NewHealth(BASE_MAX_HEALTH),
-		stats:           stats,
-		executingAction: ExecutingAction{Idle, *utils.NewVector2(0, 0), nil},
-		actionsQueue:    []CharacterAction{},
-		Inventory:       NewInventory(),
-		abilities:       abilities,
-		lastUsed:        lastUsed,
+	character := &Character{
+		id:                id,
+		position:          initialPosition,
+		to:                initialPosition,
+		Health:            NewHealth(BASE_MAX_HEALTH),
+		baseStats:         stats,
+		currentStats:      make(map[string]int64),
+		statModifications: []StatModification{},
+		executingAction:   ExecutingAction{Idle, *utils.NewVector2(0, 0), nil},
+		actionsQueue:      []CharacterAction{},
+		Inventory:         NewInventory(),
+		abilities:         abilities,
+		lastUsed:          lastUsed,
 		CharacterLastTickState: &CharacterLastTickState{
 			AbilitiesRemainingCooldows: make(map[string]int64),
 			Items:                      make(map[string]int64),
 			Stats:                      make(map[string]int64),
+			EquippedItems:              make(map[string]bool),
 		},
 	}
+
+	// Initialize current stats with base stats
+	character.recalculateStats()
+
+	return character
+}
+
+// recalculateStats recalculates current stats from base stats and all modifications
+func (c *Character) recalculateStats() {
+	// Start with base stats
+	c.currentStats = make(map[string]int64)
+	for stat, value := range c.baseStats {
+		c.currentStats[stat] = value
+	}
+
+	// Apply flat modifications first
+	for _, mod := range c.statModifications {
+		if mod.FlatValue != 0 {
+			c.currentStats[mod.StatName] += mod.FlatValue
+		}
+	}
+
+	// Apply percentage modifications last, cumulatively
+	for _, mod := range c.statModifications {
+		if mod.PercentValue != 0 {
+			// Apply percentage to the current running total
+			percentageIncrease := int64(
+				math.Round(float64(c.currentStats[mod.StatName]) * mod.PercentValue),
+			)
+			c.currentStats[mod.StatName] += percentageIncrease
+		}
+	}
+}
+
+// AddStatModification adds a new stat modification and recalculates stats
+func (c *Character) AddStatModification(mod StatModification) {
+	c.statModifications = append(c.statModifications, mod)
+	c.recalculateStats()
+}
+
+// RemoveStatModification removes a stat modification by ID and recalculates stats
+func (c *Character) RemoveStatModification(id string) {
+	for i, mod := range c.statModifications {
+		if mod.ID == id {
+			c.statModifications = append(c.statModifications[:i], c.statModifications[i+1:]...)
+			c.recalculateStats()
+			return
+		}
+	}
+}
+
+// RemoveStatModificationsBySource removes all stat modifications from a specific source
+func (c *Character) RemoveStatModificationsBySource(source string) {
+	newMods := []StatModification{}
+	for _, mod := range c.statModifications {
+		if mod.Source != source {
+			newMods = append(newMods, mod)
+		}
+	}
+	c.statModifications = newMods
+	c.recalculateStats()
+}
+
+// EquipItem equips an item and applies its stat modifications
+func (c *Character) EquipItem(itemId string) error {
+	// Get the item to be equipped to check its equipment type
+	item, exists := existingItems[itemId]
+	if !exists {
+		return fmt.Errorf("item %s not found", itemId)
+	}
+
+	// Check if it's equipment
+	equipment, ok := item.(*Equipment)
+	if !ok {
+		return fmt.Errorf("item %s is not equipment", itemId)
+	}
+
+	// Check if there's already an item of the same type equipped
+	equipped := c.Inventory.GetEquipped()
+	if existingEquipment, exists := equipped[equipment.GetEquipmentType()]; exists {
+		// Remove stat modifications from the existing equipment
+		existingItemId := existingEquipment.Item.Id()
+		for _, mod := range c.statModifications {
+			if mod.Source == "equipment" && mod.ID == "equipment_"+existingItemId+"_"+mod.StatName {
+				c.RemoveStatModification(mod.ID)
+			}
+		}
+	}
+
+	// Now equip the new item
+	err := c.Inventory.EquipItem(itemId)
+	if err != nil {
+		return err
+	}
+
+	// Apply equipment stats for the new item
+	equipped = c.Inventory.GetEquipped()
+	for _, equip := range equipped {
+		if equip.Item.Id() == itemId {
+			for stat, value := range equip.GetStats() {
+				mod := StatModification{
+					ID:           "equipment_" + itemId + "_" + stat,
+					StatName:     stat,
+					FlatValue:    value,
+					PercentValue: 0,
+					Source:       "equipment",
+				}
+				c.AddStatModification(mod)
+			}
+			break
+		}
+	}
+
+	return nil
+}
+
+// UnequipItem unequips an item and removes its stat modifications
+func (c *Character) UnequipItem(itemId string) {
+	// Remove equipment stat modifications first
+	for _, mod := range c.statModifications {
+		if mod.Source == "equipment" && mod.ID == "equipment_"+itemId+"_"+mod.StatName {
+			c.RemoveStatModification(mod.ID)
+		}
+	}
+
+	c.Inventory.UnequipItem(itemId)
+}
+
+// GetEquipped returns the equipped items from inventory
+func (c *Character) GetEquipped() map[EquipmentType]*Equipment {
+	return c.Inventory.GetEquipped()
 }
 
 func (p Character) GetId() string {
@@ -276,7 +422,7 @@ func (character *Character) UseItem(itemId string, targetId string, gs *GameStat
 		return
 	}
 
-	item := existingItems[itemId]
+	item := GetItem(itemId)
 	item.ExecuteMechanics(character, targetId, gs)
 	character.Inventory.AddItem(itemId, -1)
 }
@@ -299,7 +445,7 @@ func (caster *Character) EnqueueAbilityCastAction(
 }
 
 func (c *Character) TakeDamage(d int) {
-	damage := d - int(c.stats["defense"])
+	damage := d - int(c.currentStats["defense"])
 	c.HealthVariation(-int(math.Max(0, float64(damage))))
 }
 
@@ -308,13 +454,22 @@ func (c *Character) Heal(a int) {
 }
 
 func (c *Character) GetStat(s string) int64 {
-	return c.stats[s]
+	return c.currentStats[s]
 }
 
 func (c *Character) GetStats() map[string]int64 {
-	return c.stats
+	return c.currentStats
 }
 
-func (c *Character) SetStat(stat string, value int64) {
-	c.stats[stat] = value
+func (c *Character) GetBaseStat(s string) int64 {
+	return c.baseStats[s]
+}
+
+func (c *Character) GetBaseStats() map[string]int64 {
+	return c.baseStats
+}
+
+func (c *Character) SetBaseStat(stat string, value int64) {
+	c.baseStats[stat] = value
+	c.recalculateStats()
 }

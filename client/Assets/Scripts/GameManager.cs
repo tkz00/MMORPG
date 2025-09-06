@@ -138,7 +138,7 @@ public class GameManager : MonoBehaviour
 
     #region Players
 
-    private void UpdatePlayers(List<CharacterDTO> playerDTOS)
+    void UpdatePlayers(List<CharacterDTO> playerDTOS)
     {
         string[] currentPlayerIds = players.Keys.ToArray();
         HashSet<string> playersToDestroy = new HashSet<string>(
@@ -146,6 +146,7 @@ public class GameManager : MonoBehaviour
         );
         DestroyPlayers(playersToDestroy.ToArray());
         UpdatePlayersPositions(playerDTOS);
+        UpdatePlayersEquipment(playerDTOS);
     }
 
     void UpdatePlayersPositions(List<CharacterDTO> playerDTOS)
@@ -165,6 +166,21 @@ public class GameManager : MonoBehaviour
             if (playerDTO.radius != null) player.SetScale((float)(playerDTO.radius * 2));
 
             CheckDeathSplash(playerDTO);
+        }
+    }
+
+    void UpdatePlayersEquipment(List<CharacterDTO> playerDTOS)
+    {
+        foreach (CharacterDTO playerDTO in playerDTOS)
+        {
+            if (playerDTO.inventory?.items == null)
+                return;
+
+            if (playerDTO.inventory?.items.Length == 0)
+                return;
+
+            Character player = GetPlayer(playerDTO.id);
+            player.UpdateEquipmentVisuals(playerDTO.inventory.items);
         }
     }
 

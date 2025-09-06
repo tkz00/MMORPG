@@ -133,6 +133,10 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 			server.handleRespawn(conn)
 		case "use_item":
 			server.handleUseItem(conn, message.Body.(dtos.UseItemDTO))
+		case "equip_item":
+			server.handleEquipItem(conn, message.Body.(dtos.EquipItemDTO))
+		case "unequip_item":
+			server.handleUnequipItem(conn, message.Body.(dtos.UnequipItemDTO))
 		default:
 			fmt.Printf("Unknown message type: %s\n", message.ActionType)
 		}
@@ -205,4 +209,20 @@ func (server *NativeServer) handleRespawn(client *websocket.Conn) {
 func (server *NativeServer) handleUseItem(client *websocket.Conn, useItemDTO dtos.UseItemDTO) {
 	player := server.gameState.GetPlayerByConn(client)
 	player.UseItem(useItemDTO.ItemId, useItemDTO.TargetId, server.gameState)
+}
+
+func (server *NativeServer) handleEquipItem(
+	client *websocket.Conn,
+	equipItemDTO dtos.EquipItemDTO,
+) {
+	player := server.gameState.GetPlayerByConn(client)
+	player.EquipItem(equipItemDTO.ItemId)
+}
+
+func (server *NativeServer) handleUnequipItem(
+	client *websocket.Conn,
+	unequipItemDTO dtos.UnequipItemDTO,
+) {
+	player := server.gameState.GetPlayerByConn(client)
+	player.UnequipItem(unequipItemDTO.ItemId)
 }
