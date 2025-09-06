@@ -4,6 +4,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public enum InventoryFilter
 {
@@ -21,12 +22,22 @@ public class Inventory : MonoBehaviour
     [SerializeField] EquipmentWindow equipmentWindow;
     [SerializeField] ItemDatabase itemDatabase;
 
+    [Header("Filter Buttons")]
+    [SerializeField] UnityEngine.UI.Button allFilterButton;
+    [SerializeField] UnityEngine.UI.Button equipmentFilterButton;
+
     readonly Dictionary<string, int> items = new Dictionary<string, int>();
     readonly HashSet<string> equippedItems = new();
 
     private InventoryFilter currentFilter = InventoryFilter.All;
 
     public InputAction openCloseInventoryAction = new InputAction(binding: "<Keyboard>/i");
+
+    private void Start()
+    {
+        // Initialize button visuals
+        UpdateButtonVisuals();
+    }
 
     private void OnEnable()
     {
@@ -44,6 +55,12 @@ public class Inventory : MonoBehaviour
     {
         inventoryWindow.SetActive(!inventoryWindow.activeSelf);
         equipmentMenu.SetActive(!equipmentMenu.activeSelf);
+
+        // Update button visuals when opening inventory
+        if (inventoryWindow.activeSelf)
+        {
+            UpdateButtonVisuals();
+        }
     }
 
     public void UpdateInventory(InventoryDTO inventory)
@@ -73,13 +90,33 @@ public class Inventory : MonoBehaviour
     public void SetFilterAll()
     {
         currentFilter = InventoryFilter.All;
+        UpdateButtonVisuals();
         DrawInventoryIcons();
     }
 
     public void SetFilterEquipment()
     {
         currentFilter = InventoryFilter.Equipment;
+        UpdateButtonVisuals();
         DrawInventoryIcons();
+    }
+
+    private void UpdateButtonVisuals()
+    {
+        // Reset all buttons to normal state
+        allFilterButton.interactable = true;
+        equipmentFilterButton.interactable = true;
+
+        // Make the selected button non-interactable to show selected state
+        switch (currentFilter)
+        {
+            case InventoryFilter.All:
+                allFilterButton.interactable = false;
+                break;
+            case InventoryFilter.Equipment:
+                equipmentFilterButton.interactable = false;
+                break;
+        }
     }
 
     private void DrawInventoryIcons()

@@ -413,6 +413,8 @@ MonoBehaviour:
   inventoryContainer: {fileID: 9124515357692056233}
   equipmentWindow: {fileID: 3482305838643633247}
   itemDatabase: {fileID: 11400000, guid: f0d5da94f2c734c5f88cb0d57a129b38, type: 2}
+  allFilterButton: {fileID: 8203558340178624616}
+  equipmentFilterButton: {fileID: 2769238402123292396}
   openCloseInventoryAction:
     m_Name: Open Close Inventory
     m_Type: 0
@@ -1172,11 +1174,33 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ed6f45a37ccfe4c1397f802381d9771c, type: 3}
+--- !u!114 &2769238402123292396 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5735393579934308113, guid: ed6f45a37ccfe4c1397f802381d9771c, type: 3}
+  m_PrefabInstance: {fileID: 7635424037822761469}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!224 &8192945595642732890 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1748884471811500199, guid: ed6f45a37ccfe4c1397f802381d9771c, type: 3}
   m_PrefabInstance: {fileID: 7635424037822761469}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8203558340178624616 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1742503200863144341, guid: ed6f45a37ccfe4c1397f802381d9771c, type: 3}
+  m_PrefabInstance: {fileID: 7635424037822761469}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &8419527503391572434 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2102708316171847727, guid: ed6f45a37ccfe4c1397f802381d9771c, type: 3}
