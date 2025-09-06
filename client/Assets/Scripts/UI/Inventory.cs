@@ -5,9 +5,15 @@ using Newtonsoft.Json;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+public enum InventoryFilter
+{
+    All,
+    Equipment
+}
+
 public class Inventory : MonoBehaviour
 {
-    [SerializeField] GameObject inventoryMenu;
+    [SerializeField] GameObject inventoryWindow;
     [SerializeField] GameObject equipmentMenu;
 
     [SerializeField] GameObject itemUIPrefab;
@@ -18,6 +24,7 @@ public class Inventory : MonoBehaviour
     readonly Dictionary<string, int> items = new Dictionary<string, int>();
     readonly HashSet<string> equippedItems = new();
 
+    private InventoryFilter currentFilter = InventoryFilter.All;
 
     public InputAction openCloseInventoryAction = new InputAction(binding: "<Keyboard>/i");
 
@@ -35,7 +42,7 @@ public class Inventory : MonoBehaviour
 
     private void ToggleInventory(InputAction.CallbackContext context)
     {
-        inventoryMenu.SetActive(!inventoryMenu.activeSelf);
+        inventoryWindow.SetActive(!inventoryWindow.activeSelf);
         equipmentMenu.SetActive(!equipmentMenu.activeSelf);
     }
 
@@ -63,6 +70,18 @@ public class Inventory : MonoBehaviour
         DrawInventoryIcons();
     }
 
+    public void SetFilterAll()
+    {
+        currentFilter = InventoryFilter.All;
+        DrawInventoryIcons();
+    }
+
+    public void SetFilterEquipment()
+    {
+        currentFilter = InventoryFilter.Equipment;
+        DrawInventoryIcons();
+    }
+
     private void DrawInventoryIcons()
     {
         // Clear inventory container
@@ -85,6 +104,12 @@ public class Inventory : MonoBehaviour
 
             bool isEquippable = itemSO is Equipment;
             bool isEquipped = equippedItems.Contains(item.Key);
+
+            // Apply filter - only show items that match the current filter
+            if (currentFilter == InventoryFilter.Equipment && !isEquippable)
+            {
+                continue; // Skip non-equipment items when filtering for equipment only
+            }
 
             if (isEquipped && isEquippable)
             {
