@@ -12,7 +12,7 @@ public class Inventory : MonoBehaviour
 
     [SerializeField] GameObject itemUIPrefab;
     [SerializeField] Transform inventoryContainer;
-    [SerializeField] Transform equipmentContainer;
+    [SerializeField] EquipmentWindow equipmentWindow;
     [SerializeField] ItemDatabase itemDatabase;
 
     readonly Dictionary<string, int> items = new Dictionary<string, int>();
@@ -65,11 +65,15 @@ public class Inventory : MonoBehaviour
 
     private void DrawInventoryIcons()
     {
+        // Clear inventory container
         foreach (Transform child in inventoryContainer.transform)
             Destroy(child.gameObject);
-        foreach (Transform child in equipmentContainer.transform)
-            Destroy(child.gameObject);
 
+        // Clear equipment window slots
+        if (equipmentWindow != null)
+            equipmentWindow.ClearAllSlots();
+
+        // Draw inventory items
         foreach (var item in items)
         {
             Item itemSO = itemDatabase.Items.SingleOrDefault(i => i.id == item.Key);
@@ -78,15 +82,19 @@ public class Inventory : MonoBehaviour
                 Debug.LogError($"Item with ID: {item.Key} not found in item database");
                 continue;
             }
-            InventoryItem itemUI = Instantiate(itemUIPrefab).GetComponent<InventoryItem>();
+
             bool isEquippable = itemSO is Equipment;
-            if (equippedItems.Contains(item.Key))
+            bool isEquipped = equippedItems.Contains(item.Key);
+
+            if (isEquipped && isEquippable)
             {
-                itemUI.transform.SetParent(equipmentContainer);
-                itemUI.SetUp(item.Key, item.Value, itemSO.icon, itemSO.isConsumible, UseItem, isEquippable, isEquippable ? UnequipItem : null);
+                // Handle equipped items through EquipmentWindow
+                equipmentWindow.UpdateEquippedItem(item.Key, item.Value, true, UseItem, EquipItem, UnequipItem);
             }
             else
             {
+                // Handle non-equipped items in inventory container
+                InventoryItem itemUI = Instantiate(itemUIPrefab).GetComponent<InventoryItem>();
                 itemUI.transform.SetParent(inventoryContainer);
                 itemUI.SetUp(item.Key, item.Value, itemSO.icon, itemSO.isConsumible, UseItem, isEquippable, isEquippable ? EquipItem : null);
             }
