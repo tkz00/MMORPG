@@ -56,7 +56,7 @@ Requirements:
 - Go `1.23.4`
 
 How to run:
-1. Start the backend by running this command in the root of the project:
+1. Start the backend by running this command at the root of the project:
    
        go run -C backend cmd/server/main.go
 
