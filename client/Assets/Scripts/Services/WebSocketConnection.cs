@@ -6,6 +6,7 @@ using System.Net.WebSockets;
 using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
+using UnityEditor;
 
 public static class WebSocketConnection
 {
@@ -15,9 +16,19 @@ public static class WebSocketConnection
 
     public static async Task Connect()
     {
-        // handshake
+        if (string.IsNullOrEmpty(AuthenticationManager.CharacterName))
+        {
+            Debug.LogError("No character name");
+            if (Application.isEditor)
+                EditorApplication.ExitPlaymode();
+            else
+                Application.Quit();
+
+            return;
+        }
+
         webSocket = new ClientWebSocket();
-        Uri wsUri = new Uri(URL);
+        Uri wsUri = new Uri(URL + $"?character={AuthenticationManager.CharacterName}");
         try
         {
             webSocket.Options.SetRequestHeader("Origin", "http://example.com");
