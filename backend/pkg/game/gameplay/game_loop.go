@@ -4,6 +4,7 @@ import (
 	"backend/pkg/game/entities"
 	"backend/pkg/game/repository"
 	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
@@ -16,6 +17,8 @@ func StartGameState() *entities.GameState {
 
 	mapObstacleColliders := repository.GetObstacleColliders()
 	gamestate.SetUpObstacles(mapObstacleColliders)
+
+	go saveGameState(gamestate)
 
 	return gamestate
 }
@@ -164,9 +167,22 @@ func AddPlayer(gs *entities.GameState, conn *websocket.Conn, characterName strin
 
 	player := entities.CreateCharacter(playerId, characterName, 0, 0, stats, abilities)
 	gs.AddPlayer(conn, player)
-	if err := repository.SaveCharacter(player); err != nil {
-		fmt.Printf("Error saving new character to repository: %v\n", err)
-	}
+	// if err := repository.SaveCharacter(player); err != nil {
+	// 	fmt.Printf("Error saving new character to repository: %v\n", err)
+	// }
 
 	return *player
+}
+
+func saveGameState(gs *entities.GameState) {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		for _, player := range gs.Players() {
+			if err := repository.SaveCharacter(player); err != nil {
+				fmt.Printf("Error saving new character to repository: %v\n", err)
+			}
+		}
+	}
 }

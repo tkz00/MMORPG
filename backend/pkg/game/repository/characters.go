@@ -72,6 +72,16 @@ func SaveCharacter(newCharacter *entities.Character) error {
 
 	// add/replace character
 	x, z := newCharacter.GetPosition().GetPosition()
+	equipped := lo.MapValues(
+		newCharacter.GetEquipped(),
+		func(eq *entities.Equipment, slot entities.EquipmentType) string {
+			if eq == nil {
+				return "" // or some placeholder
+			}
+			return eq.Id()
+		},
+	)
+
 	characters[newCharacter.GetId()] = Character{
 		newCharacter.GetId(),
 		newCharacter.GetName(),
@@ -80,7 +90,7 @@ func SaveCharacter(newCharacter *entities.Character) error {
 		newCharacter.GetBaseStats(),
 		x, z,
 		newCharacter.GetInventory(),
-		make(map[entities.EquipmentType]string),
+		equipped,
 		lo.Keys(newCharacter.GetAbilities()),
 	}
 
