@@ -16,9 +16,14 @@ import (
 	"golang.org/x/net/websocket"
 )
 
+type AddClientData struct {
+	Client    *websocket.Conn
+	Character string
+}
+
 type NativeServer struct {
 	clients      map[*websocket.Conn]bool
-	addClient    chan *websocket.Conn
+	addClient    chan AddClientData
 	removeClient chan *websocket.Conn
 	broadcast    chan []byte
 	gameState    *entities.GameState
@@ -29,7 +34,7 @@ func (ws *NativeServer) newServer() Server {
 
 	return &NativeServer{
 		clients:      make(map[*websocket.Conn]bool),
-		addClient:    make(chan *websocket.Conn),
+		addClient:    make(chan AddClientData),
 		removeClient: make(chan *websocket.Conn),
 		broadcast:    make(chan []byte),
 		gameState:    gamestate,
@@ -48,13 +53,13 @@ func (ws NativeServer) StartConnection(port string) {
 func (server *NativeServer) readLoop() {
 	for {
 		select {
-		case client := <-server.addClient:
-			player := gameplay.AddPlayer(server.gameState, client)
-			server.clients[client] = true
+		case clientData := <-server.addClient:
+			player := gameplay.AddPlayer(server.gameState, clientData.Client, clientData.Character)
+			server.clients[clientData.Client] = true
 
 			response := CreateWebSocketResponse(dtos.CharacterToDTO(player))
 			message := response.Serialize()
-			err := websocket.Message.Send(client, message)
+			err := websocket.Message.Send(clientData.Client, message)
 			if err != nil {
 				log.Println("Error broadcasting message:", err)
 				return
@@ -63,12 +68,12 @@ func (server *NativeServer) readLoop() {
 			// Send initial gamestate to client
 			gameStateDTO := dtos.GameStateToDTO(*server.gameState)
 			webSocketResponse := CreateWebSocketResponse(gameStateDTO)
-			if err := websocket.Message.Send(client, webSocketResponse.Serialize()); err != nil {
+			if err := websocket.Message.Send(clientData.Client, webSocketResponse.Serialize()); err != nil {
 				log.Println("Error broadcasting initial message:", err)
 				return
 			}
 
-			log.Println("Client connected", client.RemoteAddr())
+			log.Println("Client connected", clientData.Client.RemoteAddr())
 		case client := <-server.removeClient:
 			server.gameState.DeletePlayer(client)
 			delete(server.clients, client)
@@ -105,7 +110,10 @@ func (server *NativeServer) broadcastGameState() {
 }
 
 func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
-	server.addClient <- conn
+	// Get query parameter "character"
+	character := conn.Request().URL.Query().Get("character")
+
+	server.addClient <- AddClientData{conn, character}
 	defer func() {
 		conn.Close()
 		server.removeClient <- conn

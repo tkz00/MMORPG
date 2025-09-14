@@ -59,6 +59,14 @@ func GetPlayersInitialAbilities() map[string]*entities.Ability {
 	return lo.PickByKeys(abilities, playersInitialAbilitiesIds)
 }
 
+func GetAbilitiesByIds(abilitiesIds []string) map[string]*entities.Ability {
+	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	if err != nil {
+		fmt.Printf("Error loading abilities: %v\n", err)
+	}
+	return lo.PickByKeys(abilities, abilitiesIds)
+}
+
 func ConvertFromConfiguratorAbility(ability configurator.ConfiguratorAbility) *entities.Ability {
 	// Recursively convert map[string]interface{} to Mechanic structs
 	for _, mechanic := range ability.Mechanics {

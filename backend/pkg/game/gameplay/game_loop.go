@@ -3,6 +3,7 @@ package gameplay
 import (
 	"backend/pkg/game/entities"
 	"backend/pkg/game/repository"
+	"fmt"
 
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
@@ -145,12 +146,21 @@ func AreColliding(player entities.Character, projectile entities.Projectile) boo
 }
 
 // Should this be here? Where should this be?
-func AddPlayer(gs *entities.GameState, conn *websocket.Conn) entities.Character {
+func AddPlayer(gs *entities.GameState, conn *websocket.Conn, character string) entities.Character {
+	var playerId string
+	var abilities map[string]*entities.Ability
+	var stats map[string]int64
+
 	id := uuid.New()
-	playerId := id.String()
-	abilities := repository.GetPlayersInitialAbilities()
-	stats := map[string]int64{"damage": 10, "defense": 5}
+	playerId = id.String()
+	abilities = repository.GetPlayersInitialAbilities()
+	stats = map[string]int64{"damage": 10, "defense": 5}
+
 	player := entities.CreateCharacter(playerId, 0, 0, stats, abilities)
 	gs.AddPlayer(conn, player)
+	if err := repository.SaveCharacter(player); err != nil {
+		fmt.Printf("Error saving new character to repository: %v\n", err)
+	}
+
 	return *player
 }
