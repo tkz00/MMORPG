@@ -5,8 +5,8 @@ type Health struct {
 	currentHealth int
 }
 
-func NewHealth(totalHealth int) Health {
-	return Health{maxHealth: totalHealth, currentHealth: totalHealth}
+func NewHealth(totalHealth int, currentHealth int) Health {
+	return Health{maxHealth: totalHealth, currentHealth: currentHealth}
 }
 
 func (health Health) GetMaxHealth() int {

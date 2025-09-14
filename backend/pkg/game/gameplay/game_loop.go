@@ -151,25 +151,30 @@ func AreColliding(player entities.Character, projectile entities.Projectile) boo
 // Should this be here? Where should this be?
 func AddPlayer(gs *entities.GameState, conn *websocket.Conn, characterName string) entities.Character {
 	var playerId string
-	var abilities map[string]*entities.Ability
+	var x, z float64
+	var maxHealth, currentHealth int
 	var stats map[string]int64
+	var abilities map[string]*entities.Ability
 
-	if character, _ := repository.GetCharacterByName(characterName); character != nil {
-		playerId = character.GetId()
-		abilities = character.GetAbilities()
-		stats = character.GetBaseStats()
-	} else {
+	var player *entities.Character
+
+	if player, _ = repository.GetCharacterByName(characterName); player == nil {
 		id := uuid.New()
 		playerId = id.String()
-		abilities = repository.GetPlayersInitialAbilities()
+		x, z = 0, 0
+		maxHealth, currentHealth = entities.BASE_MAX_HEALTH, entities.BASE_MAX_HEALTH
 		stats = map[string]int64{"damage": 10, "defense": 5}
+		abilities = repository.GetPlayersInitialAbilities()
+		player = entities.CreateCharacter(playerId, characterName, x, z, maxHealth, currentHealth, stats, abilities)
+		if err := repository.SaveCharacter(player); err != nil {
+			fmt.Printf("Error saving new character to repository: %v\n", err)
+		}
 	}
 
-	player := entities.CreateCharacter(playerId, characterName, 0, 0, stats, abilities)
+	if player == nil {
+		fmt.Println("player == nil")
+	}
 	gs.AddPlayer(conn, player)
-	// if err := repository.SaveCharacter(player); err != nil {
-	// 	fmt.Printf("Error saving new character to repository: %v\n", err)
-	// }
 
 	return *player
 }

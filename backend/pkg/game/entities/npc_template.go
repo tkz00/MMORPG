@@ -39,7 +39,7 @@ func (npcTemplate NPCTemplate) NewNPC(
 ) *Npc {
 	x, z := position.GetPosition()
 	return &Npc{
-		Character:         CreateCharacter(id, "TODO", x, z, npcTemplate.stats, npcTemplate.abilities),
+		Character:         CreateCharacter(id, "TODO", x, z, npcTemplate.startingHealth, npcTemplate.startingHealth, npcTemplate.stats, npcTemplate.abilities),
 		lastActionDecided: time.Now(),
 		spawnerPosition:   spawnerPosition,
 		state:             Pacific,

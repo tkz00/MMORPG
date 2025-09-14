@@ -33,10 +33,17 @@ func GetCharacterByName(characterName string) (*entities.Character, error) {
 		return nil, err
 	}
 
-	if character, ok := lo.Find(lo.Values(characters), func(c Character) bool {
+	if repoCharacter, ok := lo.Find(lo.Values(characters), func(c Character) bool {
 		return c.CharacterName == characterName
 	}); ok {
-		return entities.CreateCharacter(character.Id, characterName, character.X, character.Z, character.BaseStats, GetAbilitiesByIds(character.Abilities)), nil
+		character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, repoCharacter.BaseStats, GetAbilitiesByIds(repoCharacter.Abilities))
+		for id, qty := range repoCharacter.Items {
+			character.Inventory.AddItem(id, qty)
+		}
+		for _, id := range repoCharacter.Equipped {
+			character.EquipItem(id)
+		}
+		return character, nil
 	}
 
 	return nil, fmt.Errorf("character with name %s not found", characterName)

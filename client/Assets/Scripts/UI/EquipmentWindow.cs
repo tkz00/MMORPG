@@ -15,6 +15,11 @@ public class EquipmentWindow : MonoBehaviour
 
     private void Awake()
     {
+        InitializeEquipmentSlots();
+    }
+
+    private void InitializeEquipmentSlots()
+    {
         // Initialize equipment slots dictionary
         equipmentSlots = new Dictionary<EquipmentType, InventoryItem>
         {
@@ -26,6 +31,8 @@ public class EquipmentWindow : MonoBehaviour
 
     public void UpdateEquippedItem(string itemId, int quantity, bool isEquipped, System.Action<string> onUseItem, System.Action<string> onEquipItem, System.Action<string> onUnequipItem)
     {
+        if (equipmentSlots == null) InitializeEquipmentSlots();
+
         // Find the equipment data
         Equipment equipmentData = itemDatabase.Items
             .OfType<Equipment>()
@@ -82,6 +89,8 @@ public class EquipmentWindow : MonoBehaviour
 
     public void EmptySlot(EquipmentType equipmentType)
     {
+        if (equipmentSlots == null) InitializeEquipmentSlots();
+
         equipmentSlots[equipmentType].SetUp("", 0, null, false, null, false, null);
         equipmentSlots[equipmentType].transform.GetChild(0).gameObject.SetActive(false);
         equipmentSlots[equipmentType].transform.GetChild(2).gameObject.SetActive(true);

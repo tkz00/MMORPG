@@ -47,7 +47,7 @@ func StartGameState() *GameState {
 
 func (gs *GameState) SetUpSkeletonEnemies(skeletonEnemiesAbilities map[string]*Ability) {
 	stats := map[string]int64{"damage": 10, "defense": 10}
-	skeletonNPCTemplate := NewNPCTemplate("0", "skeleton", 25, stats, 12, skeletonEnemiesAbilities)
+	skeletonNPCTemplate := NewNPCTemplate("0", "skeleton", 50, stats, 12, skeletonEnemiesAbilities)
 
 	gs.spawners["skeleton_spawner_0"] = NewSpawner(
 		*utils.NewVector2(0, 15),
