@@ -146,17 +146,23 @@ func AreColliding(player entities.Character, projectile entities.Projectile) boo
 }
 
 // Should this be here? Where should this be?
-func AddPlayer(gs *entities.GameState, conn *websocket.Conn, character string) entities.Character {
+func AddPlayer(gs *entities.GameState, conn *websocket.Conn, characterName string) entities.Character {
 	var playerId string
 	var abilities map[string]*entities.Ability
 	var stats map[string]int64
 
-	id := uuid.New()
-	playerId = id.String()
-	abilities = repository.GetPlayersInitialAbilities()
-	stats = map[string]int64{"damage": 10, "defense": 5}
+	if character, _ := repository.GetCharacterByName(characterName); character != nil {
+		playerId = character.GetId()
+		abilities = character.GetAbilities()
+		stats = character.GetBaseStats()
+	} else {
+		id := uuid.New()
+		playerId = id.String()
+		abilities = repository.GetPlayersInitialAbilities()
+		stats = map[string]int64{"damage": 10, "defense": 5}
+	}
 
-	player := entities.CreateCharacter(playerId, 0, 0, stats, abilities)
+	player := entities.CreateCharacter(playerId, characterName, 0, 0, stats, abilities)
 	gs.AddPlayer(conn, player)
 	if err := repository.SaveCharacter(player); err != nil {
 		fmt.Printf("Error saving new character to repository: %v\n", err)

@@ -63,7 +63,8 @@ type StatModification struct {
 }
 
 type Character struct {
-	id string
+	id            string
+	characterName string
 	Health
 	baseStats         map[string]int64
 	currentStats      map[string]int64
@@ -87,6 +88,7 @@ type Character struct {
 
 func CreateCharacter(
 	id string,
+	characterName string,
 	x, z float64,
 	stats map[string]int64,
 	abilities map[string]*Ability,
@@ -100,6 +102,7 @@ func CreateCharacter(
 
 	character := &Character{
 		id:                id,
+		characterName:     characterName,
 		position:          initialPosition,
 		to:                initialPosition,
 		Health:            NewHealth(BASE_MAX_HEALTH),
@@ -253,6 +256,10 @@ func (c *Character) GetEquipped() map[EquipmentType]*Equipment {
 
 func (p Character) GetId() string {
 	return p.id
+}
+
+func (p Character) GetName() string {
+	return p.characterName
 }
 
 func (p *Character) SetPosition(position utils.Vector2) {
