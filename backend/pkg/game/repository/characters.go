@@ -2,23 +2,44 @@ package repository
 
 import (
 	"backend/pkg/game/entities"
+	"database/sql/driver"
+	"encoding/json"
+	"fmt"
+
+	"gorm.io/gorm"
 )
 
 const CharactersFileName = "characters.json"
+
+type StatsMap map[string]int64
+
+// Value implements driver.Valuer
+func (s StatsMap) Value() (driver.Value, error) {
+	return json.Marshal(s) // store as JSONB
+}
+
+// Scan implements sql.Scanner
+func (s *StatsMap) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to scan StatsMap: %v", value)
+	}
+	return json.Unmarshal(b, s) // load into map[string]int64
+}
 
 type CharacterDB struct {
 	Id            string `gorm:"primaryKey"`
 	CharacterName string
 	MaxHealth     int
 	CurrentHealth int
-	// BaseStats     map[string]int64
-	X float64
-	Z float64
+	BaseStats     StatsMap `gorm:"type:jsonb"`
+	X             float64
+	Z             float64
 	// Items         map[string]int64
 	// Equipped      map[entities.EquipmentType]string
 	// Abilities     []string
 
-	// gorm.Model
+	gorm.Model
 }
 
 func (CharacterDB) TableName() string {
@@ -32,7 +53,7 @@ func GetCharacterByName(characterName string) (*entities.Character, error) {
 	}
 
 	// character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, repoCharacter.BaseStats, GetAbilitiesByIds(repoCharacter.Abilities))
-	character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, make(map[string]int64), GetPlayersInitialAbilities())
+	character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, repoCharacter.BaseStats, GetPlayersInitialAbilities())
 	// for id, qty := range repoCharacter.Items {
 	// 	character.Inventory.AddItem(id, qty)
 	// }
@@ -65,9 +86,9 @@ func FromEntity(c *entities.Character) (*CharacterDB, error) {
 		CharacterName: c.GetName(),
 		MaxHealth:     c.GetMaxHealth(),
 		CurrentHealth: c.GetCurrentHealth(),
-		// BaseStats:     c.GetBaseStats(),
-		X: x,
-		Z: z,
+		BaseStats:     StatsMap(c.GetBaseStats()),
+		X:             x,
+		Z:             z,
 	}, nil
 }
 
