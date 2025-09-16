@@ -55,7 +55,6 @@ func (server *NativeServer) readLoop() {
 		select {
 		case clientData := <-server.addClient:
 			player := gameplay.AddPlayer(server.gameState, clientData.Client, clientData.Character)
-			server.clients[clientData.Client] = true
 
 			response := CreateWebSocketResponse(dtos.CharacterToDTO(player))
 			message := response.Serialize()
@@ -73,6 +72,7 @@ func (server *NativeServer) readLoop() {
 				return
 			}
 
+			server.clients[clientData.Client] = true
 			log.Println("Client connected", clientData.Client.RemoteAddr())
 		case client := <-server.removeClient:
 			server.gameState.DeletePlayer(client)
