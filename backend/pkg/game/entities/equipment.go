@@ -1,11 +1,11 @@
 package entities
 
-type EquipmentType int
+type EquipmentType string
 
 const (
-	Helmet EquipmentType = iota
-	Chest
-	Boots
+	Helmet EquipmentType = "helmet"
+	Chest  EquipmentType = "chest"
+	Boots  EquipmentType = "boots"
 )
 
 type Equipment struct {

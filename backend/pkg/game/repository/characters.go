@@ -2,30 +2,11 @@ package repository
 
 import (
 	"backend/pkg/game/entities"
-	"database/sql/driver"
-	"encoding/json"
-	"fmt"
 
 	"gorm.io/gorm"
 )
 
 const CharactersFileName = "characters.json"
-
-type StatsMap map[string]int64
-
-// Value implements driver.Valuer
-func (s StatsMap) Value() (driver.Value, error) {
-	return json.Marshal(s) // store as JSONB
-}
-
-// Scan implements sql.Scanner
-func (s *StatsMap) Scan(value interface{}) error {
-	b, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("failed to scan StatsMap: %v", value)
-	}
-	return json.Unmarshal(b, s) // load into map[string]int64
-}
 
 type CharacterDB struct {
 	Id            string `gorm:"primaryKey"`
@@ -35,8 +16,8 @@ type CharacterDB struct {
 	BaseStats     StatsMap `gorm:"type:jsonb"`
 	X             float64
 	Z             float64
-	// Items         map[string]int64
-	// Equipped      map[entities.EquipmentType]string
+	Items         ItemsMap     `gorm:"type:jsonb"`
+	Equipped      EquipmentMap `gorm:"type:jsonb"`
 	// Abilities     []string
 
 	gorm.Model
@@ -54,32 +35,21 @@ func GetCharacterByName(characterName string) (*entities.Character, error) {
 
 	// character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, repoCharacter.BaseStats, GetAbilitiesByIds(repoCharacter.Abilities))
 	character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, repoCharacter.BaseStats, GetPlayersInitialAbilities())
-	// for id, qty := range repoCharacter.Items {
-	// 	character.Inventory.AddItem(id, qty)
-	// }
-	// for _, id := range repoCharacter.Equipped {
-	// 	character.EquipItem(id)
-	// }
+	for id, qty := range repoCharacter.Items {
+		character.Inventory.AddItem(id, qty)
+	}
+	for _, id := range repoCharacter.Equipped {
+		character.EquipItem(id)
+	}
 	return character, nil
 }
 
-// func GetCharacters() (map[string]CharacterDB, error) {
-// 	file, err := os.Open(CharactersFileName)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("error opening file: %v", err)
-// 	}
-// 	defer file.Close()
-
-// 	characters := make(map[string]CharacterDB)
-// 	if err := json.NewDecoder(file).Decode(&characters); err != nil {
-// 		return nil, fmt.Errorf("error decoding characters from JSON: %v", err)
-// 	}
-
-// 	return characters, nil
-// }
-
 func FromEntity(c *entities.Character) (*CharacterDB, error) {
 	x, z := c.GetPosition().GetPosition()
+	equipped := make(EquipmentMap)
+	for k, v := range c.GetEquipped() {
+		equipped[string(k)] = v.Id()
+	}
 
 	return &CharacterDB{
 		Id:            c.GetId(),
@@ -87,6 +57,8 @@ func FromEntity(c *entities.Character) (*CharacterDB, error) {
 		MaxHealth:     c.GetMaxHealth(),
 		CurrentHealth: c.GetCurrentHealth(),
 		BaseStats:     StatsMap(c.GetBaseStats()),
+		Items:         ItemsMap(c.GetInventory()),
+		Equipped:      equipped,
 		X:             x,
 		Z:             z,
 	}, nil
@@ -98,7 +70,6 @@ func SaveCharacter(c *entities.Character) error {
 		return err
 	}
 
-	// Insert or update (upsert-like behavior)
 	return DB.Save(dbChar).Error
 }
 
