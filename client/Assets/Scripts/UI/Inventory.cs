@@ -165,7 +165,7 @@ public class Inventory : MonoBehaviour
 
     private void UseItem(string itemId)
     {
-        if (!GameManager.GetPlayer(GameManager.MainPlayerID).IsAlive) return;
+        if (!GameManager.MainPlayerIsAlive()) return;
         UseItemDTO useItem = new UseItemDTO { itemId = itemId, targetId = GameManager.MainPlayerID };
         WebSocketMessage response = new WebSocketMessage
         {
@@ -178,7 +178,7 @@ public class Inventory : MonoBehaviour
 
     void EquipItem(string itemId)
     {
-        if (!GameManager.GetPlayer(GameManager.MainPlayerID).IsAlive) return;
+        if (!GameManager.MainPlayerIsAlive()) return;
         var equipItem = new EquipItemDTO { itemId = itemId };
         WebSocketMessage response = new WebSocketMessage
         {
@@ -191,7 +191,7 @@ public class Inventory : MonoBehaviour
 
     void UnequipItem(string itemId)
     {
-        if (!GameManager.GetPlayer(GameManager.MainPlayerID).IsAlive) return;
+        if (!GameManager.MainPlayerIsAlive()) return;
         var unequipItem = new UnequipItemDTO { itemId = itemId };
         WebSocketMessage response = new WebSocketMessage
         {

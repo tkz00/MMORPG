@@ -1,11 +1,10 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Cinemachine;
 using Newtonsoft.Json;
-using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -17,6 +16,8 @@ public class GameManager : MonoBehaviour
     [SerializeField] GameObject npcPrefab;
 
     [SerializeField] CinemachineVirtualCamera cinemachineVirtualCamera;
+
+    static GameManager gameManager;
 
     bool hitboxOn = false;
 
@@ -35,13 +36,16 @@ public class GameManager : MonoBehaviour
     [SerializeField] StatsPanel statsPanel;
 
 
-    static Dictionary<string, Character> players = new Dictionary<string, Character>();
-    static Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
-    static Dictionary<string, Character> npcs = new Dictionary<string, Character>();
-    static Dictionary<string, AoE> areaEffects = new Dictionary<string, AoE>();
+    Dictionary<string, Character> players = new Dictionary<string, Character>();
+    Dictionary<string, Projectile> projectiles = new Dictionary<string, Projectile>();
+    Dictionary<string, Character> npcs = new Dictionary<string, Character>();
+    Dictionary<string, AoE> areaEffects = new Dictionary<string, AoE>();
 
     async void Awake()
     {
+        if (gameManager == null)
+            gameManager = this;
+
         WebSocketConnection.SetHandler<CharacterDTO>(
             new Action<CharacterDTO>(
                 (playerDTO) =>
@@ -81,7 +85,17 @@ public class GameManager : MonoBehaviour
 
     async void OnApplicationQuit()
     {
-        await WebSocketConnection.Disconnect();
+        if (WebSocketConnection.IsConnected)
+            await WebSocketConnection.Disconnect();
+        gameManager = null;
+    }
+
+    public async void Disconnect()
+    {
+        if (WebSocketConnection.IsConnected)
+            await WebSocketConnection.Disconnect();
+        gameManager = null;
+        SceneManager.LoadScene("AuthenticationScene", LoadSceneMode.Single);
     }
 
     void OnGameStateUpdate(GameStateDTO gameState)
@@ -184,9 +198,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public static Character GetPlayer(string playerId)
+    Character GetPlayer(string playerId)
     {
         return players[playerId];
+    }
+
+    public static bool MainPlayerIsAlive()
+    {
+        return gameManager.players[MainPlayerID].IsAlive;
     }
 
     private void CheckDeathSplash(CharacterDTO playerDTO)

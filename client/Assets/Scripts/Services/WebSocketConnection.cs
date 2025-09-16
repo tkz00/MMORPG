@@ -13,6 +13,7 @@ public static class WebSocketConnection
     static ClientWebSocket webSocket;
     static String URL = "ws://localhost:3009/ws";
     static Dictionary<string, Delegate> _responseHandlers = new Dictionary<string, Delegate>();
+    public static bool IsConnected { get { return webSocket.State == WebSocketState.Open; } }
 
     public static async Task Connect()
     {
