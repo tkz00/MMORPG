@@ -3,6 +3,8 @@ package repository
 import (
 	"backend/pkg/game/entities"
 
+	"github.com/lib/pq"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 )
 
@@ -16,9 +18,9 @@ type CharacterDB struct {
 	BaseStats     StatsMap `gorm:"type:jsonb"`
 	X             float64
 	Z             float64
-	Items         ItemsMap     `gorm:"type:jsonb"`
-	Equipped      EquipmentMap `gorm:"type:jsonb"`
-	// Abilities     []string
+	Items         ItemsMap       `gorm:"type:jsonb"`
+	Equipped      EquipmentMap   `gorm:"type:jsonb"`
+	Abilities     pq.StringArray `gorm:"type:text[]"`
 
 	gorm.Model
 }
@@ -33,8 +35,7 @@ func GetCharacterByName(characterName string) (*entities.Character, error) {
 		return nil, err
 	}
 
-	// character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, repoCharacter.BaseStats, GetAbilitiesByIds(repoCharacter.Abilities))
-	character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, repoCharacter.BaseStats, GetPlayersInitialAbilities())
+	character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, repoCharacter.BaseStats, GetAbilitiesByIds(repoCharacter.Abilities))
 	for id, qty := range repoCharacter.Items {
 		character.Inventory.AddItem(id, qty)
 	}
@@ -59,6 +60,7 @@ func FromEntity(c *entities.Character) (*CharacterDB, error) {
 		BaseStats:     StatsMap(c.GetBaseStats()),
 		Items:         ItemsMap(c.GetInventory()),
 		Equipped:      equipped,
+		Abilities:     lo.Keys(c.GetAbilities()),
 		X:             x,
 		Z:             z,
 	}, nil
@@ -72,56 +74,3 @@ func SaveCharacter(c *entities.Character) error {
 
 	return DB.Save(dbChar).Error
 }
-
-// func SaveCharacter(newCharacter *entities.Character) error {
-// 	characters := make(map[string]CharacterDB)
-
-// 	// try reading existing file
-// 	if f, err := os.Open(CharactersFileName); err == nil {
-// 		defer f.Close()
-// 		if err := json.NewDecoder(f).Decode(&characters); err != nil && !errors.Is(err, io.EOF) {
-// 			return fmt.Errorf("error decoding characters from JSON: %w", err)
-// 		}
-// 	} else if !errors.Is(err, os.ErrNotExist) {
-// 		return fmt.Errorf("error opening characters file: %w", err)
-// 	}
-
-// 	// add/replace character
-// 	x, z := newCharacter.GetPosition().GetPosition()
-// 	equipped := lo.MapValues(
-// 		newCharacter.GetEquipped(),
-// 		func(eq *entities.Equipment, slot entities.EquipmentType) string {
-// 			if eq == nil {
-// 				return "" // or some placeholder
-// 			}
-// 			return eq.Id()
-// 		},
-// 	)
-
-// 	characters[newCharacter.GetId()] = CharacterDB{
-// 		newCharacter.GetId(),
-// 		newCharacter.GetName(),
-// 		newCharacter.GetMaxHealth(),
-// 		newCharacter.GetCurrentHealth(),
-// 		newCharacter.GetBaseStats(),
-// 		x, z,
-// 		newCharacter.GetInventory(),
-// 		equipped,
-// 		lo.Keys(newCharacter.GetAbilities()),
-// 	}
-
-// 	// rewrite full file
-// 	f, err := os.Create(CharactersFileName)
-// 	if err != nil {
-// 		return fmt.Errorf("error opening file for write: %w", err)
-// 	}
-// 	defer f.Close()
-
-// 	enc := json.NewEncoder(f)
-// 	enc.SetIndent("", "  ")
-// 	if err := enc.Encode(characters); err != nil {
-// 		return fmt.Errorf("error encoding characters to JSON: %w", err)
-// 	}
-
-// 	return nil
-// }
