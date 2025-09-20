@@ -25,7 +25,7 @@ type NativeServer struct {
 	clients      map[*websocket.Conn]bool
 	addClient    chan AddClientData
 	removeClient chan *websocket.Conn
-	broadcast    chan []byte
+	tick         chan float64
 	gameState    *entities.GameState
 }
 
@@ -36,49 +36,56 @@ func (ws *NativeServer) newServer() Server {
 		clients:      make(map[*websocket.Conn]bool),
 		addClient:    make(chan AddClientData),
 		removeClient: make(chan *websocket.Conn),
-		broadcast:    make(chan []byte),
+		tick:         make(chan float64),
 		gameState:    gamestate,
 	}
 }
 
 func (ws NativeServer) StartConnection(port string) {
 	http.Handle("/ws", websocket.Handler(ws.handleWebSocket))
-	go ws.readLoop()
-	go ws.broadcastGameState()
+	go ws.gameLoop()
+	go ws.tickLoop()
 
 	log.Println("WebSocket server running on :" + port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 }
 
-func (server *NativeServer) readLoop() {
+func (server *NativeServer) gameLoop() {
 	for {
 		select {
 		case clientData := <-server.addClient:
 			player := gameplay.AddPlayer(server.gameState, clientData.Client, clientData.Character)
-
-			response := CreateWebSocketResponse(dtos.CharacterToDTO(player))
-			message := response.Serialize()
-			err := websocket.Message.Send(clientData.Client, message)
-			if err != nil {
-				log.Println("Error broadcasting message:", err)
-				return
-			}
-
-			// Send initial gamestate to client
-			gameStateDTO := dtos.GameStateToDTO(*server.gameState)
-			webSocketResponse := CreateWebSocketResponse(gameStateDTO)
-			if err := websocket.Message.Send(clientData.Client, webSocketResponse.Serialize()); err != nil {
-				log.Println("Error broadcasting initial message:", err)
-				return
-			}
-
 			server.clients[clientData.Client] = true
 			log.Println("Client connected", clientData.Client.RemoteAddr())
+
+			go func() {
+				response := CreateWebSocketResponse(dtos.CharacterToDTO(player))
+				message := response.Serialize()
+				err := websocket.Message.Send(clientData.Client, message)
+				if err != nil {
+					log.Println("Error broadcasting message:", err)
+					return
+				}
+
+				// Send initial gamestate to client
+				gameStateDTO := dtos.GameStateToDTO(*server.gameState)
+				webSocketResponse := CreateWebSocketResponse(gameStateDTO)
+				if err := websocket.Message.Send(clientData.Client, webSocketResponse.Serialize()); err != nil {
+					log.Println("Error broadcasting initial message:", err)
+					return
+				}
+			}()
 		case client := <-server.removeClient:
 			server.gameState.DeletePlayer(client)
 			delete(server.clients, client)
 			log.Println("Client disconnected", client.RemoteAddr())
-		case message := <-server.broadcast: // THIS IS AN OBSERVER
+		case deltaTime := <-server.tick:
+			gameplay.UpdateState(server.gameState, deltaTime)
+
+			gameStateDTO := dtos.GameStateDiff(*server.gameState)
+			webSocketResponse := CreateWebSocketResponse(gameStateDTO)
+			message := webSocketResponse.Serialize()
+
 			for client := range server.clients {
 				err := websocket.Message.Send(client, message)
 				if err != nil {
@@ -92,7 +99,7 @@ func (server *NativeServer) readLoop() {
 
 // the broadcast function should just broadcast, the updating of the state should be handled somewhere else
 // actually, native server shouldn't know anything about game state, it should only receive messages that it should send to the clients, but how then would client that connect to the server be convereted to players?
-func (server *NativeServer) broadcastGameState() {
+func (server *NativeServer) tickLoop() {
 	ticker := time.NewTicker(config.TICKER_TIME)
 	defer ticker.Stop()
 	previousUpdateTime := time.Now()
@@ -100,12 +107,8 @@ func (server *NativeServer) broadcastGameState() {
 	for range ticker.C {
 		currentUpdateTime := time.Now()
 		deltaTime := currentUpdateTime.Sub(previousUpdateTime)
+		server.tick <- deltaTime.Seconds()
 		previousUpdateTime = currentUpdateTime
-		gameplay.UpdateState(server.gameState, deltaTime.Seconds())
-
-		gameStateDTO := dtos.GameStateDiff(*server.gameState)
-		webSocketResponse := CreateWebSocketResponse(gameStateDTO)
-		server.broadcast <- webSocketResponse.Serialize()
 	}
 }
 

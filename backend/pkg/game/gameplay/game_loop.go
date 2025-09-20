@@ -166,9 +166,12 @@ func AddPlayer(gs *entities.GameState, conn *websocket.Conn, characterName strin
 		stats = map[string]int64{"damage": 10, "defense": 5}
 		abilities = repository.GetPlayersInitialAbilities()
 		player = entities.CreateCharacter(playerId, characterName, x, z, maxHealth, currentHealth, stats, abilities)
-		if err := repository.SaveCharacter(player); err != nil {
-			fmt.Printf("Error saving new character to repository: %v\n", err)
-		}
+
+		go func(player *entities.Character) {
+			if err := repository.SaveCharacter(player); err != nil {
+				fmt.Printf("Error saving new character to repository: %v\n", err)
+			}
+		}(player)
 	}
 
 	if player == nil {
