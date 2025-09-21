@@ -54,13 +54,19 @@ If you’re curious or have ideas, feel free to reach out.
 ## Getting it running
 
 Requirements:
-- Unity `2022.3.53f1`
-- Go `1.23.4`
+- [Unity `2022.3.53f1`](https://unity.com/releases/editor/whats-new/2022.3.53f1)
+- [Go](https://go.dev/) 1.23.4+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/)
+
+Optional (for convenience):
+- [Make](https://www.gnu.org/software/make/) (to use provided Makefile commands)
 
 How to run:
-1. Start the backend by running this command at the root of the project:
+1. Start the database and the backend by running these two commands at the root of the project:
    
-       go run -C backend cmd/server/main.go
+       make db-up
+       make run
 
 2. Open the Unity project and press Play.
 
