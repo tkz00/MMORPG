@@ -27,19 +27,21 @@ If you’re curious or have ideas, feel free to reach out.
 - A Unity client and a Go backend
 - Real-time multiplayer with backend-authoritative logic (will change to UDP eventually, but WS where easier to use to prototype)
 - A configurable system for skills (check it out in the client: `Window > Abilities Editor Window`)
-- Combat mechanics, you can cast abilities with different mechanics you can customize.
-- Simple NPC skeleton enemy to try things.
-- Very basic inventory system, skeletons drop leather (useless) and health potions when killed.
-- Also very basic collision system.
-- There isn't pathfinding, but when you hit an obstacle your character stops moving, that's something.
+- Combat mechanics, you can cast abilities with different mechanics you can customize
+- Simple NPC skeleton enemy to try things
+- Character stats (damage and defense)
+- Very basic inventory system, skeletons drop leather (useless), health potions and equipment when killed
+  - Equipment system, improves character's stats
+- Also very basic collision system
+- There isn't pathfinding, but when you hit an obstacle your character stops moving, that's something
+- There persistence to a very simple level, using PostgreSQL, character's state is stored and read from there
 
 ## Not done yet
 
-- Equipment system
 - Move to UDP instead of WS for the server communication
 - Quest/missions and dungeons
 - Users with authentication and characters related to those users
-- Persistence
+  - Right now any client can use any character as long as they know it's name
 - Pathfinding
 - PvP rulesets
 - A name
