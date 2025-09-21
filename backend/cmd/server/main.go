@@ -33,6 +33,8 @@ func main() {
 	}
 	fmt.Println("Postgres connected successfully")
 
+	repository.RunSeeds()
+
 	// Start game server
 	const PORT string = "3009"
 	server := connection.CreateServer()
