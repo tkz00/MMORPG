@@ -2,6 +2,7 @@ package connection
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,31 +14,35 @@ import (
 	"backend/pkg/game/gameplay"
 	"backend/pkg/utils"
 
+	"github.com/samber/lo"
 	"golang.org/x/net/websocket"
 )
 
 type AddClientData struct {
 	Client    *websocket.Conn
 	Character string
+	Reply     chan error
 }
 
 type NativeServer struct {
-	clients      map[*websocket.Conn]bool
-	addClient    chan AddClientData
-	removeClient chan *websocket.Conn
-	tick         chan float64
-	gameState    *entities.GameState
+	clients             map[*websocket.Conn]bool
+	connectedCharacters map[*websocket.Conn]string
+	addClient           chan AddClientData
+	removeClient        chan *websocket.Conn
+	tick                chan float64
+	gameState           *entities.GameState
 }
 
 func (ws *NativeServer) newServer() Server {
 	gamestate := gameplay.StartGameState()
 
 	return &NativeServer{
-		clients:      make(map[*websocket.Conn]bool),
-		addClient:    make(chan AddClientData),
-		removeClient: make(chan *websocket.Conn),
-		tick:         make(chan float64),
-		gameState:    gamestate,
+		clients:             make(map[*websocket.Conn]bool),
+		connectedCharacters: make(map[*websocket.Conn]string),
+		addClient:           make(chan AddClientData),
+		removeClient:        make(chan *websocket.Conn),
+		tick:                make(chan float64),
+		gameState:           gamestate,
 	}
 }
 
@@ -54,8 +59,15 @@ func (server *NativeServer) gameLoop() {
 	for {
 		select {
 		case clientData := <-server.addClient:
+			if lo.Contains(lo.Values(server.connectedCharacters), clientData.Character) {
+				log.Println("Error, character already in use")
+				clientData.Reply <- errors.New("character already in use")
+				continue
+			}
 			player := gameplay.AddPlayer(server.gameState, clientData.Client, clientData.Character)
 			server.clients[clientData.Client] = true
+			server.connectedCharacters[clientData.Client] = clientData.Character
+			clientData.Reply <- nil
 			log.Println("Client connected", clientData.Client.RemoteAddr())
 
 			go func() {
@@ -63,7 +75,7 @@ func (server *NativeServer) gameLoop() {
 				message := response.Serialize()
 				err := websocket.Message.Send(clientData.Client, message)
 				if err != nil {
-					log.Println("Error broadcasting message:", err)
+					log.Println("Error broadcasting character message:", err)
 					return
 				}
 
@@ -76,8 +88,9 @@ func (server *NativeServer) gameLoop() {
 				}
 			}()
 		case client := <-server.removeClient:
-			server.gameState.DeletePlayer(client)
 			delete(server.clients, client)
+			delete(server.connectedCharacters, client)
+			server.gameState.DeletePlayer(client)
 			log.Println("Client disconnected", client.RemoteAddr())
 		case deltaTime := <-server.tick:
 			gameplay.UpdateState(server.gameState, deltaTime)
@@ -89,7 +102,7 @@ func (server *NativeServer) gameLoop() {
 			for client := range server.clients {
 				err := websocket.Message.Send(client, message)
 				if err != nil {
-					log.Println("Error broadcasting message:", err)
+					log.Println("Error broadcasting tick message:", err)
 					return
 				}
 			}
@@ -116,7 +129,14 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 	// Get query parameter "character"
 	character := conn.Request().URL.Query().Get("character")
 
-	server.addClient <- AddClientData{conn, character}
+	reply := make(chan error)
+	server.addClient <- AddClientData{conn, character, reply}
+
+	if <-reply != nil {
+		conn.Close()
+		return
+	}
+
 	defer func() {
 		conn.Close()
 		server.removeClient <- conn
@@ -125,7 +145,7 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 		var data []byte
 		err := websocket.Message.Receive(conn, &data)
 		if err != nil {
-			log.Println("Error reading message from client:", err)
+			log.Println("Error reading message from client: ", err, &conn)
 			break
 		}
 
