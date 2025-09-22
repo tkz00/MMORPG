@@ -18,6 +18,8 @@ package main
 import (
 	"backend/connection"
 	"backend/pkg/configurator"
+	"backend/pkg/game/repository"
+	"fmt"
 )
 
 func main() {
@@ -25,6 +27,13 @@ func main() {
 
 	// Start configurator server
 	go configurator.Run()
+
+	if err := repository.ConnectPostgres(); err != nil {
+		panic(err)
+	}
+	fmt.Println("Postgres connected successfully")
+
+	repository.RunSeeds()
 
 	// Start game server
 	const PORT string = "3009"

@@ -27,19 +27,21 @@ If you’re curious or have ideas, feel free to reach out.
 - A Unity client and a Go backend
 - Real-time multiplayer with backend-authoritative logic (will change to UDP eventually, but WS where easier to use to prototype)
 - A configurable system for skills (check it out in the client: `Window > Abilities Editor Window`)
-- Combat mechanics, you can cast abilities with different mechanics you can customize.
-- Simple NPC skeleton enemy to try things.
-- Very basic inventory system, skeletons drop leather (useless) and health potions when killed.
-- Also very basic collision system.
-- There isn't pathfinding, but when you hit an obstacle your character stops moving, that's something.
+- Combat mechanics, you can cast abilities with different mechanics you can customize
+- Simple NPC skeleton enemy to try things
+- Character stats (damage and defense)
+- Very basic inventory system, skeletons drop leather (useless), health potions and equipment when killed
+  - Equipment system, improves character's stats
+- Also very basic collision system
+- There isn't pathfinding, but when you hit an obstacle your character stops moving, that's something
+- There persistence to a very simple level, using PostgreSQL, character's state is stored and read from there
 
 ## Not done yet
 
-- Equipment system
 - Move to UDP instead of WS for the server communication
 - Quest/missions and dungeons
 - Users with authentication and characters related to those users
-- Persistence
+  - Right now any client can use any character as long as they know it's name
 - Pathfinding
 - PvP rulesets
 - A name
@@ -52,15 +54,27 @@ If you’re curious or have ideas, feel free to reach out.
 ## Getting it running
 
 Requirements:
-- Unity `2022.3.53f1`
-- Go `1.23.4`
+- [Unity `2022.3.53f1`](https://unity.com/releases/editor/whats-new/2022.3.53f1)
+- [Go](https://go.dev/) 1.23.4+
+- [Docker](https://docs.docker.com/get-docker/)
+- [Docker Compose](https://docs.docker.com/compose/)
+
+Optional (for convenience):
+- [Make](https://www.gnu.org/software/make/) (to use provided Makefile commands)
 
 How to run:
-1. Start the backend by running this command at the root of the project:
-   
-       go run -C backend cmd/server/main.go
+1. Set up env variables for the database:
 
-2. Open the Unity project and press Play.
+        cp .env.example .env
+        # edit .env and replace values as needed
+
+
+2. Start the database and the backend by running these two commands at the root of the project:
+   
+       make db-up
+       make run
+
+3. Open the Unity project and press Play.
 
 ## How It Works
 

@@ -3,6 +3,8 @@ package gameplay
 import (
 	"backend/pkg/game/entities"
 	"backend/pkg/game/repository"
+	"fmt"
+	"time"
 
 	"github.com/google/uuid"
 	"golang.org/x/net/websocket"
@@ -15,6 +17,8 @@ func StartGameState() *entities.GameState {
 
 	mapObstacleColliders := repository.GetObstacleColliders()
 	gamestate.SetUpObstacles(mapObstacleColliders)
+
+	go saveGameState(gamestate)
 
 	return gamestate
 }
@@ -145,12 +149,48 @@ func AreColliding(player entities.Character, projectile entities.Projectile) boo
 }
 
 // Should this be here? Where should this be?
-func AddPlayer(gs *entities.GameState, conn *websocket.Conn) entities.Character {
-	id := uuid.New()
-	playerId := id.String()
-	abilities := repository.GetPlayersInitialAbilities()
-	stats := map[string]int64{"damage": 10, "defense": 5}
-	player := entities.CreateCharacter(playerId, 0, 0, stats, abilities)
+func AddPlayer(gs *entities.GameState, conn *websocket.Conn, characterName string) entities.Character {
+	var playerId string
+	var x, z float64
+	var maxHealth, currentHealth int
+	var stats map[string]int64
+	var abilities map[string]*entities.Ability
+
+	var player *entities.Character
+
+	if player, _ = repository.GetCharacterByName(characterName); player == nil {
+		id := uuid.New()
+		playerId = id.String()
+		x, z = 0, 0
+		maxHealth, currentHealth = entities.BASE_MAX_HEALTH, entities.BASE_MAX_HEALTH
+		stats = map[string]int64{"damage": 10, "defense": 5}
+		abilities = repository.GetPlayersInitialAbilities()
+		player = entities.CreateCharacter(playerId, characterName, x, z, maxHealth, currentHealth, stats, abilities)
+
+		go func(player *entities.Character) {
+			if err := repository.SaveCharacter(player); err != nil {
+				fmt.Printf("Error saving new character to repository: %v\n", err)
+			}
+		}(player)
+	}
+
+	if player == nil {
+		fmt.Println("player == nil")
+	}
 	gs.AddPlayer(conn, player)
+
 	return *player
+}
+
+func saveGameState(gs *entities.GameState) {
+	ticker := time.NewTicker(5 * time.Second)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		for _, player := range gs.Players() {
+			if err := repository.SaveCharacter(player); err != nil {
+				fmt.Printf("Error saving new character to repository: %v\n", err)
+			}
+		}
+	}
 }
