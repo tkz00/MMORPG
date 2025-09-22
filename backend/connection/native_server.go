@@ -65,7 +65,6 @@ func (server *NativeServer) gameLoop() {
 				continue
 			}
 			player := gameplay.AddPlayer(server.gameState, clientData.Client, clientData.Character)
-			server.clients[clientData.Client] = true
 			server.connectedCharacters[clientData.Client] = clientData.Character
 			clientData.Reply <- nil
 			log.Println("Client connected", clientData.Client.RemoteAddr())
@@ -86,6 +85,8 @@ func (server *NativeServer) gameLoop() {
 					log.Println("Error broadcasting initial message:", err)
 					return
 				}
+
+				server.clients[clientData.Client] = true
 			}()
 		case client := <-server.removeClient:
 			delete(server.clients, client)
