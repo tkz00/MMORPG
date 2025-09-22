@@ -63,12 +63,18 @@ Optional (for convenience):
 - [Make](https://www.gnu.org/software/make/) (to use provided Makefile commands)
 
 How to run:
-1. Start the database and the backend by running these two commands at the root of the project:
+1. Set up env variables for the database:
+
+        cp .env.example .env
+        # edit .env and replace values as needed
+
+
+2. Start the database and the backend by running these two commands at the root of the project:
    
        make db-up
        make run
 
-2. Open the Unity project and press Play.
+3. Open the Unity project and press Play.
 
 ## How It Works
 
