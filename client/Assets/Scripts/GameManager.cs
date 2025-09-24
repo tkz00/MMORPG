@@ -187,11 +187,8 @@ public class GameManager : MonoBehaviour
     {
         foreach (CharacterDTO playerDTO in playerDTOS)
         {
-            if (playerDTO.inventory?.items == null)
-                return;
-
-            if (playerDTO.inventory?.items.Length == 0)
-                return;
+            if (playerDTO.inventory?.items == null || playerDTO.inventory?.items.Length == 0)
+                continue;
 
             Character player = GetPlayer(playerDTO.id);
             player.UpdateEquipmentVisuals(playerDTO.inventory.items);
