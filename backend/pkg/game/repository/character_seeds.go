@@ -27,8 +27,8 @@ func GetCharacterSeeds() []*entities.Character {
 			100,
 			map[string]int64{"damage": 20, "defense": 5},
 			playersInitialAbilities,
-			nil,
-			nil),
+			map[string]int64{"helm_001": 1, "1": 5},
+			map[entities.EquipmentType]*entities.Equipment{entities.Helmet: entities.GetEquipment("helm_001")}),
 		entities.CreateCharacter(
 			"paladin",
 			"paladin",
@@ -38,7 +38,7 @@ func GetCharacterSeeds() []*entities.Character {
 			100,
 			map[string]int64{"damage": 8, "defense": 20},
 			playersInitialAbilities,
-			nil,
-			nil),
+			map[string]int64{"helm_002": 1, "chest_001": 1},
+			map[entities.EquipmentType]*entities.Equipment{entities.Helmet: entities.GetEquipment("helm_002"), entities.Chest: entities.GetEquipment("chest_001")}),
 	}
 }
