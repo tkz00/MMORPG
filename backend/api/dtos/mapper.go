@@ -142,81 +142,117 @@ func getAbilitiesDiff(c *entities.Character) []AbilityDTO {
 	return abilitiesDTOs
 }
 
+// getInventoryDiff compares the current character inventory against the last tick
+// and returns an InventoryDTO diff if any relevant changes are detected.
 func getInventoryDiff(c *entities.Character) *InventoryDTO {
-	inventoryDTO := InventoryDTO{}
-	characterInventory := c.GetInventory()
-	itemIds := lo.Map(lo.Keys(characterInventory), func(id string, _ int) string {
-		return id
-	})
+	currentInventory := c.GetInventory()
 
-	newItemsIds, removedItemsIds := lo.Difference(
-		itemIds,
+	if len(lo.Keys(currentInventory)) == 0 {
+		return nil
+	}
+
+	currentlyEquipped := getEquippedMap(c)
+
+	newItemIDs, removedItemIDs := lo.Difference(
+		lo.Keys(currentInventory),
 		lo.Keys(c.CharacterLastTickState.Items),
 	)
 
-	// Track current equipped items
-	currentEquipped := make(map[string]bool)
-	for _, equip := range c.GetEquipped() {
-		currentEquipped[equip.Id()] = true
-	}
-
-	// Check for equipment changes
-	equipmentChanged := false
-	for itemId := range characterInventory {
-		if currentEquipped[itemId] != c.CharacterLastTickState.EquippedItems[itemId] {
-			equipmentChanged = true
-			break
-		}
-	}
-
-	if len(newItemsIds) > 0 || len(removedItemsIds) > 0 || equipmentChanged {
-		for itemId, quantity := range characterInventory {
-			inventoryDTO.Items = append(
-				inventoryDTO.Items,
-				ItemDTO{
-					Id:         itemId,
-					Quantity:   quantity,
-					IsEquipped: currentEquipped[itemId],
-				},
-			)
-		}
-		c.CharacterLastTickState.Items = lo.Associate(
-			inventoryDTO.Items,
-			func(i ItemDTO) (string, int64) {
-				return i.Id, i.Quantity
-			},
-		)
-		c.CharacterLastTickState.EquippedItems = currentEquipped
-		for _, itemId := range removedItemsIds {
-			inventoryDTO.Items = append(
-				inventoryDTO.Items,
-				ItemDTO{Id: itemId, Quantity: 0, IsEquipped: false},
-			)
-		}
-		return &inventoryDTO
+	inventoryDTO := &InventoryDTO{}
+	if len(newItemIDs) > 0 || len(removedItemIDs) > 0 || hasEquipmentChanged(c, currentlyEquipped) {
+		inventoryDTO = buildFullInventoryDiff(c, currentInventory, currentlyEquipped, removedItemIDs)
 	} else {
-		for itemId, quantity := range characterInventory {
-			if quantity != c.CharacterLastTickState.Items[itemId] || currentEquipped[itemId] != c.CharacterLastTickState.EquippedItems[itemId] {
-				inventoryDTO.Items = append(inventoryDTO.Items, ItemDTO{
-					Id:         itemId,
-					Quantity:   quantity,
-					IsEquipped: currentEquipped[itemId],
-				})
-			}
+		inventoryDTO = buildIncrementalInventoryDiff(c, currentlyEquipped)
+	}
+
+	return inventoryDTO
+}
+
+// getEquippedMap returns a map of equipped item IDs for fast lookup.
+func getEquippedMap(c *entities.Character) map[string]bool {
+	m := make(map[string]bool, len(c.GetEquipped()))
+	for _, equip := range c.GetEquipped() {
+		m[equip.Id()] = true
+	}
+	return m
+}
+
+// hasEquipmentChanged checks if the equipped items differ from the last tick state.
+func hasEquipmentChanged(c *entities.Character, currentlyEquipped map[string]bool) bool {
+	for itemID := range c.GetInventory() {
+		if currentlyEquipped[itemID] != c.CharacterLastTickState.EquippedItems[itemID] {
+			return true
 		}
-		if len(inventoryDTO.Items) > 0 {
-			c.CharacterLastTickState.Items = lo.Associate(
-				inventoryDTO.Items,
-				func(i ItemDTO) (string, int64) {
-					return i.Id, i.Quantity
-				},
-			)
-			c.CharacterLastTickState.EquippedItems = currentEquipped
-			return &inventoryDTO
+	}
+	return false
+}
+
+// buildFullInventoryDiff rebuilds the entire inventory state when items were added,
+// removed, or equipment changed.
+func buildFullInventoryDiff(
+	c *entities.Character,
+	currentInventory map[string]int64,
+	currentlyEquipped map[string]bool,
+	removedItemIDs []string,
+) *InventoryDTO {
+	dto := &InventoryDTO{}
+
+	// Add all current items
+	for itemID, quantity := range currentInventory {
+		dto.Items = append(dto.Items, ItemDTO{
+			Id:         itemID,
+			Quantity:   quantity,
+			IsEquipped: currentlyEquipped[itemID],
+		})
+	}
+
+	// Update last tick state
+	c.CharacterLastTickState.Items = lo.Associate(dto.Items, func(i ItemDTO) (string, int64) {
+		return i.Id, i.Quantity
+	})
+	c.CharacterLastTickState.EquippedItems = currentlyEquipped
+
+	// Add removed items (with quantity 0)
+	for _, itemID := range removedItemIDs {
+		dto.Items = append(dto.Items, ItemDTO{
+			Id:         itemID,
+			Quantity:   0,
+			IsEquipped: false,
+		})
+	}
+
+	return dto
+}
+
+// buildIncrementalInventoryDiff adds only items whose quantity has changed.
+// Equipment changes are excluded here, since they’re caught earlier.
+func buildIncrementalInventoryDiff(
+	c *entities.Character,
+	currentlyEquipped map[string]bool,
+) *InventoryDTO {
+	dto := &InventoryDTO{}
+
+	for itemID, quantity := range c.GetInventory() {
+		if quantity != c.CharacterLastTickState.Items[itemID] {
+			dto.Items = append(dto.Items, ItemDTO{
+				Id:         itemID,
+				Quantity:   quantity,
+				IsEquipped: currentlyEquipped[itemID],
+			})
 		}
 	}
 
-	return nil
+	if len(dto.Items) == 0 {
+		return nil
+	}
+
+	// Update last tick state
+	c.CharacterLastTickState.Items = lo.Associate(dto.Items, func(i ItemDTO) (string, int64) {
+		return i.Id, i.Quantity
+	})
+	c.CharacterLastTickState.EquippedItems = currentlyEquipped
+
+	return dto
 }
 
 func getStatsDiff(c *entities.Character) *map[string]int64 {
@@ -335,10 +371,13 @@ func CharacterToDTO(character entities.Character) CharacterDTO {
 	characterStats := character.GetStats()
 
 	characterInventory := InventoryDTO{}
+	equipped := lo.Map(lo.Values(character.GetEquipped()), func(item *entities.Equipment, index int) string {
+		return item.Id()
+	})
 	for item, quantity := range character.GetInventory() {
 		characterInventory.Items = append(
 			characterInventory.Items,
-			ItemDTO{Id: item, Quantity: quantity},
+			ItemDTO{Id: item, Quantity: quantity, IsEquipped: lo.Contains(equipped, item)},
 		)
 	}
 
