@@ -23,6 +23,7 @@ func (looter *Inventory) Loot(loot *Inventory) {
 	for item, qty := range loot.items {
 		looter.AddItem(item, qty)
 	}
+	loot.Clear()
 }
 
 func (looter *Inventory) AddItem(itemId string, quantity int64) {
@@ -68,6 +69,15 @@ func (inv *Inventory) PrintInventory() {
 			fmt.Printf("%s, %d - ", itemId, quantity)
 		}
 		fmt.Print("\n")
+	}
+}
+
+func (i *Inventory) Clear() {
+	for et := range i.equipped {
+		delete(i.equipped, et)
+	}
+	for k := range i.items {
+		delete(i.items, k)
 	}
 }
 
