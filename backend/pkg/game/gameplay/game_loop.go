@@ -36,7 +36,7 @@ func updatePlayers(gs *entities.GameState, deltaTime float64) {
 	for _, player := range gs.Players() {
 		if !player.IsAlive() {
 			player.ClearActionsQueue()
-			return
+			continue
 		}
 
 		player.ExecuteNextAction(gs)
