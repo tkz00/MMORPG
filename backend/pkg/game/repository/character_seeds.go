@@ -26,7 +26,9 @@ func GetCharacterSeeds() []*entities.Character {
 			100,
 			100,
 			map[string]int64{"damage": 20, "defense": 5},
-			playersInitialAbilities),
+			playersInitialAbilities,
+			nil,
+			nil),
 		entities.CreateCharacter(
 			"paladin",
 			"paladin",
@@ -35,6 +37,8 @@ func GetCharacterSeeds() []*entities.Character {
 			100,
 			100,
 			map[string]int64{"damage": 8, "defense": 20},
-			playersInitialAbilities),
+			playersInitialAbilities,
+			nil,
+			nil),
 	}
 }

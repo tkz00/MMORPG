@@ -93,6 +93,8 @@ func CreateCharacter(
 	maxHealth, currentHealth int,
 	stats map[string]int64,
 	abilities map[string]*Ability,
+	i map[string]int64,
+	e map[EquipmentType]*Equipment,
 ) *Character {
 	initialPosition := *utils.NewVector2(x, z)
 
@@ -112,7 +114,7 @@ func CreateCharacter(
 		statModifications: []StatModification{},
 		executingAction:   ExecutingAction{Idle, *utils.NewVector2(0, 0), nil},
 		actionsQueue:      []CharacterAction{},
-		Inventory:         NewInventory(),
+		Inventory:         NewInventory(i, e),
 		abilities:         abilities,
 		lastUsed:          lastUsed,
 		CharacterLastTickState: &CharacterLastTickState{

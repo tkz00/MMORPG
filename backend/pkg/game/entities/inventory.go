@@ -12,10 +12,24 @@ type Inventory struct {
 	equipped map[EquipmentType]*Equipment
 }
 
-func NewInventory() *Inventory {
+func NewInventory(i map[string]int64, e map[EquipmentType]*Equipment) *Inventory {
+	var items map[string]int64
+	var equipped map[EquipmentType]*Equipment
+
+	if len(i) > 0 {
+		items = i
+	} else {
+		items = make(map[string]int64)
+	}
+	if len(e) > 0 {
+		equipped = e
+	} else {
+		equipped = make(map[EquipmentType]*Equipment)
+	}
+
 	return &Inventory{
-		items:    make(map[string]int64),
-		equipped: make(map[EquipmentType]*Equipment),
+		items:    items,
+		equipped: equipped,
 	}
 }
 
@@ -55,6 +69,13 @@ func GetItem(itemId string) *Item {
 	}
 	if equip, ok := existingItems[itemId].(*Equipment); ok {
 		return equip.Item
+	}
+	return nil
+}
+
+func GetEquipment(itemId string) *Equipment {
+	if equip, ok := existingItems[itemId].(*Equipment); ok {
+		return equip
 	}
 	return nil
 }
