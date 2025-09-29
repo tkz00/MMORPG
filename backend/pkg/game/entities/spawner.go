@@ -2,7 +2,6 @@ package entities
 
 import (
 	"backend/pkg/utils"
-	"math/rand/v2"
 	"time"
 
 	"github.com/google/uuid"
@@ -58,18 +57,6 @@ func (spawner *Spawner) GetNewNPCs() []*Npc {
 		npcs[i].SubscribeToRemoval(func() {
 			spawner.HandleNPCDeath(npcs[i])
 		})
-		items := []struct {
-			id       string
-			quantity int64
-		}{
-			{"0", 1},
-			{"1", 2},
-			{"helm_001", 1},
-			{"helm_002", 1},
-			{"chest_001", 1},
-		}
-		randomIndex := rand.IntN(len(items))
-		npcs[i].AddItem(items[randomIndex].id, items[randomIndex].quantity)
 	}
 
 	spawner.activeNPCs = append(spawner.activeNPCs, npcs...)

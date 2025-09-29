@@ -35,13 +35,21 @@ func GetCharacterByName(characterName string) (*entities.Character, error) {
 		return nil, err
 	}
 
-	character := entities.CreateCharacter(repoCharacter.Id, characterName, repoCharacter.X, repoCharacter.Z, repoCharacter.MaxHealth, repoCharacter.CurrentHealth, repoCharacter.BaseStats, GetAbilitiesByIds(repoCharacter.Abilities))
-	for id, qty := range repoCharacter.Items {
-		character.Inventory.AddItem(id, qty)
-	}
-	for _, id := range repoCharacter.Equipped {
-		character.EquipItem(id)
-	}
+	character := entities.CreateCharacter(
+		repoCharacter.Id,
+		characterName,
+		repoCharacter.X,
+		repoCharacter.Z,
+		repoCharacter.MaxHealth,
+		repoCharacter.CurrentHealth,
+		repoCharacter.BaseStats,
+		GetAbilitiesByIds(repoCharacter.Abilities),
+		repoCharacter.Items,
+		lo.MapEntries(repoCharacter.Equipped, func(k string, v string) (entities.EquipmentType, *entities.Equipment) {
+			return entities.EquipmentType(k), entities.GetEquipment(v)
+		}),
+	)
+
 	return character, nil
 }
 

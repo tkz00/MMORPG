@@ -12,10 +12,22 @@ type Inventory struct {
 	equipped map[EquipmentType]*Equipment
 }
 
-func NewInventory() *Inventory {
+func NewInventory(i map[string]int64, e map[EquipmentType]*Equipment) *Inventory {
+	items := lo.Assign(make(map[string]int64), i)
+
+	equipped := lo.MapEntries(e, func(etype EquipmentType, eq *Equipment) (EquipmentType, *Equipment) {
+		if eq == nil {
+			return etype, nil
+		}
+		if _, ok := items[eq.id]; !ok {
+			panic(fmt.Sprintf("cannot equip item %s of type %s: not present in items map", eq.id, etype))
+		}
+		return etype, eq
+	})
+
 	return &Inventory{
-		items:    make(map[string]int64),
-		equipped: make(map[EquipmentType]*Equipment),
+		items:    items,
+		equipped: equipped,
 	}
 }
 
@@ -55,6 +67,13 @@ func GetItem(itemId string) *Item {
 	}
 	if equip, ok := existingItems[itemId].(*Equipment); ok {
 		return equip.Item
+	}
+	return nil
+}
+
+func GetEquipment(itemId string) *Equipment {
+	if equip, ok := existingItems[itemId].(*Equipment); ok {
+		return equip
 	}
 	return nil
 }

@@ -2,6 +2,7 @@ package entities
 
 import (
 	"backend/pkg/utils"
+	"math/rand/v2"
 	"time"
 )
 
@@ -38,8 +39,22 @@ func (npcTemplate NPCTemplate) NewNPC(
 	spawnerPosition utils.Vector2,
 ) *Npc {
 	x, z := position.GetPosition()
+	availableItems := []struct {
+		id       string
+		quantity int64
+	}{
+		{"0", 1},
+		{"1", 2},
+		{"helm_001", 1},
+		{"helm_002", 1},
+		{"chest_001", 1},
+	}
+	randomIndex := rand.IntN(len(availableItems))
+	items := map[string]int64{
+		availableItems[randomIndex].id: availableItems[randomIndex].quantity,
+	}
 	return &Npc{
-		Character:         CreateCharacter(id, "TODO", x, z, npcTemplate.startingHealth, npcTemplate.startingHealth, npcTemplate.stats, npcTemplate.abilities),
+		Character:         CreateCharacter(id, "TODO", x, z, npcTemplate.startingHealth, npcTemplate.startingHealth, npcTemplate.stats, npcTemplate.abilities, items, nil),
 		lastActionDecided: time.Now(),
 		spawnerPosition:   spawnerPosition,
 		state:             Pacific,
