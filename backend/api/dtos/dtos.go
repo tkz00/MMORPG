@@ -24,6 +24,7 @@ func (g GameStateDTO) GetType() string {
 
 type CharacterDTO struct {
 	Id               string            `json:"id"`
+	Name             string            `json:"name,omitempty"`
 	MaxHealth        *int              `json:"maxHealth,omitempty"`
 	CurrentHealth    *int              `json:"currentHealth,omitempty"`
 	Stats            *map[string]int64 `json:"stats,omitempty"`

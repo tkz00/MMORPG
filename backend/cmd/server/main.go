@@ -20,6 +20,9 @@ import (
 	"backend/pkg/configurator"
 	"backend/pkg/game/repository"
 	"fmt"
+	"net/http"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -35,6 +38,8 @@ func main() {
 
 	repository.RunSeeds()
 
+	SetupCharactersRouter()
+
 	// Start game server
 	const PORT string = "3009"
 	server := connection.CreateServer()
@@ -42,4 +47,25 @@ func main() {
 
 	// Block main from exiting by waiting indefinitely
 	select {}
+}
+
+func SetupCharactersRouter() {
+	r := gin.Default()
+
+	r.GET("/characters", func(c *gin.Context) {
+		chars, err := repository.GetAllCharacters() // implement this in your repo
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch characters"})
+			return
+		}
+		c.JSON(http.StatusOK, chars)
+	})
+
+	const HTTP_PORT string = "8081"
+	go func() {
+		fmt.Println("HTTP server running on port", HTTP_PORT)
+		if err := r.Run(":" + HTTP_PORT); err != nil {
+			panic(err)
+		}
+	}()
 }

@@ -1,7 +1,10 @@
 package repository
 
 import (
+	"backend/api/dtos"
 	"backend/pkg/game/entities"
+	"slices"
+	"strings"
 
 	"github.com/lib/pq"
 	"github.com/samber/lo"
@@ -81,4 +84,45 @@ func SaveCharacter(c *entities.Character) error {
 	}
 
 	return DB.Save(dbChar).Error
+}
+
+func GetAllCharacters() ([]dtos.CharacterDTO, error) {
+	var charactersDB []CharacterDB
+	if result := DB.Find(&charactersDB); result.Error != nil {
+		return nil, result.Error
+	}
+
+	characters := make([]dtos.CharacterDTO, len(charactersDB))
+	for i, c := range charactersDB {
+		characterInventory := dtos.InventoryDTO{}
+		equipped := lo.Values(c.Equipped)
+		for item, quantity := range c.Items {
+			characterInventory.Items = append(
+				characterInventory.Items,
+				dtos.ItemDTO{Id: item, Quantity: quantity, IsEquipped: lo.Contains(equipped, item)},
+			)
+		}
+
+		characterAbilities := make([]dtos.AbilityDTO, 0)
+		for _, ability := range GetAbilitiesByIds(c.Abilities) {
+			abilityDTO := dtos.AbilityToDTO(*ability)
+			characterAbilities = append(characterAbilities, abilityDTO)
+		}
+		slices.SortFunc(characterAbilities, func(a, b dtos.AbilityDTO) int {
+			return strings.Compare(a.Id, b.Id)
+		})
+
+		characters[i] = dtos.CharacterDTO{
+			Id:            c.Id,
+			Name:          c.CharacterName,
+			MaxHealth:     &c.MaxHealth,
+			CurrentHealth: &c.CurrentHealth,
+			Stats:         (*map[string]int64)(&c.BaseStats),
+			Position:      &dtos.PositionDTO{X: c.X, Z: c.Z},
+			Inventory:     &characterInventory,
+			Abilities:     characterAbilities,
+		}
+	}
+
+	return characters, nil
 }
