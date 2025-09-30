@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 public class CharacterDTO : DTO
 {
     public string id;
+    public string name;
     public PositionDTO position;
     public float? radius;
     public int? maxHealth;

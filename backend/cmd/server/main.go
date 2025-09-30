@@ -19,6 +19,7 @@ import (
 	"backend/connection"
 	"backend/pkg/configurator"
 	"backend/pkg/game/repository"
+	"backend/pkg/handlers"
 	"fmt"
 )
 
@@ -34,6 +35,8 @@ func main() {
 	fmt.Println("Postgres connected successfully")
 
 	repository.RunSeeds()
+
+	handlers.RegisterRoutes()
 
 	// Start game server
 	const PORT string = "3009"
