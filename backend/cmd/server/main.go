@@ -38,10 +38,8 @@ func main() {
 
 	handlers.RegisterRoutes()
 
-	// Start game server
 	const PORT string = "3009"
-	server := connection.CreateServer()
-	go server.StartConnection(PORT)
+	go connection.NewServer().StartConnection(PORT)
 
 	// Block main from exiting by waiting indefinitely
 	select {}
