@@ -9,7 +9,12 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ${DB_MODE:-ephemeral}:/var/lib/postgresql/data
 
 volumes:
-  postgres_data:
+  persist:
+  ephemeral:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      device: tmpfs
