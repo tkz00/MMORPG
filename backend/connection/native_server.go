@@ -33,7 +33,7 @@ type NativeServer struct {
 	gameState           *entities.GameState
 }
 
-func (ws *NativeServer) newServer() Server {
+func NewServer() *NativeServer {
 	gamestate := gameplay.StartGameState()
 
 	return &NativeServer{
