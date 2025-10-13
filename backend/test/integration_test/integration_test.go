@@ -47,6 +47,13 @@ func (suite *ServerTestSuite) SetupSuite() {
 	output, err := cmd.CombinedOutput()
 	suite.Require().NoError(err, string(output))
 
+	// Setup temporary directory for json persistence
+	tempDir, err := os.MkdirTemp("", "test_abilities")
+	suite.Require().NoError(err)
+	os.Setenv("INITIAL_ABILITIES_FILE_PATH", filepath.Join(tempDir, "playersInitialAbilities.json"))
+	os.Setenv("ABILITIES_FILE_PATH", filepath.Join(tempDir, "abilities.json"))
+	fmt.Println("setup temp json dir")
+
 	go setupServer()
 	err = waitForPort("localhost:3009", 10*time.Second)
 	suite.Require().NoError(err, "backend server didn't start in time")
@@ -56,6 +63,11 @@ func (suite *ServerTestSuite) TearDownSuite() {
 	cmd := exec.Command("docker", "compose", "-f", "../../../docker-compose.yaml", "down")
 	suite.T().Log("Tearing down docker compose services...")
 	output, err := cmd.CombinedOutput()
+
+	if tempDir := os.Getenv("INITIAL_ABILITIES_FILE_PATH"); tempDir != "" {
+		_ = os.RemoveAll(filepath.Dir(tempDir))
+	}
+
 	suite.Require().NoError(err, string(output))
 }
 

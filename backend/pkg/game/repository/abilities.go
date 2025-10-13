@@ -10,7 +10,12 @@ import (
 	"github.com/samber/lo"
 )
 
-const ABILITIES_FILE_NAME = "abilities.json"
+func getAbilitiesFilePath() string {
+	if path := os.Getenv("ABILITIES_FILE_PATH"); path != "" {
+		return path
+	}
+	return "abilities.json"
+}
 
 func LoadAbilitiesFromFile(filename string) (map[string]*entities.Ability, error) {
 	file, err := os.Open(filename)
@@ -37,7 +42,8 @@ func LoadAbilitiesFromFile(filename string) (map[string]*entities.Ability, error
 }
 
 func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Ability {
-	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	abilitiesFileName := getAbilitiesFilePath()
+	abilities, err := LoadAbilitiesFromFile(abilitiesFileName)
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 	}
@@ -48,7 +54,8 @@ func GetSkeletonEnemyAbilities(gs *entities.GameState) map[string]*entities.Abil
 }
 
 func GetPlayersInitialAbilities() map[string]*entities.Ability {
-	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	abilitiesFileName := getAbilitiesFilePath()
+	abilities, err := LoadAbilitiesFromFile(abilitiesFileName)
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 	}
@@ -60,7 +67,8 @@ func GetPlayersInitialAbilities() map[string]*entities.Ability {
 }
 
 func GetAbilitiesByIds(abilitiesIds []string) map[string]*entities.Ability {
-	abilities, err := LoadAbilitiesFromFile(ABILITIES_FILE_NAME)
+	abilitiesFileName := getAbilitiesFilePath()
+	abilities, err := LoadAbilitiesFromFile(abilitiesFileName)
 	if err != nil {
 		fmt.Printf("Error loading abilities: %v\n", err)
 	}
