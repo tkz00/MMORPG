@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"sort"
 	"strconv"
 
@@ -39,7 +40,9 @@ func RunSeeds() {
 
 func Run() {
 	r := SetupRouter()
-	fmt.Println("Starting server on port 8080...")
+	if os.Getenv("GO_ENV") != "test" {
+		fmt.Println("Starting server on port 8080...")
+	}
 	r.Run()
 }
 

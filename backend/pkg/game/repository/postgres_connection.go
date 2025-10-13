@@ -1,12 +1,17 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
+	"io"
+	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 var DB *gorm.DB
@@ -30,6 +35,11 @@ func ConnectPostgres() error {
 		port = "5432"
 	}
 
+	if user == "" || password == "" || dbname == "" {
+		log.Println("[WARN] One or more database env vars are empty.")
+		log.Printf("POSTGRES_USER=%q POSTGRES_DB=%q POSTGRES_PORT=%q\n", user, dbname, port)
+	}
+
 	// fail loudly if someone left defaults
 	if password == "changeme" {
 		return fmt.Errorf("POSTGRES_PASSWORD is still 'changeme', please configure .env")
@@ -38,9 +48,11 @@ func ConnectPostgres() error {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
 		host, user, password, dbname, port)
 
-	fmt.Println(dsn)
+	if err := waitForPostgres(dsn, 10*time.Second); err != nil {
+		panic("postgres never became ready")
+	}
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := gorm.Open(postgres.Open(dsn), NewGormConfig())
 	if err != nil {
 		return fmt.Errorf("failed to connect to postgres: %w", err)
 	}
@@ -52,4 +64,34 @@ func ConnectPostgres() error {
 
 	DB = db
 	return nil
+}
+
+func waitForPostgres(dsn string, timeout time.Duration) error {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		db, err := sql.Open("postgres", dsn)
+		if err == nil {
+			err = db.Ping()
+			db.Close()
+			if err == nil {
+				return nil
+			}
+		}
+		time.Sleep(500 * time.Millisecond)
+	}
+	return fmt.Errorf("timed out waiting for postgres")
+}
+
+func NewGormConfig() *gorm.Config {
+	var logLevel logger.LogLevel
+	if os.Getenv("GO_ENV") == "test" {
+		logLevel = logger.Silent
+		log.SetOutput(io.Discard)
+	} else {
+		logLevel = logger.Warn
+	}
+
+	return &gorm.Config{
+		Logger: logger.Default.LogMode(logLevel),
+	}
 }
