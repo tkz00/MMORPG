@@ -8,7 +8,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
@@ -17,11 +16,6 @@ import (
 var DB *gorm.DB
 
 func ConnectPostgres() error {
-	// Load variables from .env if present
-	if err := godotenv.Load("../.env"); err != nil {
-		fmt.Println(err)
-	}
-
 	host := os.Getenv("POSTGRES_HOST")
 	if host == "" {
 		host = "localhost"

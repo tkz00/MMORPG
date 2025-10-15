@@ -33,7 +33,6 @@ func TestMain(m *testing.M) {
 	// Load .env dynamically from repo root
 	cwd, _ := os.Getwd()
 	root := filepath.Join(cwd, "..", "..", "..")
-	fmt.Println("Loading env from:", filepath.Join(root, ".env"))
 	if err := godotenv.Load(filepath.Join(root, ".env")); err != nil {
 		fmt.Println("Warning: failed to load .env:", err)
 	}

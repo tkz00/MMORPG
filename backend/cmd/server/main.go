@@ -21,9 +21,16 @@ import (
 	"backend/pkg/game/repository"
 	"backend/pkg/handlers"
 	"fmt"
+
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load variables from .env if present
+	if err := godotenv.Load("../.env"); err != nil {
+		fmt.Println(err)
+	}
+
 	configurator.RunSeeds()
 
 	// Start configurator server
