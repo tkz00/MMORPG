@@ -30,11 +30,19 @@ import (
 func TestMain(m *testing.M) {
 	os.Setenv("GO_ENV", "test")
 
-	// Load .env dynamically from repo root
+	// Try to load .env only if it exists
 	cwd, _ := os.Getwd()
 	root := filepath.Join(cwd, "..", "..", "..")
-	if err := godotenv.Load(filepath.Join(root, ".env")); err != nil {
-		fmt.Println("Warning: failed to load .env:", err)
+	envPath := filepath.Join(root, ".env")
+
+	if _, err := os.Stat(envPath); err == nil {
+		if err := godotenv.Load(envPath); err != nil {
+			fmt.Println("Warning: failed to load .env:", err)
+		} else {
+			fmt.Println("Loaded local .env for tests")
+		}
+	} else {
+		fmt.Println(".env not found, assuming CI environment")
 	}
 
 	// Start docker services
