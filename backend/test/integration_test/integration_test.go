@@ -23,52 +23,80 @@ import (
 	"golang.org/x/net/websocket"
 )
 
-type ServerTestSuite struct {
-	suite.Suite
-}
+// ----------------------
+// Global setup/teardown
+// ----------------------
 
-func (suite *ServerTestSuite) SetupSuite() {
-	// Setup test env var
+func TestMain(m *testing.M) {
 	os.Setenv("GO_ENV", "test")
 
-	// Load env file by absolute path dynamically
-	if os.Getenv("GO_ENV") == "test" {
-		cwd, _ := os.Getwd()
-		root := filepath.Join(cwd, "..", "..", "..")
-		if err := godotenv.Load(filepath.Join(root, ".env")); err != nil {
-			fmt.Println("Warning: failed to load .env:", err)
-		}
+	// Load .env dynamically from repo root
+	cwd, _ := os.Getwd()
+	root := filepath.Join(cwd, "..", "..", "..")
+	fmt.Println("Loading env from:", filepath.Join(root, ".env"))
+	if err := godotenv.Load(filepath.Join(root, ".env")); err != nil {
+		fmt.Println("Warning: failed to load .env:", err)
 	}
 
-	// Run postgresql docker
-	cmd := exec.Command("docker", "compose", "-f", "docker-compose.yaml", "up", "-d")
-	cmd.Dir = "../../../"
-	suite.T().Log("Starting docker compose services...")
-	output, err := cmd.CombinedOutput()
-	suite.Require().NoError(err, string(output))
+	// Start docker services
+	fmt.Println("Starting docker compose services...")
+	up := exec.Command("docker", "compose", "-f", "docker-compose.yaml", "up", "-d")
+	up.Dir = "../../../"
+	if output, err := up.CombinedOutput(); err != nil {
+		fmt.Println("Docker startup failed:", string(output))
+		os.Exit(1)
+	}
 
-	// Setup temporary directory for json persistence
+	// Setup temp directory for JSON files
 	tempDir, err := os.MkdirTemp("", "test_abilities")
-	suite.Require().NoError(err)
+	if err != nil {
+		fmt.Println("Failed to create temp dir:", err)
+		os.Exit(1)
+	}
 	os.Setenv("INITIAL_ABILITIES_FILE_PATH", filepath.Join(tempDir, "playersInitialAbilities.json"))
 	os.Setenv("ABILITIES_FILE_PATH", filepath.Join(tempDir, "abilities.json"))
-	fmt.Println("setup temp json dir")
+	fmt.Println("Setup temp JSON dir:", tempDir)
 
+	// Run backend server in background
 	go setupServer()
-	err = waitForPort("localhost:3009", 10*time.Second)
-	suite.Require().NoError(err, "backend server didn't start in time")
-}
 
-func (suite *ServerTestSuite) TearDownSuite() {
-	cmd := exec.Command("docker", "compose", "-f", "../../../docker-compose.yaml", "down")
-	suite.T().Log("Tearing down docker compose services...")
-	output, err := cmd.CombinedOutput()
-
-	if tempDir := os.Getenv("INITIAL_ABILITIES_FILE_PATH"); tempDir != "" {
-		_ = os.RemoveAll(filepath.Dir(tempDir))
+	// Wait until the server is ready
+	if err := waitForPort("localhost:3009", 10*time.Second); err != nil {
+		fmt.Println("Server failed to start:", err)
+		tearDownDocker(tempDir)
+		os.Exit(1)
 	}
 
-	suite.Require().NoError(err, string(output))
+	// Run tests
+	code := m.Run()
+
+	// Always teardown
+	tearDownDocker(tempDir)
+
+	os.Exit(code)
+}
+
+func tearDownDocker(tempDir string) {
+	fmt.Println("Tearing down docker compose services...")
+
+	cmd := exec.Command("docker", "compose", "-f", "docker-compose.yaml", "down")
+	cmd.Dir = "../../../"
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Println("Docker teardown error:", err, string(output))
+	}
+
+	if tempDir != "" {
+		_ = os.RemoveAll(tempDir)
+	}
+}
+
+// ----------------------
+// Test suite definition
+// ----------------------
+
+type ServerTestSuite struct {
+	suite.Suite
 }
 
 func setupServer() {
@@ -87,14 +115,17 @@ func setupServer() {
 	}
 
 	repository.RunSeeds()
-
 	handlers.RegisterRoutes()
 
-	const PORT string = "3009"
+	const PORT = "3009"
 	go connection.NewServer().StartConnection(PORT)
 
-	select {}
+	select {} // keep goroutine alive
 }
+
+// ----------------------
+// Actual test
+// ----------------------
 
 func (suite *ServerTestSuite) TestBasicWebSocketConnection() {
 	url := "ws://localhost:3009/ws?character=barbarian"
@@ -124,6 +155,10 @@ func (suite *ServerTestSuite) TestBasicWebSocketConnection() {
 func TestExampleTestSuite(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))
 }
+
+// ----------------------
+// Helper: wait for port
+// ----------------------
 
 func waitForPort(address string, timeout time.Duration) error {
 	deadline := time.Now().Add(timeout)
