@@ -3,12 +3,9 @@ package integration_test
 import (
 	"backend/api/dtos"
 	"backend/connection"
-	"backend/pkg/configurator"
-	"backend/pkg/game/repository"
-	"backend/pkg/handlers"
+	"backend/pkg/server"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net"
 	"os"
 	"os/exec"
@@ -16,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -65,7 +61,12 @@ func TestMain(m *testing.M) {
 	fmt.Println("Setup temp JSON dir:", tempDir)
 
 	// Run backend server in background
-	go setupServer()
+	go func() {
+		_ = server.Start(server.ServerOptions{
+			EnvFilePath: "../../../.env",
+			Quiet:       true,
+		})
+	}()
 
 	// Wait until the server is ready
 	if err := waitForPort("localhost:3009", 10*time.Second); err != nil {
@@ -104,30 +105,6 @@ func tearDownDocker(tempDir string) {
 
 type ServerTestSuite struct {
 	suite.Suite
-}
-
-func setupServer() {
-	if os.Getenv("GO_ENV") == "test" {
-		gin.SetMode(gin.ReleaseMode)
-		gin.DefaultWriter = io.Discard
-		gin.DefaultErrorWriter = io.Discard
-	}
-
-	configurator.RunSeeds()
-
-	go configurator.Run()
-
-	if err := repository.ConnectPostgres(); err != nil {
-		panic(err)
-	}
-
-	repository.RunSeeds()
-	handlers.RegisterRoutes()
-
-	const PORT = "3009"
-	go connection.NewServer().StartConnection(PORT)
-
-	select {} // keep goroutine alive
 }
 
 // ----------------------

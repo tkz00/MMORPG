@@ -16,38 +16,12 @@
 package main
 
 import (
-	"backend/connection"
-	"backend/pkg/configurator"
-	"backend/pkg/game/repository"
-	"backend/pkg/handlers"
-	"fmt"
-
-	"github.com/joho/godotenv"
+	"backend/pkg/server"
 )
 
 func main() {
-	// Load variables from .env if present
-	if err := godotenv.Load("../.env"); err != nil {
-		fmt.Println(err)
-	}
-
-	configurator.RunSeeds()
-
-	// Start configurator server
-	go configurator.Run()
-
-	if err := repository.ConnectPostgres(); err != nil {
-		panic(err)
-	}
-	fmt.Println("Postgres connected successfully")
-
-	repository.RunSeeds()
-
-	handlers.RegisterRoutes()
-
-	const PORT string = "3009"
-	go connection.NewServer().StartConnection(PORT)
-
-	// Block main from exiting by waiting indefinitely
-	select {}
+	server.Start(server.ServerOptions{
+		EnvFilePath: "../.env",
+		Quiet:       false,
+	})
 }
