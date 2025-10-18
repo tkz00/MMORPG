@@ -136,6 +136,24 @@ func (suite *ServerTestSuite) TestBasicWebSocketConnection() {
 	assert.Equal(suite.T(), (*character.Stats)["damage"], damageStat)
 }
 
+func (suite *ServerTestSuite) TestDuplicateCharacterConnection() {
+	url := "ws://localhost:3009/ws?character=barbarian"
+
+	conn1, err := websocket.Dial(url, "", "http://localhost/")
+	assert.NoError(suite.T(), err, "first client should connect")
+	defer conn1.Close()
+
+	conn2, err := websocket.Dial(url, "", "http://localhost/")
+	assert.NoError(suite.T(), err, "second client should connect initially")
+	defer conn2.Close()
+
+	buf := make([]byte, 512)
+	n, err := conn2.Read(buf)
+	assert.NoError(suite.T(), err, "should read close/error message")
+
+	assert.Contains(suite.T(), string(buf[:n]), "character already in use")
+}
+
 func TestExampleTestSuite(t *testing.T) {
 	suite.Run(t, new(ServerTestSuite))
 }
