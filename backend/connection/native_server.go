@@ -134,6 +134,9 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 	server.addClient <- AddClientData{conn, character, reply}
 
 	if <-reply != nil {
+		errMsg := map[string]string{"error": "character already in use"}
+		data, _ := json.Marshal(errMsg)
+		conn.Write(data)
 		conn.Close()
 		return
 	}

@@ -74,6 +74,12 @@ func (wr *WebSocketMessage) UnmarshalJSON(data []byte) error {
 			return err
 		}
 		wr.Body = unequipItem
+	case "Player":
+		var player dtos.CharacterDTO
+		if err := json.Unmarshal(tmp.Body, &player); err != nil {
+			return err
+		}
+		wr.Body = player
 	default:
 		return fmt.Errorf("unknown message type: %s", tmp.ActionType)
 	}

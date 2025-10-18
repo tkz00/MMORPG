@@ -6,10 +6,16 @@ import (
 	"os"
 )
 
-const AbilitiesFileName = "abilities.json"
+func getAbilitiesFilePath() string {
+	if path := os.Getenv("ABILITIES_FILE_PATH"); path != "" {
+		return path
+	}
+	return "abilities.json"
+}
 
 func SaveAbilitiesToFile(abilities map[string]ConfiguratorAbility) error {
-	file, err := os.OpenFile(AbilitiesFileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+	abilitiesFileName := getAbilitiesFilePath()
+	file, err := os.OpenFile(abilitiesFileName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
 	if err != nil {
 		return fmt.Errorf("error opening file: %v", err)
 	}
@@ -21,7 +27,8 @@ func SaveAbilitiesToFile(abilities map[string]ConfiguratorAbility) error {
 }
 
 func LoadAbilitiesFromFile() (map[string]ConfiguratorAbility, error) {
-	file, err := os.Open(AbilitiesFileName)
+	abilitiesFileName := getAbilitiesFilePath()
+	file, err := os.Open(abilitiesFileName)
 	if err != nil {
 		return nil, fmt.Errorf("error opening file: %v", err)
 	}
@@ -35,11 +42,17 @@ func LoadAbilitiesFromFile() (map[string]ConfiguratorAbility, error) {
 	return abilities, nil
 }
 
-const PlayersInitialAbilitiesFileName = "playersInitialAbilities.json"
+func getInitialAbilitiesFilePath() string {
+	if path := os.Getenv("INITIAL_ABILITIES_FILE_PATH"); path != "" {
+		return path
+	}
+	return "playersInitialAbilities.json"
+}
 
 func SavePlayersInitialAbilities(abilitiesIds []string) error {
+	playersInitialAbilitiesFileName := getInitialAbilitiesFilePath()
 	file, err := os.OpenFile(
-		PlayersInitialAbilitiesFileName,
+		playersInitialAbilitiesFileName,
 		os.O_CREATE|os.O_WRONLY|os.O_TRUNC,
 		0644,
 	)
@@ -54,7 +67,8 @@ func SavePlayersInitialAbilities(abilitiesIds []string) error {
 }
 
 func LoadPlayersInitialAbilitiesIds() ([]string, error) {
-	file, err := os.Open(PlayersInitialAbilitiesFileName)
+	playersInitialAbilitiesFileName := getInitialAbilitiesFilePath()
+	file, err := os.Open(playersInitialAbilitiesFileName)
 	if err != nil {
 		return nil, fmt.Errorf("error opening file: %v", err)
 	}
