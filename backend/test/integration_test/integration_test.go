@@ -122,7 +122,17 @@ func (suite *ServerTestSuite) TearDownSuite() {
 // Actual test
 // ----------------------
 
-func (suite *ServerTestSuite) TestDuplicateCharacterConnection() {
+func (suite *ServerTestSuite) Test_FullGameplayFlow() {
+	suite.Run("DuplicateConnection", suite.testDuplicateCharacterConnection)
+	suite.Run("Projectiles", suite.testProjectileDamagesTarget)
+	suite.Run("PersistenceAfterReconnect", suite.testPersistenceAfterReconnect)
+}
+
+func TestIntegrationSuite(t *testing.T) {
+	suite.Run(t, new(ServerTestSuite))
+}
+
+func (suite *ServerTestSuite) testDuplicateCharacterConnection() {
 	url := "ws://localhost:3009/ws?character=barbarian"
 
 	conn2, err := websocket.Dial(url, "", "http://localhost/")
@@ -136,7 +146,7 @@ func (suite *ServerTestSuite) TestDuplicateCharacterConnection() {
 	assert.Contains(suite.T(), string(buf[:n]), "character already in use")
 }
 
-func (suite *ServerTestSuite) Test_ProjectileDamagesTarget() {
+func (suite *ServerTestSuite) testProjectileDamagesTarget() {
 	// Paladin casts projectile at barbarian
 	err := suite.paladin.Send("ability_cast", map[string]interface{}{
 		"id": "1", // hardcoded ability id, what to do here?
@@ -176,8 +186,41 @@ func (suite *ServerTestSuite) Test_ProjectileDamagesTarget() {
 	suite.Require().NoError(err, "barbarian HP should drop after hit")
 }
 
-func TestExampleTestSuite(t *testing.T) {
-	suite.Run(t, new(ServerTestSuite))
+func (suite *ServerTestSuite) testPersistenceAfterReconnect() {
+	// Wait enough time so the state is saved to the db
+	time.Sleep(5 * time.Second)
+
+	suite.barbarian.Close()
+
+	time.Sleep(500 * time.Millisecond)
+	suite.barbarian = connectClient("barbarian")
+
+	// Wait for initial diff with player state
+	diff, err := suite.barbarian.WaitForGameStateDiff(3*time.Second, func(body map[string]interface{}) bool {
+		players, ok := body["players"].([]interface{})
+		if !ok {
+			return false
+		}
+		for _, p := range players {
+			pm := p.(map[string]interface{})
+			if pm["id"] == "barbarian" {
+				return true
+			}
+		}
+		return false
+	})
+	suite.Require().NoError(err)
+
+	players := diff["players"].([]interface{})
+	for _, p := range players {
+		pm := p.(map[string]interface{})
+		if pm["id"] == "barbarian" {
+			hp := pm["currentHealth"]
+			if hpVal, ok := hp.(float64); ok {
+				suite.True(hpVal < 100, "barbarian HP should remain reduced after reconnect")
+			}
+		}
+	}
 }
 
 // ----------------------
