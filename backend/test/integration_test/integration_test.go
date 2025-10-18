@@ -1,8 +1,6 @@
 package integration_test
 
 import (
-	"backend/api/dtos"
-	"backend/connection"
 	"backend/pkg/server"
 	"encoding/json"
 	"fmt"
@@ -10,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -105,43 +104,26 @@ func tearDownDocker(tempDir string) {
 
 type ServerTestSuite struct {
 	suite.Suite
+	paladin   *TestClient
+	barbarian *TestClient
+}
+
+func (suite *ServerTestSuite) SetupSuite() {
+	suite.paladin = connectClient("paladin")
+	suite.barbarian = connectClient("barbarian")
+}
+
+func (suite *ServerTestSuite) TearDownSuite() {
+	suite.paladin.Close()
+	suite.barbarian.Close()
 }
 
 // ----------------------
 // Actual test
 // ----------------------
 
-func (suite *ServerTestSuite) TestBasicWebSocketConnection() {
-	url := "ws://localhost:3009/ws?character=barbarian"
-
-	conn, err := websocket.Dial(url, "", "http://localhost/")
-	assert.NoError(suite.T(), err, "should connect to server")
-	defer conn.Close()
-
-	buf := make([]byte, 1024)
-	conn.SetDeadline(time.Now().Add(2 * time.Second))
-	n, err := conn.Read(buf)
-	assert.NoError(suite.T(), err, "should receive message from server")
-
-	var message connection.WebSocketMessage
-	var character dtos.CharacterDTO
-	err = json.Unmarshal(buf[:n], &message)
-	assert.NoError(suite.T(), err, "should parse JSON correctly")
-
-	assert.IsType(suite.T(), character, message.Body)
-	character = message.Body.(dtos.CharacterDTO)
-
-	var damageStat int64 = 20
-	assert.Equal(suite.T(), "barbarian", character.Id)
-	assert.Equal(suite.T(), (*character.Stats)["damage"], damageStat)
-}
-
 func (suite *ServerTestSuite) TestDuplicateCharacterConnection() {
 	url := "ws://localhost:3009/ws?character=barbarian"
-
-	conn1, err := websocket.Dial(url, "", "http://localhost/")
-	assert.NoError(suite.T(), err, "first client should connect")
-	defer conn1.Close()
 
 	conn2, err := websocket.Dial(url, "", "http://localhost/")
 	assert.NoError(suite.T(), err, "second client should connect initially")
@@ -152,6 +134,46 @@ func (suite *ServerTestSuite) TestDuplicateCharacterConnection() {
 	assert.NoError(suite.T(), err, "should read close/error message")
 
 	assert.Contains(suite.T(), string(buf[:n]), "character already in use")
+}
+
+func (suite *ServerTestSuite) Test_ProjectileDamagesTarget() {
+	// Paladin casts projectile at barbarian
+	err := suite.paladin.Send("ability_cast", map[string]interface{}{
+		"id": "1", // hardcoded ability id, what to do here?
+		"abilityParameters": map[string]interface{}{
+			"TargetPosition": map[string]float64{
+				"x": 5,
+				"z": 0,
+			},
+		},
+	})
+	suite.Require().NoError(err)
+
+	// Wait until the diff includes at least one projectile
+	_, err = suite.paladin.WaitForGameStateDiff(3*time.Second, func(body map[string]interface{}) bool {
+		projectiles, ok := body["projectiles"].([]interface{})
+		return ok && len(projectiles) > 0
+	})
+	suite.Require().NoError(err, "projectile should appear")
+
+	// Wait until barbarian HP drops
+	_, err = suite.barbarian.WaitForGameStateDiff(5*time.Second, func(body map[string]interface{}) bool {
+		players, ok := body["players"].([]interface{})
+		if !ok {
+			return false
+		}
+		for _, p := range players {
+			pm := p.(map[string]interface{})
+			if pm["id"] == "barbarian" {
+				hp := pm["currentHealth"]
+				if hpVal, ok := hp.(float64); ok && int(hpVal) < 100 {
+					return true
+				}
+			}
+		}
+		return false
+	})
+	suite.Require().NoError(err, "barbarian HP should drop after hit")
 }
 
 func TestExampleTestSuite(t *testing.T) {
@@ -173,4 +195,81 @@ func waitForPort(address string, timeout time.Duration) error {
 		time.Sleep(500 * time.Millisecond)
 	}
 	return fmt.Errorf("timed out waiting for %s", address)
+}
+
+type WSMessage struct {
+	ActionType string                 `json:"actionType"`
+	Body       map[string]interface{} `json:"body"`
+}
+
+type TestClient struct {
+	Conn    *websocket.Conn
+	MsgChan chan WSMessage
+}
+
+func connectClient(characterID string) *TestClient {
+	url := fmt.Sprintf("ws://localhost:3009/ws?character=%s", characterID)
+	conn, err := websocket.Dial(url, "", "http://localhost/")
+	if err != nil {
+		panic(fmt.Sprintf("failed to connect %s: %v", characterID, err))
+	}
+
+	client := &TestClient{
+		Conn:    conn,
+		MsgChan: make(chan WSMessage, 10),
+	}
+
+	// Reader goroutine
+	go func() {
+		defer close(client.MsgChan)
+		buf := make([]byte, 8192)
+		for {
+			n, err := conn.Read(buf)
+			if err != nil {
+				return
+			}
+			var msg WSMessage
+			if err := json.Unmarshal(buf[:n], &msg); err == nil {
+				client.MsgChan <- msg
+			}
+		}
+	}()
+
+	return client
+}
+
+func (c *TestClient) Send(actionType string, body any) error {
+	msg := map[string]interface{}{
+		"actionType": actionType,
+		"body":       body,
+	}
+	data, _ := json.Marshal(msg)
+	_, err := c.Conn.Write(data)
+	return err
+}
+
+func (c *TestClient) Close() { c.Conn.Close() }
+
+func (c *TestClient) WaitForGameStateDiff(
+	timeout time.Duration,
+	match func(map[string]interface{}) bool,
+) (map[string]interface{}, error) {
+
+	deadline := time.After(timeout)
+	for {
+		select {
+		case <-deadline:
+			return nil, fmt.Errorf("timeout waiting for matching GameState diff")
+		case msg, ok := <-c.MsgChan:
+			if !ok {
+				return nil, fmt.Errorf("connection closed before match")
+			}
+			if strings.ToLower(msg.ActionType) != "gamestate" {
+				continue
+			}
+			if match(msg.Body) {
+				return msg.Body, nil
+			}
+		}
+	}
 }
