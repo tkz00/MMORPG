@@ -1,0 +1,11 @@
+:8080 {
+	reverse_proxy /ws* localhost:3009
+
+	# Proxy /characters to your Go server on port 8081
+	handle /characters* {
+		reverse_proxy 127.0.0.1:8081
+	}
+
+	# Handle root path
+	respond / "Hello from main app" 200
+}
