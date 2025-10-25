@@ -756,6 +756,8 @@ public class AbilityMechanicManager
         int newTargetingStrategySelectedIndex = EditorGUILayout.Popup("Targeting Strategy", targetingStrategySelectedIndex, TargetingStrategies);
         buffStatParams.targetingStrategy = TargetingStrategies[newTargetingStrategySelectedIndex];
 
+        buffStatParams.durationMs = EditorGUILayout.IntField("Duration (ms)", buffStatParams.durationMs);
+
         GUILayout.Label("On Hit Mechanics:", EditorStyles.boldLabel);
         buffStatParams.onHitMechanics = DisplayMechanics(buffStatParams.onHitMechanics, true);
         mechanic.@params = buffStatParams;

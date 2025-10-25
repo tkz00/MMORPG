@@ -193,6 +193,7 @@ namespace Configurator
             [JsonProperty("base_amount")] public int baseAmount;
             [JsonProperty("multiplier")] public float multiplier;
             [JsonProperty("targeting_strategy")] public string targetingStrategy;
+            [JsonProperty("duration_ms")] public int durationMs;
             [JsonProperty("on_hit_mechanics")] public List<MechanicDTO> onHitMechanics;
 
             public BuffStatParams()
@@ -201,6 +202,7 @@ namespace Configurator
                 baseAmount = 0;
                 multiplier = 0;
                 targetingStrategy = "TO DO";
+                durationMs = 1000;
                 onHitMechanics = new List<MechanicDTO>();
             }
 
@@ -217,6 +219,7 @@ namespace Configurator
                     baseAmount = this.baseAmount,
                     multiplier = this.multiplier,
                     targetingStrategy = this.targetingStrategy,
+                    durationMs = this.durationMs,
                     onHitMechanics = onHitMechanicsCopy
                 };
             }

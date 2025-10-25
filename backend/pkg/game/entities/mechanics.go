@@ -237,15 +237,29 @@ func BuffStatMechanic(caster *Character, gs *GameState, params map[string]interf
 		return nil
 	}
 
+	// Get duration in milliseconds
+	durationMs, ok := params["duration_ms"].(float64)
+	if !ok {
+		fmt.Println("Warning: 'duration_ms' not provided for temporary buff. Buff will be permanent.")
+		durationMs = 0
+	}
+
 	// Generate a unique ID for this modification
-	modID := fmt.Sprintf("ability_buff_%s_%s_%d", caster.id, statName, time.Now().UnixNano())
+	modID := fmt.Sprintf("buff_%s_%s_%d", caster.id, statName, time.Now().UnixNano())
+
+	var expiresAt *time.Time
+	if durationMs > 0 {
+		expirationTime := time.Now().Add(time.Duration(durationMs) * time.Millisecond)
+		expiresAt = &expirationTime
+	}
 
 	mod := StatModification{
 		ID:           modID,
 		StatName:     statName,
 		FlatValue:    flatValue,
 		PercentValue: percentValue,
-		Source:       "ability_buff",
+		Source:       "buff",
+		ExpiresAt:    expiresAt,
 	}
 
 	target.AddStatModification(mod)
