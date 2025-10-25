@@ -2,9 +2,11 @@ package integration_test
 
 import (
 	"backend/pkg/server"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,6 +15,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/net/websocket"
@@ -74,6 +77,13 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
+	// Wait until the configurator server is ready
+	if err := waitForPort("localhost:8080", 10*time.Second); err != nil {
+		fmt.Println("Configurator server failed to start:", err)
+		tearDownDocker(tempDir)
+		os.Exit(1)
+	}
+
 	// Run tests
 	code := m.Run()
 
@@ -106,6 +116,7 @@ type ServerTestSuite struct {
 	suite.Suite
 	paladin   *TestClient
 	barbarian *TestClient
+	test      *TestClient
 }
 
 func (suite *ServerTestSuite) SetupSuite() {
@@ -116,6 +127,7 @@ func (suite *ServerTestSuite) SetupSuite() {
 func (suite *ServerTestSuite) TearDownSuite() {
 	suite.paladin.Close()
 	suite.barbarian.Close()
+	// close test conn
 }
 
 // ----------------------
@@ -126,6 +138,7 @@ func (suite *ServerTestSuite) Test_FullGameplayFlow() {
 	suite.Run("DuplicateConnection", suite.testDuplicateCharacterConnection)
 	suite.Run("Projectiles", suite.testProjectileDamagesTarget)
 	suite.Run("PersistenceAfterReconnect", suite.testPersistenceAfterReconnect)
+	suite.Run("ChangePlayersInitialAbilities", suite.testChangePlayersInitialAbilities)
 }
 
 func TestIntegrationSuite(t *testing.T) {
@@ -221,6 +234,53 @@ func (suite *ServerTestSuite) testPersistenceAfterReconnect() {
 			}
 		}
 	}
+}
+
+func (suite *ServerTestSuite) testChangePlayersInitialAbilities() {
+	// avoid having to disconnect already connected characters because they interfere with the assert
+	suite.barbarian.Close()
+	suite.paladin.Close()
+
+	playersInitialAbilitiesIds := [4]string{"1", "2", "3", "5"}
+	jsonPayload, _ := json.Marshal(playersInitialAbilitiesIds)
+	resp, err := http.Post("http://0.0.0.0:8080/playersInitialAbilities", "application/json", bytes.NewBuffer(jsonPayload))
+	suite.Require().NoError(err)
+	suite.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	suite.test = connectClient("test")
+
+	_, err = suite.test.WaitForGameStateDiff(3*time.Second, func(body map[string]interface{}) bool {
+		players, ok := body["players"].([]interface{})
+		if !ok {
+			return false
+		}
+
+		// Look for a character that has ability "5" (Buff Damage) which should be the new character
+		return lo.ContainsBy(players, func(player interface{}) bool {
+			return characterHasAbility(player, "5")
+		})
+	})
+	suite.Require().NoError(err, "Should find a character with ability '5' (Buff Damage) after changing initial abilities")
+}
+
+// ----------------------
+// Helper functions
+// ----------------------
+
+func characterHasAbility(c interface{}, abilityID string) bool {
+	pm := c.(map[string]interface{})
+	abilities, ok := pm["abilities"].([]interface{})
+	if !ok {
+		return false
+	}
+	return lo.ContainsBy(abilities, func(ability interface{}) bool {
+		abilityMap, ok := ability.(map[string]interface{})
+		if !ok {
+			return false
+		}
+		id, ok := abilityMap["id"].(string)
+		return ok && id == abilityID
+	})
 }
 
 // ----------------------
