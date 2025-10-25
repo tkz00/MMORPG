@@ -2,9 +2,11 @@ package integration_test
 
 import (
 	"backend/pkg/server"
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -13,6 +15,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 	"golang.org/x/net/websocket"
@@ -74,6 +77,13 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
+	// Wait until the configurator server is ready
+	if err := waitForPort("localhost:8080", 10*time.Second); err != nil {
+		fmt.Println("Configurator server failed to start:", err)
+		tearDownDocker(tempDir)
+		os.Exit(1)
+	}
+
 	// Run tests
 	code := m.Run()
 
@@ -106,6 +116,7 @@ type ServerTestSuite struct {
 	suite.Suite
 	paladin   *TestClient
 	barbarian *TestClient
+	test      *TestClient
 }
 
 func (suite *ServerTestSuite) SetupSuite() {
@@ -116,6 +127,7 @@ func (suite *ServerTestSuite) SetupSuite() {
 func (suite *ServerTestSuite) TearDownSuite() {
 	suite.paladin.Close()
 	suite.barbarian.Close()
+	// close test conn
 }
 
 // ----------------------
@@ -126,6 +138,8 @@ func (suite *ServerTestSuite) Test_FullGameplayFlow() {
 	suite.Run("DuplicateConnection", suite.testDuplicateCharacterConnection)
 	suite.Run("Projectiles", suite.testProjectileDamagesTarget)
 	suite.Run("PersistenceAfterReconnect", suite.testPersistenceAfterReconnect)
+	suite.Run("ChangePlayersInitialAbilities", suite.testChangePlayersInitialAbilities)
+	suite.Run("BuffDamageTarget", suite.testBuffDamageTarget)
 }
 
 func TestIntegrationSuite(t *testing.T) {
@@ -223,6 +237,157 @@ func (suite *ServerTestSuite) testPersistenceAfterReconnect() {
 	}
 }
 
+func (suite *ServerTestSuite) testChangePlayersInitialAbilities() {
+	// avoid having to disconnect already connected characters because they interfere with the assert
+	suite.barbarian.Close()
+	suite.paladin.Close()
+
+	playersInitialAbilitiesIds := [4]string{"1", "2", "3", "5"}
+	jsonPayload, _ := json.Marshal(playersInitialAbilitiesIds)
+	resp, err := http.Post("http://0.0.0.0:8080/playersInitialAbilities", "application/json", bytes.NewBuffer(jsonPayload))
+	suite.Require().NoError(err)
+	suite.Require().Equal(http.StatusOK, resp.StatusCode)
+
+	suite.test = connectClient("test")
+
+	_, err = suite.test.WaitForGameStateDiff(3*time.Second, func(body map[string]interface{}) bool {
+		players, ok := body["players"].([]interface{})
+		if !ok {
+			return false
+		}
+
+		// Look for a character that has ability "5" (Buff Damage) which should be the new character
+		return lo.ContainsBy(players, func(player interface{}) bool {
+			return characterHasAbility(player, "5")
+		})
+	})
+	suite.Require().NoError(err, "Should find a character with ability '5' (Buff Damage) after changing initial abilities")
+}
+
+func (suite *ServerTestSuite) testBuffDamageTarget() {
+	// Wait for the test character to be fully connected and get initial stats
+	initialStats, err := suite.test.WaitForGameStateDiff(3*time.Second, func(body map[string]interface{}) bool {
+		players, ok := body["players"].([]interface{})
+		if !ok {
+			return false
+		}
+		return lo.ContainsBy(players, func(player interface{}) bool {
+			pm := player.(map[string]interface{})
+			if id, ok := pm["id"].(string); ok && id == suite.test.CharacterID {
+				// Check if stats are present (means character is fully loaded)
+				_, hasStats := pm["stats"]
+				return hasStats
+			}
+			return false
+		})
+	})
+	suite.Require().NoError(err, "Should receive initial character stats")
+
+	// Extract initial damage stat
+	var initialDamage int64
+	players := initialStats["players"].([]interface{})
+	for _, p := range players {
+		pm := p.(map[string]interface{})
+		if id, ok := pm["id"].(string); ok && id == suite.test.CharacterID {
+			if stats, ok := pm["stats"].(map[string]interface{}); ok {
+				if damage, ok := stats["damage"].(float64); ok {
+					initialDamage = int64(damage)
+					break
+				}
+			}
+		}
+	}
+	suite.Require().True(initialDamage > 0, "Should have initial damage stat")
+
+	// Test character casts buff on itself
+	err = suite.test.Send("ability_cast", map[string]interface{}{
+		"id": "5",
+		"abilityParameters": map[string]interface{}{
+			"TargetId": suite.test.CharacterID,
+		},
+	})
+	suite.Require().NoError(err)
+
+	// Wait for buff to be applied and verify damage stat increased
+	buffedStats, err := suite.test.WaitForGameStateDiff(3*time.Second, func(body map[string]interface{}) bool {
+		players, ok := body["players"].([]interface{})
+		if !ok {
+			return false
+		}
+		return lo.ContainsBy(players, func(player interface{}) bool {
+			pm := player.(map[string]interface{})
+			if id, ok := pm["id"].(string); ok && id == suite.test.CharacterID {
+				if stats, ok := pm["stats"].(map[string]interface{}); ok {
+					_, hasDamageStat := stats["damage"]
+					return hasDamageStat
+				}
+			}
+			return false
+		})
+	})
+	suite.Require().NoError(err, "Should receive buffed character stats")
+
+	// Verify the damage stat is higher
+	var buffedDamage int64
+	players = buffedStats["players"].([]interface{})
+	for _, p := range players {
+		pm := p.(map[string]interface{})
+		if id, ok := pm["id"].(string); ok && id == suite.test.CharacterID {
+			if stats, ok := pm["stats"].(map[string]interface{}); ok {
+				if damage, ok := stats["damage"].(float64); ok {
+					buffedDamage = int64(damage)
+					break
+				}
+			}
+		}
+	}
+	suite.True(buffedDamage > initialDamage, fmt.Sprintf("Damage should be higher after buff, original value: %d, new value: %d", initialDamage, buffedDamage))
+
+	// Wait for buff to expire (buff duration is 5000ms = 5 seconds)
+	time.Sleep(6 * time.Second)
+
+	// Wait for buff to expire and verify damage stat returned to original
+	_, err = suite.test.WaitForGameStateDiff(3*time.Second, func(body map[string]interface{}) bool {
+		players, ok := body["players"].([]interface{})
+		if !ok {
+			return false
+		}
+		return lo.ContainsBy(players, func(player interface{}) bool {
+			pm := player.(map[string]interface{})
+			if id, ok := pm["id"].(string); ok && id == suite.test.CharacterID {
+				if stats, ok := pm["stats"].(map[string]interface{}); ok {
+					if damage, ok := stats["damage"].(float64); ok {
+						// Check if damage is back to initial value
+						return int64(damage) == initialDamage
+					}
+				}
+			}
+			return false
+		})
+	})
+	suite.Require().NoError(err, "Damage should return to original value after buff expires")
+}
+
+// ----------------------
+// Helper functions
+// ----------------------
+
+func characterHasAbility(c interface{}, abilityID string) bool {
+	pm := c.(map[string]interface{})
+	abilities, ok := pm["abilities"].([]interface{})
+	if !ok {
+		return false
+	}
+	return lo.ContainsBy(abilities, func(ability interface{}) bool {
+		abilityMap, ok := ability.(map[string]interface{})
+		if !ok {
+			return false
+		}
+		id, ok := abilityMap["id"].(string)
+		return ok && id == abilityID
+	})
+}
+
 // ----------------------
 // Helper: wait for port
 // ----------------------
@@ -246,8 +411,9 @@ type WSMessage struct {
 }
 
 type TestClient struct {
-	Conn    *websocket.Conn
-	MsgChan chan WSMessage
+	Conn        *websocket.Conn
+	MsgChan     chan WSMessage
+	CharacterID string
 }
 
 func connectClient(characterID string) *TestClient {
@@ -258,8 +424,9 @@ func connectClient(characterID string) *TestClient {
 	}
 
 	client := &TestClient{
-		Conn:    conn,
-		MsgChan: make(chan WSMessage, 10),
+		Conn:        conn,
+		MsgChan:     make(chan WSMessage, 10),
+		CharacterID: "", // Will be set from first Player message
 	}
 
 	// Reader goroutine
@@ -273,6 +440,12 @@ func connectClient(characterID string) *TestClient {
 			}
 			var msg WSMessage
 			if err := json.Unmarshal(buf[:n], &msg); err == nil {
+				// Capture character ID from first Player message
+				if msg.ActionType == "Player" && client.CharacterID == "" {
+					if id, ok := msg.Body["id"].(string); ok {
+						client.CharacterID = id
+					}
+				}
 				client.MsgChan <- msg
 			}
 		}

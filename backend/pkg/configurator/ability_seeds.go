@@ -148,25 +148,7 @@ func GetSeedsAbilities() map[string]*entities.Ability {
 					"base_amount":        0,
 					"multiplier":         0.5, // this is original value + (this * original value)
 					"targeting_strategy": "character_hit",
-					"on_hit_mechanics": []entities.Mechanic{
-						{
-							MechanicType: "delay",
-							Params: map[string]interface{}{
-								"delay_ms": 5000,
-								"execute_after_delay_mechanics": []entities.Mechanic{
-									{
-										MechanicType: "buff_stat",
-										Params: map[string]interface{}{
-											"target_stat":        "damage",
-											"base_amount":        0,
-											"multiplier":         -(1 / float64(3)), // this is original value + (this * original value)
-											"targeting_strategy": "character_hit",
-										},
-									},
-								},
-							},
-						},
-					},
+					"duration_ms":        5000,
 				},
 			},
 		),

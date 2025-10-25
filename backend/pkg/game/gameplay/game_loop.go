@@ -39,6 +39,9 @@ func updatePlayers(gs *entities.GameState, deltaTime float64) {
 			continue
 		}
 
+		// Remove expired buffs before processing actions
+		player.RemoveExpiredBuffs()
+
 		player.ExecuteNextAction(gs)
 		if player.IsMoving() {
 			if !player.UpdatePosition(deltaTime, gs.GetObstacleColliders()) {
@@ -96,6 +99,9 @@ func updateNpcs(gs *entities.GameState, deltaTime float64) {
 
 	for id, npc := range gs.NPCs() {
 		if npc.IsAlive() {
+			// Remove expired buffs before processing actions
+			npc.RemoveExpiredBuffs()
+
 			npc.ExecuteNextAction(gs)
 			npc.UpdateBehaviour()
 			if npc.IsMoving() {

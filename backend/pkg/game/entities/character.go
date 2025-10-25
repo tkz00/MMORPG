@@ -55,11 +55,12 @@ type CharacterLastTickState struct {
 
 // StatModification represents a modification to a character's stats
 type StatModification struct {
-	ID           string  // Unique identifier for the modification
-	StatName     string  // The stat being modified
-	FlatValue    int64   // Flat amount to add/subtract
-	PercentValue float64 // Percentage multiplier (e.g., 0.5 = +50%)
-	Source       string  // Source of the modification (e.g., "equipment", "ability_buff")
+	ID           string     // Unique identifier for the modification
+	StatName     string     // The stat being modified
+	FlatValue    int64      // Flat amount to add/subtract
+	PercentValue float64    // Percentage multiplier (e.g., 0.5 = +50%)
+	Source       string     // Source of the modification (e.g., "equipment", "ability_buff")
+	ExpiresAt    *time.Time // When the modification expires (nil means permanent)
 }
 
 type Character struct {
@@ -175,16 +176,24 @@ func (c *Character) RemoveStatModification(id string) {
 	}
 }
 
-// RemoveStatModificationsBySource removes all stat modifications from a specific source
-func (c *Character) RemoveStatModificationsBySource(source string) {
+// RemoveExpiredBuffs removes all stat modifications that have expired
+func (c *Character) RemoveExpiredBuffs() {
+	now := time.Now()
 	newMods := []StatModification{}
+	removed := false
+
 	for _, mod := range c.statModifications {
-		if mod.Source != source {
+		if mod.ExpiresAt != nil && mod.ExpiresAt.Before(now) {
+			removed = true
+		} else {
 			newMods = append(newMods, mod)
 		}
 	}
-	c.statModifications = newMods
-	c.recalculateStats()
+
+	if removed {
+		c.statModifications = newMods
+		c.recalculateStats()
+	}
 }
 
 // EquipItem equips an item and applies its stat modifications
@@ -230,6 +239,7 @@ func (c *Character) EquipItem(itemId string) error {
 					FlatValue:    value,
 					PercentValue: 0,
 					Source:       "equipment",
+					ExpiresAt:    nil, // Equipment stats are permanent
 				}
 				c.AddStatModification(mod)
 			}
