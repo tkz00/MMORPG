@@ -176,18 +176,6 @@ func (c *Character) RemoveStatModification(id string) {
 	}
 }
 
-// RemoveStatModificationsBySource removes all stat modifications from a specific source
-func (c *Character) RemoveStatModificationsBySource(source string) {
-	newMods := []StatModification{}
-	for _, mod := range c.statModifications {
-		if mod.Source != source {
-			newMods = append(newMods, mod)
-		}
-	}
-	c.statModifications = newMods
-	c.recalculateStats()
-}
-
 // RemoveExpiredBuffs removes all stat modifications that have expired
 func (c *Character) RemoveExpiredBuffs() {
 	now := time.Now()
