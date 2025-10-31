@@ -38,6 +38,10 @@ func HealMechanic(caster *Character, gs *GameState, params map[string]interface{
 	healAmount := 0.0
 	hasHealSource := false
 
+	if _, hasBaseAmount := params["base_amount"]; hasBaseAmount {
+		fmt.Println("parse error")
+	}
+
 	if base_amount, ok := params["base_amount"].(float64); ok {
 		healAmount += base_amount
 		hasHealSource = true
@@ -111,6 +115,12 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 	}
 
 	target.TakeDamage(int(damageAmount))
+
+	caster.TriggerEffects(EffectOnDamageDealt, map[string]interface{}{
+		"damage":      damageAmount,
+		"damage_type": "TODO", // Add this later
+		"target":      target,
+	}, gs)
 
 	if npc, ok := gs.npcs[targetID]; ok {
 		npc.BecomeAggressive(caster)

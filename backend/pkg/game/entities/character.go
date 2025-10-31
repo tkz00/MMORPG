@@ -75,6 +75,7 @@ type Character struct {
 	to                utils.Vector2
 	direction         utils.Vector2
 	actionsQueue      []CharacterAction
+	effects           []Effect
 
 	*Inventory
 
@@ -493,3 +494,31 @@ func (c *Character) SetBaseStat(stat string, value int64) {
 	c.baseStats[stat] = value
 	c.recalculateStats()
 }
+
+func (c *Character) AddEffect(effect Effect) {
+	c.effects = append(c.effects, effect)
+}
+
+func (c *Character) TriggerEffects(t EffectTrigger, p map[string]interface{}, gs *GameState) {
+	for _, effect := range c.effects {
+		if effect.trigger == t {
+			fmt.Printf("%s effect triggered\n", effect.name)
+			// fillParameters(effect, p)
+			for _, mechanic := range effect.mechanics {
+				if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
+					resolveParameters(mechanic, c.id, gs)
+					fmt.Println(mechanic.Params)
+					if err := handler(c, gs, mechanic.Params); err != nil {
+						fmt.Println(err)
+					}
+				} else {
+					fmt.Printf("no handler found for effect type: %s\n", mechanic.MechanicType)
+				}
+			}
+		}
+	}
+}
+
+// func fillParameters(effect Effect, p map[string]interface{}) {
+// 	panic("unimplemented")
+// }

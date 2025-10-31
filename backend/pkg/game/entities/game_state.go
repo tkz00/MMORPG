@@ -65,6 +65,29 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn, player *Character) {
 	playerId := player.GetId()
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
+	player.AddEffect(
+		Effect{
+			id:      "spell_vampirism",
+			name:    "Spell Vampirism",
+			trigger: EffectOnDamageDealt,
+			mechanics: []Mechanic{
+				{
+					MechanicType: "heal",
+					Params: map[string]interface{}{
+						"targeting_strategy": "caster",
+						"base_amount":        10.0,
+					},
+				},
+			},
+			parameters: map[string]interface{}{
+				"base_amount": 10.0,
+				// "scaling_from_event": map[string]interface{}{
+				// 	"event_field": "damage",
+				// 	"factor":      0.1,
+				// },
+			},
+		},
+	)
 }
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {
