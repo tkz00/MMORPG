@@ -19,6 +19,38 @@ func RegisterMechanicHandler(mechanicType string, handler MechanicHandler) {
 	mechanicHandlers[mechanicType] = handler
 }
 
+// calculateMechanicAmount computes the total amount for a mechanic based on various sources:
+// - base_amount: flat value
+// - damage_stat_multiplier: scales with caster's damage stat
+// - scaling_from_event: scales based on event data (e.g., 10% of damage dealt)
+func calculateMechanicAmount(caster *Character, params map[string]interface{}) (float64, bool) {
+	amount := 0.0
+	hasSource := false
+
+	if baseAmount, ok := params["base_amount"].(float64); ok {
+		amount += baseAmount
+		hasSource = true
+	}
+
+	if statMultiplier, ok := params["damage_stat_multiplier"].(float64); ok {
+		amount += float64(caster.GetStat("damage")) * statMultiplier
+		hasSource = true
+	}
+
+	if scalingConfig, ok := params["scaling_from_event"].(map[string]interface{}); ok {
+		if eventParams, hasEventParams := params["event_params"].(map[string]interface{}); hasEventParams {
+			eventField := scalingConfig["event_field"].(string)
+			factor := scalingConfig["factor"].(float64)
+			if eventValue, ok := eventParams[eventField].(float64); ok {
+				amount += eventValue * factor
+				hasSource = true
+			}
+		}
+	}
+
+	return amount, hasSource
+}
+
 func HealMechanic(caster *Character, gs *GameState, params map[string]interface{}) error {
 	targetID, ok := params["target_id"].(string)
 	if !ok {
@@ -35,27 +67,10 @@ func HealMechanic(caster *Character, gs *GameState, params map[string]interface{
 		return nil
 	}
 
-	healAmount := 0.0
-	hasHealSource := false
-
-	if _, hasBaseAmount := params["base_amount"]; hasBaseAmount {
-		fmt.Println("parse error")
-	}
-
-	if base_amount, ok := params["base_amount"].(float64); ok {
-		healAmount += base_amount
-		hasHealSource = true
-	}
-
-	if damageScaling, ok := params["damage_stat_multiplier"].(float64); ok {
-		healAmount += float64(caster.GetStat("damage")) * damageScaling
-		hasHealSource = true
-	}
-
+	healAmount, hasHealSource := calculateMechanicAmount(caster, params)
 	if !hasHealSource {
-		fmt.Println(
-			"Warning: No valid heal source ('base_amount' or 'damage_stat_multiplier') provided. No heal will be done.",
-		)
+		fmt.Println("Warning: No valid heal source provided. No heal will be done.")
+		return nil
 	}
 
 	target.Heal(int(healAmount))
@@ -95,23 +110,10 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 		return nil
 	}
 
-	damageAmount := 0.0
-	hasDamageSource := false
-
-	if base_amount, ok := params["base_amount"].(float64); ok {
-		damageAmount += base_amount
-		hasDamageSource = true
-	}
-
-	if damageScaling, ok := params["damage_stat_multiplier"].(float64); ok {
-		damageAmount += float64(caster.GetStat("damage")) * damageScaling
-		hasDamageSource = true
-	}
-
+	damageAmount, hasDamageSource := calculateMechanicAmount(caster, params)
 	if !hasDamageSource {
-		fmt.Println(
-			"Warning: No valid damage source ('base_amount' or 'damage_stat_multiplier') provided. No damage will be dealt.",
-		)
+		fmt.Println("Warning: No valid damage source provided. No damage will be dealt.")
+		return nil
 	}
 
 	target.TakeDamage(int(damageAmount))

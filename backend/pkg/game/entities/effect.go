@@ -14,3 +14,24 @@ type Effect struct {
 	mechanics  []Mechanic
 	parameters map[string]interface{}
 }
+
+// NewSpellVampirismEffect creates a lifesteal effect that heals the caster for a percentage of damage dealt.
+func NewSpellVampirismEffect(healPercentage float64) Effect {
+	return Effect{
+		id:      "spell_vampirism",
+		name:    "Spell Vampirism",
+		trigger: EffectOnDamageDealt,
+		mechanics: []Mechanic{
+			{
+				MechanicType: "heal",
+				Params: map[string]interface{}{
+					"targeting_strategy": "caster",
+					"scaling_from_event": map[string]interface{}{
+						"event_field": "damage",
+						"factor":      healPercentage,
+					},
+				},
+			},
+		},
+	}
+}

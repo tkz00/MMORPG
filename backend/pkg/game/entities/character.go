@@ -499,26 +499,15 @@ func (c *Character) AddEffect(effect Effect) {
 	c.effects = append(c.effects, effect)
 }
 
-func (c *Character) TriggerEffects(t EffectTrigger, p map[string]interface{}, gs *GameState) {
+func (c *Character) TriggerEffects(trigger EffectTrigger, eventParams map[string]interface{}, gs *GameState) {
 	for _, effect := range c.effects {
-		if effect.trigger == t {
-			fmt.Printf("%s effect triggered\n", effect.name)
-			// fillParameters(effect, p)
-			for _, mechanic := range effect.mechanics {
-				if handler, exists := mechanicHandlers[mechanic.MechanicType]; exists {
-					resolveParameters(mechanic, c.id, gs)
-					fmt.Println(mechanic.Params)
-					if err := handler(c, gs, mechanic.Params); err != nil {
-						fmt.Println(err)
-					}
-				} else {
-					fmt.Printf("no handler found for effect type: %s\n", mechanic.MechanicType)
-				}
+		if effect.trigger == trigger {
+			// Inject event parameters into each mechanic before resolving
+			for i := range effect.mechanics {
+				effect.mechanics[i].Params["event_params"] = eventParams
 			}
+			// Reuse the existing mechanic resolution logic
+			resolveMechanics(c.id, gs, effect.mechanics)
 		}
 	}
 }
-
-// func fillParameters(effect Effect, p map[string]interface{}) {
-// 	panic("unimplemented")
-// }
