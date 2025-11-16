@@ -4,6 +4,7 @@ type EffectTrigger string
 
 const (
 	EffectPassive       EffectTrigger = "passive"
+	EffectOnKill        EffectTrigger = "on_kill"
 	EffectOnDamageDealt EffectTrigger = "on_damage_dealt"
 )
 
@@ -59,13 +60,13 @@ func NewSpellVampirismEffect(healPercentage float64) Effect {
 	}
 }
 
-// NewPassiveStatBoostEffect creates a passive effect that permanently increases a character's stat.
+// NewStatBoostOnKillEffect is an effect that permanently increases a character's stat when it kills a character.
 // Can provide either flatBonus (additive) or percentBonus (multiplicative) or both.
-func NewPassiveStatBoostEffect(id, name, statName string, flatBonus int64, percentBonus float64) Effect {
+func NewStatBoostOnKillEffect(id, name, statName string, flatBonus int64, percentBonus float64) Effect {
 	return Effect{
 		id:      id,
 		name:    name,
-		trigger: EffectPassive,
+		trigger: EffectOnKill,
 		mechanics: []Mechanic{
 			{
 				MechanicType: "buff_stat",

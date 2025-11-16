@@ -82,6 +82,9 @@ func HealMechanic(caster *Character, gs *GameState, params map[string]interface{
 	if !target.IsAlive() {
 		caster, _ := gs.GetCharacterById(caster.id)
 		caster.Loot(target.Inventory)
+		caster.TriggerEffects(EffectOnKill, map[string]interface{}{
+			"target": target,
+		}, gs)
 	}
 
 	if onHitMechanics, ok := params["on_hit_mechanics"]; ok {
@@ -131,6 +134,9 @@ func DamageMechanic(caster *Character, gs *GameState, params map[string]interfac
 	if !target.IsAlive() {
 		caster, _ := gs.GetCharacterById(caster.id)
 		caster.Loot(target.Inventory)
+		caster.TriggerEffects(EffectOnKill, map[string]interface{}{
+			"target": target,
+		}, gs)
 	}
 
 	if onHitMechanics, ok := params["on_hit_mechanics"]; ok {

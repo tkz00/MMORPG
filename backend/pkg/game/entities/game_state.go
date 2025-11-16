@@ -67,8 +67,8 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn, player *Character) {
 	gs.players[playerId] = player
 
 	// TODO: Remove these test effects once effects system is more mature
-	player.AddEffect(NewSpellVampirismEffect(0.1), gs)                                                    // 10% lifesteal on damage dealt
-	player.AddEffect(NewPassiveStatBoostEffect("strength_boost", "Strength Boost", "damage", 0, 0.1), gs) // 10% extra damage
+	player.AddEffect(NewSpellVampirismEffect(0.1), gs)                                 // 10% lifesteal on damage dealt
+	player.AddEffect(NewStatBoostOnKillEffect("feast", "Feast", "damage", 0, 0.1), gs) // 10% extra damage
 }
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {
