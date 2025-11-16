@@ -116,7 +116,7 @@ func CreateCharacter(
 		statModifications: []StatModification{},
 		executingAction:   ExecutingAction{Idle, *utils.NewVector2(0, 0), nil},
 		actionsQueue:      []CharacterAction{},
-		Inventory:         NewInventory(i, e),
+		Inventory:         NewInventory(i, nil),
 		abilities:         abilities,
 		lastUsed:          lastUsed,
 		CharacterLastTickState: &CharacterLastTickState{
@@ -125,6 +125,10 @@ func CreateCharacter(
 			Stats:                      make(map[string]int64),
 			EquippedItems:              make(map[string]bool),
 		},
+	}
+
+	for _, equipment := range e {
+		character.EquipItem(equipment.id)
 	}
 
 	// Initialize current stats with base stats
