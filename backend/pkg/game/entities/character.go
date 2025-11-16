@@ -498,20 +498,3 @@ func (c *Character) SetBaseStat(stat string, value int64) {
 	c.baseStats[stat] = value
 	c.recalculateStats()
 }
-
-func (c *Character) AddEffect(effect Effect) {
-	c.effects = append(c.effects, effect)
-}
-
-func (c *Character) TriggerEffects(trigger EffectTrigger, eventParams map[string]interface{}, gs *GameState) {
-	for _, effect := range c.effects {
-		if effect.trigger == trigger {
-			// Inject event parameters into each mechanic before resolving
-			for i := range effect.mechanics {
-				effect.mechanics[i].Params["event_params"] = eventParams
-			}
-			// Reuse the existing mechanic resolution logic
-			resolveMechanics(c.id, gs, effect.mechanics)
-		}
-	}
-}
