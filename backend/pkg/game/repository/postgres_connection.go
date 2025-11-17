@@ -52,7 +52,10 @@ func ConnectPostgres() error {
 	}
 
 	// Auto-create tables for DB models
-	if err := db.AutoMigrate(&CharacterDB{}); err != nil {
+	if err := db.AutoMigrate(
+		&CharacterDB{},
+		&EffectDB{},
+	); err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
 

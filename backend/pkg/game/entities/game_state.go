@@ -47,7 +47,7 @@ func StartGameState() *GameState {
 
 func (gs *GameState) SetUpSkeletonEnemies(skeletonEnemiesAbilities map[string]*Ability) {
 	stats := map[string]int64{"damage": 10, "defense": 10}
-	skeletonNPCTemplate := NewNPCTemplate("0", "skeleton", 50, stats, 12, skeletonEnemiesAbilities)
+	skeletonNPCTemplate := NewNPCTemplate("0", "skeleton", 50, stats, 12, skeletonEnemiesAbilities, []string{"cursed_blade"}) // cursed_blade doesn't have an effect since skeleton attack doesn't scale, has fixed damage
 
 	gs.spawners["skeleton_spawner_0"] = NewSpawner(
 		*utils.NewVector2(0, 15),
@@ -65,10 +65,6 @@ func (gs *GameState) AddPlayer(conn *websocket.Conn, player *Character) {
 	playerId := player.GetId()
 	gs.playerIds[conn] = playerId
 	gs.players[playerId] = player
-
-	// TODO: Remove these test effects once effects system is more mature
-	player.AddEffect(NewSpellVampirismEffect(0.1), gs)                                 // 10% lifesteal on damage dealt
-	player.AddEffect(NewStatBoostOnKillEffect("feast", "Feast", "damage", 0, 0.1), gs) // 10% extra damage
 }
 
 func (gs *GameState) DeletePlayer(conn *websocket.Conn) {

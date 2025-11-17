@@ -13,6 +13,7 @@ type NPCTemplate struct {
 	stats          map[string]int64
 	abilities      map[string]*Ability
 	aggroRange     float64
+	effects        []string
 }
 
 func NewNPCTemplate(
@@ -22,6 +23,7 @@ func NewNPCTemplate(
 	stats map[string]int64,
 	aggroRange float64,
 	abilities map[string]*Ability,
+	effects []string,
 ) NPCTemplate {
 	return NPCTemplate{
 		id:             id,
@@ -30,6 +32,7 @@ func NewNPCTemplate(
 		stats:          stats,
 		aggroRange:     aggroRange,
 		abilities:      abilities,
+		effects:        effects,
 	}
 }
 
@@ -54,7 +57,7 @@ func (npcTemplate NPCTemplate) NewNPC(
 		availableItems[randomIndex].id: availableItems[randomIndex].quantity,
 	}
 	return &Npc{
-		Character:         CreateCharacter(id, "TODO", x, z, npcTemplate.startingHealth, npcTemplate.startingHealth, npcTemplate.stats, npcTemplate.abilities, items, nil),
+		Character:         CreateCharacter(id, "TODO", x, z, npcTemplate.startingHealth, npcTemplate.startingHealth, npcTemplate.stats, npcTemplate.abilities, items, nil, npcTemplate.effects),
 		lastActionDecided: time.Now(),
 		spawnerPosition:   spawnerPosition,
 		state:             Pacific,

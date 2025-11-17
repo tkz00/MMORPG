@@ -75,7 +75,7 @@ type Character struct {
 	to                utils.Vector2
 	direction         utils.Vector2
 	actionsQueue      []CharacterAction
-	effects           []Effect
+	effects           []string
 
 	*Inventory
 
@@ -97,6 +97,7 @@ func CreateCharacter(
 	abilities map[string]*Ability,
 	i map[string]int64,
 	e map[EquipmentType]*Equipment,
+	characterEffects []string,
 ) *Character {
 	initialPosition := *utils.NewVector2(x, z)
 
@@ -125,6 +126,7 @@ func CreateCharacter(
 			Stats:                      make(map[string]int64),
 			EquippedItems:              make(map[string]bool),
 		},
+		effects: characterEffects,
 	}
 
 	for _, equipment := range e {
@@ -299,6 +301,10 @@ func (p Character) GetExecutingAction() ExecutingAction {
 
 func (p Character) GetAbilities() map[string]*Ability {
 	return p.abilities
+}
+
+func (c Character) Effects() []string {
+	return c.effects
 }
 
 func (character *Character) EnqueueAction(action CharacterAction) {

@@ -11,8 +11,6 @@ import (
 	"gorm.io/gorm"
 )
 
-const CharactersFileName = "characters.json"
-
 type CharacterDB struct {
 	Id            string `gorm:"primaryKey"`
 	CharacterName string
@@ -24,6 +22,7 @@ type CharacterDB struct {
 	Items         ItemsMap       `gorm:"type:jsonb"`
 	Equipped      EquipmentMap   `gorm:"type:jsonb"`
 	Abilities     pq.StringArray `gorm:"type:text[]"`
+	Effects       pq.StringArray `gorm:"type:text[]"`
 
 	gorm.Model
 }
@@ -51,6 +50,7 @@ func GetCharacterByName(characterName string) (*entities.Character, error) {
 		lo.MapEntries(repoCharacter.Equipped, func(k string, v string) (entities.EquipmentType, *entities.Equipment) {
 			return entities.EquipmentType(k), entities.GetEquipment(v)
 		}),
+		repoCharacter.Effects,
 	)
 
 	return character, nil
@@ -74,6 +74,7 @@ func FromEntity(c *entities.Character) (*CharacterDB, error) {
 		Abilities:     lo.Keys(c.GetAbilities()),
 		X:             x,
 		Z:             z,
+		Effects:       c.Effects(),
 	}, nil
 }
 
