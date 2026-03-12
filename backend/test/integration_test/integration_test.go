@@ -18,7 +18,7 @@ import (
 	"github.com/samber/lo"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
-	"golang.org/x/net/websocket"
+	"github.com/gorilla/websocket"
 )
 
 // ----------------------
@@ -149,15 +149,14 @@ func TestIntegrationSuite(t *testing.T) {
 func (suite *ServerTestSuite) testDuplicateCharacterConnection() {
 	url := "ws://localhost:3009/ws?character=barbarian"
 
-	conn2, err := websocket.Dial(url, "", "http://localhost/")
+	conn2, _, err := websocket.DefaultDialer.Dial(url, nil)
 	assert.NoError(suite.T(), err, "second client should connect initially")
 	defer conn2.Close()
 
-	buf := make([]byte, 512)
-	n, err := conn2.Read(buf)
+	_, data, err := conn2.ReadMessage()
 	assert.NoError(suite.T(), err, "should read close/error message")
 
-	assert.Contains(suite.T(), string(buf[:n]), "character already in use")
+	assert.Contains(suite.T(), string(data), "character already in use")
 }
 
 func (suite *ServerTestSuite) testProjectileDamagesTarget() {
@@ -418,7 +417,7 @@ type TestClient struct {
 
 func connectClient(characterID string) *TestClient {
 	url := fmt.Sprintf("ws://localhost:3009/ws?character=%s", characterID)
-	conn, err := websocket.Dial(url, "", "http://localhost/")
+	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
 		panic(fmt.Sprintf("failed to connect %s: %v", characterID, err))
 	}
@@ -432,14 +431,13 @@ func connectClient(characterID string) *TestClient {
 	// Reader goroutine
 	go func() {
 		defer close(client.MsgChan)
-		buf := make([]byte, 8192)
 		for {
-			n, err := conn.Read(buf)
+			_, buf, err := conn.ReadMessage()
 			if err != nil {
 				return
 			}
 			var msg WSMessage
-			if err := json.Unmarshal(buf[:n], &msg); err == nil {
+			if err := json.Unmarshal(buf, &msg); err == nil {
 				// Capture character ID from first Player message
 				if msg.ActionType == "Player" && client.CharacterID == "" {
 					if id, ok := msg.Body["id"].(string); ok {
@@ -460,8 +458,7 @@ func (c *TestClient) Send(actionType string, body any) error {
 		"body":       body,
 	}
 	data, _ := json.Marshal(msg)
-	_, err := c.Conn.Write(data)
-	return err
+	return c.Conn.WriteMessage(websocket.TextMessage, data)
 }
 
 func (c *TestClient) Close() { c.Conn.Close() }
