@@ -14,45 +14,83 @@ import (
 	"backend/pkg/game/gameplay"
 	"backend/pkg/utils"
 
+	"github.com/gorilla/websocket"
 	"github.com/samber/lo"
-	"golang.org/x/net/websocket"
 )
+
+// connWriter serializes writes to a single WebSocket connection.
+// gorilla/websocket connections do not support concurrent writes;
+// this type ensures all sends go through a single dedicated goroutine.
+type connWriter struct {
+	ch chan []byte
+}
+
+func newConnWriter(conn *websocket.Conn) *connWriter {
+	cw := &connWriter{ch: make(chan []byte, 256)}
+	go func() {
+		for msg := range cw.ch {
+			if err := conn.WriteMessage(websocket.BinaryMessage, msg); err != nil {
+				return
+			}
+		}
+	}()
+	return cw
+}
+
+func (cw *connWriter) send(data []byte) {
+	select {
+	case cw.ch <- data:
+	default:
+		log.Println("Warning: send buffer full, dropping message")
+	}
+}
+
+type addClientReply struct {
+	err    error
+	writer *connWriter
+}
 
 type AddClientData struct {
 	Client    *websocket.Conn
 	Character string
-	Reply     chan error
+	Reply     chan addClientReply
 }
 
 type NativeServer struct {
-	clients             map[*websocket.Conn]bool
+	clients             map[*websocket.Conn]*connWriter
 	connectedCharacters map[*websocket.Conn]string
 	addClient           chan AddClientData
 	removeClient        chan *websocket.Conn
 	tick                chan float64
 	gameState           *entities.GameState
+	upgrader            websocket.Upgrader
 }
 
 func NewServer() *NativeServer {
 	gamestate := gameplay.StartGameState()
 
 	return &NativeServer{
-		clients:             make(map[*websocket.Conn]bool),
+		clients:             make(map[*websocket.Conn]*connWriter),
 		connectedCharacters: make(map[*websocket.Conn]string),
 		addClient:           make(chan AddClientData),
 		removeClient:        make(chan *websocket.Conn),
 		tick:                make(chan float64),
 		gameState:           gamestate,
+		upgrader: websocket.Upgrader{
+			CheckOrigin: func(r *http.Request) bool { return true },
+		},
 	}
 }
 
 func (ws NativeServer) StartConnection(port string) {
-	http.Handle("/ws", websocket.Handler(ws.handleWebSocket))
+	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
+		ws.handleWebSocket(w, r)
+	})
 	go ws.gameLoop()
 	go ws.tickLoop()
 
-	log.Println("WebSocket server running on :" + port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Println("WebSocket server running on 127.0.0.1:" + port)
+	log.Fatal(http.ListenAndServe("127.0.0.1:"+port, nil))
 }
 
 func (server *NativeServer) gameLoop() {
@@ -61,38 +99,37 @@ func (server *NativeServer) gameLoop() {
 		case clientData := <-server.addClient:
 			if lo.Contains(lo.Values(server.connectedCharacters), clientData.Character) {
 				log.Println("Error, character already in use")
-				clientData.Reply <- errors.New("character already in use")
+				clientData.Reply <- addClientReply{err: errors.New("character already in use")}
 				continue
 			}
 			player := gameplay.AddPlayer(server.gameState, clientData.Client, clientData.Character)
 			server.connectedCharacters[clientData.Client] = clientData.Character
-			clientData.Reply <- nil
+
+			writer := newConnWriter(clientData.Client)
+
+			response := CreateWebSocketResponse(dtos.CharacterToDTO(player))
+			writer.send(response.Serialize())
+
+			// Send initial game state to new client
+			gameStateDTO := dtos.GameStateToDTO(*server.gameState)
+			webSocketResponse := CreateWebSocketResponse(gameStateDTO)
+			writer.send(webSocketResponse.Serialize())
+
+			// Add to broadcast set only after initial messages are queued so the
+			// client receives them in order before any tick updates.
+			server.clients[clientData.Client] = writer
+			clientData.Reply <- addClientReply{writer: writer}
 			log.Println("Client connected", clientData.Client.RemoteAddr())
 
-			go func() {
-				response := CreateWebSocketResponse(dtos.CharacterToDTO(player))
-				message := response.Serialize()
-				err := websocket.Message.Send(clientData.Client, message)
-				if err != nil {
-					log.Println("Error broadcasting character message:", err)
-					return
-				}
-
-				// Send initial gamestate to client
-				gameStateDTO := dtos.GameStateToDTO(*server.gameState)
-				webSocketResponse := CreateWebSocketResponse(gameStateDTO)
-				if err := websocket.Message.Send(clientData.Client, webSocketResponse.Serialize()); err != nil {
-					log.Println("Error broadcasting initial message:", err)
-					return
-				}
-
-				server.clients[clientData.Client] = true
-			}()
 		case client := <-server.removeClient:
-			delete(server.clients, client)
+			if writer, ok := server.clients[client]; ok {
+				close(writer.ch)
+				delete(server.clients, client)
+			}
 			delete(server.connectedCharacters, client)
 			server.gameState.DeletePlayer(client)
 			log.Println("Client disconnected", client.RemoteAddr())
+
 		case deltaTime := <-server.tick:
 			gameplay.UpdateState(server.gameState, deltaTime)
 
@@ -100,19 +137,13 @@ func (server *NativeServer) gameLoop() {
 			webSocketResponse := CreateWebSocketResponse(gameStateDTO)
 			message := webSocketResponse.Serialize()
 
-			for client := range server.clients {
-				err := websocket.Message.Send(client, message)
-				if err != nil {
-					log.Println("Error broadcasting tick message:", err)
-					return
-				}
+			for _, writer := range server.clients {
+				writer.send(message)
 			}
 		}
 	}
 }
 
-// the broadcast function should just broadcast, the updating of the state should be handled somewhere else
-// actually, native server shouldn't know anything about game state, it should only receive messages that it should send to the clients, but how then would client that connect to the server be convereted to players?
 func (server *NativeServer) tickLoop() {
 	ticker := time.NewTicker(config.TICKER_TIME)
 	defer ticker.Stop()
@@ -126,30 +157,39 @@ func (server *NativeServer) tickLoop() {
 	}
 }
 
-func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
-	// Get query parameter "character"
-	character := conn.Request().URL.Query().Get("character")
+func (server *NativeServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	character := r.URL.Query().Get("character")
 
-	reply := make(chan error)
-	server.addClient <- AddClientData{conn, character, reply}
+	conn, err := server.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("Error upgrading connection:", err)
+		return
+	}
 
-	if <-reply != nil {
+	reply := make(chan addClientReply)
+	server.addClient <- AddClientData{Client: conn, Character: character, Reply: reply}
+
+	result := <-reply
+	if result.err != nil {
 		errMsg := map[string]string{"error": "character already in use"}
 		data, _ := json.Marshal(errMsg)
-		conn.Write(data)
+		if err := conn.WriteMessage(websocket.BinaryMessage, data); err != nil {
+			log.Println("Error sending rejection message:", err)
+		}
 		conn.Close()
 		return
 	}
+
+	writer := result.writer
 
 	defer func() {
 		conn.Close()
 		server.removeClient <- conn
 	}()
 	for {
-		var data []byte
-		err := websocket.Message.Receive(conn, &data)
+		_, data, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("Error reading message from client: ", err, &conn)
+			log.Println("Error reading message from client: ", err, conn.RemoteAddr())
 			break
 		}
 
@@ -165,7 +205,7 @@ func (server *NativeServer) handleWebSocket(conn *websocket.Conn) {
 		case "ability_cast":
 			server.handleAbilityCast(conn, message.Body.(dtos.AbilityCastDTO))
 		case "respawn":
-			server.handleRespawn(conn)
+			server.handleRespawn(conn, writer)
 		case "use_item":
 			server.handleUseItem(conn, message.Body.(dtos.UseItemDTO))
 		case "equip_item":
@@ -228,7 +268,7 @@ func (server *NativeServer) handleAbilityCast(
 	player.EnqueueAbilityCastAction(abilityCastDTO.Id, castParameters)
 }
 
-func (server *NativeServer) handleRespawn(client *websocket.Conn) {
+func (server *NativeServer) handleRespawn(client *websocket.Conn, writer *connWriter) {
 	player := server.gameState.GetPlayerByConn(client)
 	if !player.IsAlive() {
 		player.HealthVariation(player.GetMaxHealth())
@@ -236,8 +276,7 @@ func (server *NativeServer) handleRespawn(client *websocket.Conn) {
 		player.SetPosition(*utils.NewVector2(0, 0))
 		response := CreateWebSocketResponse(dtos.CharacterToDTO(*player))
 		response.ActionType = "respawn"
-		message := response.Serialize()
-		websocket.Message.Send(client, message)
+		writer.send(response.Serialize())
 	}
 }
 
