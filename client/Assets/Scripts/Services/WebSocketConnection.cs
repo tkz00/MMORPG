@@ -11,7 +11,7 @@ using UnityEditor;
 public static class WebSocketConnection
 {
     static ClientWebSocket webSocket;
-    static String URL = "ws://localhost:3009/ws";
+    static String URL = "ws://127.0.0.1:3009/ws";
     static Dictionary<string, Delegate> _responseHandlers = new Dictionary<string, Delegate>();
     public static bool IsConnected { get { return webSocket.State == WebSocketState.Open; } }
 
@@ -113,7 +113,7 @@ public static class WebSocketConnection
             }
             else
             {
-                Debug.LogError("Message from server is not text");
+                Debug.LogError("Message from server is not binary");
             }
         }
     }
