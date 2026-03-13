@@ -73,5 +73,21 @@ Messages are JSON with shape `{ "actionType": string, "body": object }`.
 ### Persistence
 Characters are saved to PostgreSQL every 5 seconds via a background goroutine in `gameplay/game_loop.go::saveGameState()`. New characters are created on first connection using their `character` query parameter as the name/ID.
 
+### Effects / Perks system
+
+Effects (perks) are passive modifications on characters defined in `pkg/game/entities/effect.go::ExistingEffects`. Each effect has a **trigger** and a list of **Mechanics** that fire when the trigger condition is met:
+
+| Trigger | When it fires |
+|---|---|
+| `EffectPassive` | Once, when the effect is first added to a character |
+| `EffectOnKill` | Each time the character kills another character |
+| `EffectOnDamageDealt` | Each time the character deals damage |
+
+When an effect fires, `TriggerEffects` injects `source_effect_id` into each mechanic's params before calling `resolveMechanics`. `BuffStatMechanic` reads this to tag the resulting `StatModification` with `Source = "effect:<id>"` (e.g. `"effect:iron_will"`), which is how accumulated perk state is attributed back to its source effect.
+
+**Persistence** — perk state is stored in the `character_perks` table (`pkg/game/repository/characters.go::CharacterPerkDB`) with a composite primary key `(character_id, perk_id)` and a JSONB `state` column holding the list of accumulated stat modification entries. On save, `SaveCharacterPerks` groups permanent `StatModification`s by their source effect and upserts a row per perk. On load, `GetCharacterByName` restores those modifications before returning the character. This means `iron_will` kill stacks and similar accumulated bonuses survive disconnects.
+
+**Adding a new effect:** define it in `ExistingEffects` using one of the constructor helpers (`NewStatBoostOnKillEffect`, `NewPassiveStatBoostEffect`, etc.) or `CreateEffect` directly. No DB migration is needed — the `character_perks` table is generic.
+
 ### Diff-based game state updates
 Inventory diffs are already implemented; full game state currently sends all data each tick. The pattern in `api/dtos/mapper.go` is the place to implement further diff logic.
