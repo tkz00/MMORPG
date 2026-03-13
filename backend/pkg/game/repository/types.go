@@ -62,3 +62,23 @@ func (m *MechanicsList) Scan(value interface{}) error {
 	}
 	return json.Unmarshal(b, m)
 }
+
+type PerkStateEntry struct {
+	StatName     string  `json:"stat_name"`
+	FlatValue    int64   `json:"flat_value"`
+	PercentValue float64 `json:"percent_value"`
+}
+
+type PerkStateList []PerkStateEntry
+
+func (p PerkStateList) Value() (driver.Value, error) {
+	return json.Marshal(p)
+}
+
+func (p *PerkStateList) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to scan PerkStateList: %v", value)
+	}
+	return json.Unmarshal(b, p)
+}

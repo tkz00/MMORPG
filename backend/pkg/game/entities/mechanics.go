@@ -271,12 +271,17 @@ func BuffStatMechanic(caster *Character, gs *GameState, params map[string]interf
 		expiresAt = &expirationTime
 	}
 
+	source := "buff"
+	if effectId, ok := params["source_effect_id"].(string); ok && effectId != "" {
+		source = "effect:" + effectId
+	}
+
 	mod := StatModification{
 		ID:           modID,
 		StatName:     statName,
 		FlatValue:    flatValue,
 		PercentValue: percentValue,
-		Source:       "buff",
+		Source:       source,
 		ExpiresAt:    expiresAt,
 	}
 

@@ -55,6 +55,7 @@ func ConnectPostgres() error {
 	if err := db.AutoMigrate(
 		&CharacterDB{},
 		&EffectDB{},
+		&CharacterPerkDB{},
 	); err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}

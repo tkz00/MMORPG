@@ -53,6 +53,9 @@ func (c *Character) AddEffect(effectId string, gs *GameState) {
 
 	// Apply passive effects immediately through the normal mechanic flow
 	if effect, ok := ExistingEffects[effectId]; ok && effect.trigger == EffectPassive {
+		for i := range effect.mechanics {
+			effect.mechanics[i].Params["source_effect_id"] = effectId
+		}
 		resolveMechanics(c.id, gs, effect.mechanics)
 		return
 	}
@@ -65,9 +68,10 @@ func (c *Character) TriggerEffects(trigger EffectTrigger, eventParams map[string
 			fmt.Printf("Error, tried to execute effect %s, not found in existing effects\n", effectId)
 		}
 		if ExistingEffects[effectId].trigger == trigger {
-			// Inject event parameters into each mechanic before resolving
+			// Inject event parameters and source effect ID into each mechanic before resolving
 			for i := range ExistingEffects[effectId].mechanics {
 				ExistingEffects[effectId].mechanics[i].Params["event_params"] = eventParams
+				ExistingEffects[effectId].mechanics[i].Params["source_effect_id"] = effectId
 			}
 			// Reuse the existing mechanic resolution logic
 			resolveMechanics(c.id, gs, ExistingEffects[effectId].mechanics)

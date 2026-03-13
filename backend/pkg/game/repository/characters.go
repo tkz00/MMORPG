@@ -3,12 +3,14 @@ package repository
 import (
 	"backend/api/dtos"
 	"backend/pkg/game/entities"
+	"fmt"
 	"slices"
 	"strings"
 
 	"github.com/lib/pq"
 	"github.com/samber/lo"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type CharacterDB struct {
@@ -29,6 +31,16 @@ type CharacterDB struct {
 
 func (CharacterDB) TableName() string {
 	return "characters"
+}
+
+type CharacterPerkDB struct {
+	CharacterID string        `gorm:"primaryKey"`
+	PerkID      string        `gorm:"primaryKey"`
+	State       PerkStateList `gorm:"type:jsonb"`
+}
+
+func (CharacterPerkDB) TableName() string {
+	return "character_perks"
 }
 
 func GetCharacterByName(characterName string) (*entities.Character, error) {
@@ -52,6 +64,24 @@ func GetCharacterByName(characterName string) (*entities.Character, error) {
 		}),
 		repoCharacter.Effects,
 	)
+
+	var perkRows []CharacterPerkDB
+	if err := DB.Where("character_id = ?", repoCharacter.Id).Find(&perkRows).Error; err != nil {
+		return nil, err
+	}
+	for _, row := range perkRows {
+		for i, entry := range row.State {
+			mod := entities.StatModification{
+				ID:           fmt.Sprintf("effect_%s_%s_%d", row.PerkID, entry.StatName, i),
+				StatName:     entry.StatName,
+				FlatValue:    entry.FlatValue,
+				PercentValue: entry.PercentValue,
+				Source:       "effect:" + row.PerkID,
+				ExpiresAt:    nil,
+			}
+			character.AddStatModification(mod)
+		}
+	}
 
 	return character, nil
 }
@@ -84,7 +114,38 @@ func SaveCharacter(c *entities.Character) error {
 		return err
 	}
 
-	return DB.Save(dbChar).Error
+	if err := DB.Save(dbChar).Error; err != nil {
+		return err
+	}
+
+	return SaveCharacterPerks(c)
+}
+
+func SaveCharacterPerks(c *entities.Character) error {
+	for _, effectId := range c.Effects() {
+		var entries PerkStateList
+		for _, mod := range c.GetStatModifications() {
+			if mod.Source == "effect:"+effectId && mod.ExpiresAt == nil {
+				entries = append(entries, PerkStateEntry{
+					StatName:     mod.StatName,
+					FlatValue:    mod.FlatValue,
+					PercentValue: mod.PercentValue,
+				})
+			}
+		}
+		perkDB := CharacterPerkDB{
+			CharacterID: c.GetId(),
+			PerkID:      effectId,
+			State:       entries,
+		}
+		if err := DB.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "character_id"}, {Name: "perk_id"}},
+			DoUpdates: clause.AssignmentColumns([]string{"state"}),
+		}).Create(&perkDB).Error; err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func GetAllCharacters() ([]dtos.CharacterDTO, error) {

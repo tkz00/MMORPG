@@ -307,6 +307,10 @@ func (c Character) Effects() []string {
 	return c.effects
 }
 
+func (c *Character) GetStatModifications() []StatModification {
+	return c.statModifications
+}
+
 func (character *Character) EnqueueAction(action CharacterAction) {
 	if character.IsAlive() {
 		character.actionsQueue = append(character.actionsQueue, action)
