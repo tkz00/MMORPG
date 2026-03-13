@@ -55,7 +55,7 @@ public class AuthenticationManager : MonoBehaviour
 
 public class CharactersHttpClient
 {
-    const string BACKEND_URL = "http://0.0.0.0:8081";
+    const string BACKEND_URL = "http://127.0.0.1:8081";
 
     public async Task<CharacterDTO[]> GetCharacters()
     {
