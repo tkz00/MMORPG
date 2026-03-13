@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"backend/pkg/game/entities"
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
@@ -46,4 +47,18 @@ func (s *EquipmentMap) Scan(value interface{}) error {
 		return fmt.Errorf("failed to scan EquipmentMap: %v", value)
 	}
 	return json.Unmarshal(b, s)
+}
+
+type MechanicsList []entities.Mechanic
+
+func (m MechanicsList) Value() (driver.Value, error) {
+	return json.Marshal(m)
+}
+
+func (m *MechanicsList) Scan(value interface{}) error {
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("failed to scan MechanicsList: %v", value)
+	}
+	return json.Unmarshal(b, m)
 }
